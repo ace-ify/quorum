@@ -16,14 +16,17 @@ class LLMClient:
         api_key: Optional[str] = None,
         base_url: Optional[str] = None,
         model: Optional[str] = None,
+        use_mock: bool = False,
     ):
         self.provider = (provider or os.getenv("LLM_PROVIDER") or "gemini").lower()
         self.api_key = api_key or os.getenv("GEMINI_API_KEY") or os.getenv("OPENAI_API_KEY")
         self.base_url = base_url or os.getenv("OPENAI_BASE_URL")
         self.model = model or os.getenv("GEMINI_MODEL") or os.getenv("OPENAI_MODEL") or "gemini-3.8-flash"
+        self.use_mock = use_mock or (self.provider == "mock")
 
         self._client = None
-        self._init_client()
+        if not self.use_mock:
+            self._init_client()
 
     def _init_client(self):
         if not self.api_key or self.api_key.startswith("your_"):
@@ -36,10 +39,10 @@ class LLMClient:
             if self.provider == "gemini":
                 # Google Gemini supports the OpenAI protocol directly
                 gemini_base = self.base_url or "https://generativelanguage.googleapis.com/v1beta/openai/"
-                self._client = AsyncOpenAI(api_key=self.api_key, base_url=gemini_base)
+                self._client = AsyncOpenAI(api_key=self.api_key, base_url=gemini_base, timeout=8.0)
             else:
                 # Standard OpenAI or FreeLLMAPI
-                self._client = AsyncOpenAI(api_key=self.api_key, base_url=self.base_url)
+                self._client = AsyncOpenAI(api_key=self.api_key, base_url=self.base_url, timeout=8.0)
         except Exception as e:
             print(f"[LLMClient] Could not initialize AsyncOpenAI: {e}. Falling back to mock generator.")
             self._client = None
@@ -71,6 +74,7 @@ class LLMClient:
                     messages=formatted_messages,
                     temperature=temperature,
                     max_tokens=max_tokens,
+                    timeout=8.0,
                 )
                 return resp.choices[0].message.content.strip()
             except Exception as e:

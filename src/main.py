@@ -42,7 +42,7 @@ def load_cast_config():
     with open(path, "r", encoding="utf-8") as f:
         return yaml.safe_load(f)
 
-async def run_simulation():
+async def run_simulation(use_online_llm: bool = False):
     console.print(Panel.fit(
         "[bold magenta]🏠 THE HOUSE IMPOSTER: AI REALITY SHOW[/bold magenta]\n"
         "[italic cyan]Powered by Switch AI's Server-Enforced Room Isolation[/italic cyan]",
@@ -51,7 +51,7 @@ async def run_simulation():
 
     cast_cfg = load_cast_config()
     switch_mock = MockSwitchClient(workspace_id="the-house-season-1")
-    llm = LLMClient()
+    llm = LLMClient() if use_online_llm else LLMClient(use_mock=True)
     budget_task = BudgetTask("config/tasks.yaml")
 
     # Terminal message printer hook
@@ -206,6 +206,8 @@ async def run_live():
 
     saboteur_ctrl = SaboteurController(housemates, force_saboteur_id="arthur")
 
+    human_name = os.getenv("HUMAN_USERNAME", "izigriss")
+
     coordinator = EpisodeCoordinator(
         switch_client=discord_client,
         host_agent=host,
@@ -213,26 +215,34 @@ async def run_live():
         saboteur_controller=saboteur_ctrl,
         budget_task=budget_task,
         human_player_id="human",
+        human_player_name=human_name,
         auto_pacing=True
     )
 
+    # Start live Discord Gateway listener for real-time human chat & votes
+    discord_client.start_gateway()
+    console.print("[bold green]✓ Live Discord Gateway Active: Listening for your messages in Discord![/bold green]")
     console.print(f"[bold green]✓ Live Episode Initialized! Saboteur:[/bold green] [bold red]{saboteur_ctrl.saboteur_name}[/bold red]")
-    console.print("[dim]Provisioning Discord channels and broadcasting live episode...[/dim]\n")
+    console.print(f"[italic cyan]👉 Jump into Discord server! Chat in #living-room and vote in #confession-human[/italic cyan]\n")
 
-    await coordinator.run_episode()
+    try:
+        await coordinator.run_episode()
+    finally:
+        await discord_client.close()
 
     console.print("\n[bold green]🎉 Live Discord Episode completed successfully![/bold green]\n")
 
 def main():
     parser = argparse.ArgumentParser(description="The House Imposter: AI Reality Show")
     parser.add_argument("--simulate", action="store_true", default=True, help="Run instant zero-dependency simulation")
-    parser.add_argument("--live", action="store_true", help="Connect to live Switch Gateway")
+    parser.add_argument("--live", action="store_true", help="Connect to live Switch Gateway & Discord")
+    parser.add_argument("--online", action="store_true", help="Use live LLM API calls in simulation mode")
     args = parser.parse_args()
 
     if args.live:
         asyncio.run(run_live())
     else:
-        asyncio.run(run_simulation())
+        asyncio.run(run_simulation(use_online_llm=args.online))
 
 if __name__ == "__main__":
     main()
