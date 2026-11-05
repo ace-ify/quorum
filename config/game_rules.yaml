@@ -1,0 +1,43 @@
+# Game Rules & Timing Configuration for "The House Imposter"
+
+general:
+  season: 1
+  episode: 1
+  title: "The House Imposter: AI Reality Show"
+  language: "en"
+
+rooms:
+  public:
+    - id: "living-room"
+      name: "living-room"
+      topic: "The main hall of The House. All public banter, task debates, and evictions occur here."
+  isolated_templates:
+    confession: "confession-{player}"
+    saboteur_den: "saboteur-den"
+    alliance: "alliance-{p1}-{p2}"
+    evicted_lounge: "evicted-lounge"
+
+phase_timers_seconds:
+  briefing: 30
+  task: 120
+  leak: 45
+  confession: 90
+  eviction: 60
+
+admin_commands:
+  enabled: true
+  prefix: "!"
+  commands:
+    next: "Advance immediately to the next phase."
+    leak: "Force The Big Voice to leak a secret confession quote into #living-room."
+    pause: "Pause phase timers."
+    resume: "Resume phase timers."
+    reset: "Reset game to Phase 1."
+    status: "Display current phase, budget status, and room memberships."
+
+llm:
+  provider: "gemini" # or "openai_compatible"
+  model: "gemini-2.0-flash"
+  temperature: 0.8
+  max_tokens: 300
+

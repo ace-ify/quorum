@@ -1,0 +1,97 @@
+# Task Configuration for "The House Imposter: AI Reality Show"
+
+current_task: "luxury_budget"
+
+tasks:
+  luxury_budget:
+    id: "luxury_budget"
+    name: "The 1,000-Point Luxury Budget Allocation"
+    description: >
+      The housemates are allocated 1,000 Luxury Points. They must collaboratively agree upon
+      a single basket of grocery and luxury items from the catalog. The submitted total must
+      not exceed 1,000 points and must contain at least three mandatory essentials.
+    budget_limit: 1000
+    min_essentials_required: 3
+    catalog:
+      - id: "flour_rice"
+        name: "Flour & Rice Bag"
+        category: "essential"
+        cost: 150
+        description: "Mandatory staple food for basic house survival."
+      - id: "lentils_dal"
+        name: "Lentils & Dal Pack"
+        category: "essential"
+        cost: 100
+        description: "Mandatory nutritious protein & carbohydrate staple."
+      - id: "oil_spices"
+        name: "Cooking Oil & Spices"
+        category: "essential"
+        cost: 100
+        description: "Mandatory seasoning and cooking base for all hot meals."
+      - id: "eggs_pack"
+        name: "Eggs (30-Pack)"
+        category: "essential_food"
+        cost: 120
+        description: "Vital breakfast food; heavily demanded by fitness buffs."
+      - id: "whey_protein"
+        name: "Whey Protein Tub"
+        category: "fitness"
+        cost: 250
+        description: "Premium protein supplement; Marcus's primary obsession."
+      - id: "imported_espresso"
+        name: "Imported Espresso Roast"
+        category: "luxury"
+        cost: 200
+        description: "High-grade coffee beans; Elena refuses to function without it."
+      - id: "wifi_pass"
+        name: "High-Speed Wi-Fi Pass (24h)"
+        category: "tech_luxury"
+        cost: 250
+        description: "Access to external digital feeds and statistics."
+      - id: "spa_salts"
+        name: "Luxury Spa & Bath Salts"
+        category: "comfort"
+        cost: 200
+        description: "Aesthetic relaxation kit; Maya demands this for stress relief."
+      - id: "gourmet_chocolate"
+        name: "Gourmet Chocolate Box"
+        category: "sweet"
+        cost: 150
+        description: "Indulgent luxury snack for late night cravings."
+      - id: "instant_noodles"
+        name: "Instant Cup Noodles (10x)"
+        category: "filler"
+        cost: 80
+        description: "Cheap late-night emergency food."
+      - id: "energy_drinks"
+        name: "Energy Drinks (6-Pack)"
+        category: "stimulant"
+        cost: 100
+        description: "Quick caffeine boost for task focus."
+      - id: "scented_candles"
+        name: "Premium Scented Candles"
+        category: "aesthetic"
+        cost: 100
+        description: "Relaxing ambiance; regarded by pragmatists as a complete waste."
+
+    saboteur_objectives:
+      - name: "The Budget Buster"
+        goal: "Manipulate the house into finalizing a list whose total cost exceeds 1,000 points."
+      - name: "The Starvation Gambit"
+        goal: "Quietly eliminate one of the mandatory essentials (Rice, Oil, or Dal) from the final submission."
+      - name: "The Greedy Frame"
+        goal: "Loudly advocate for an innocent housemate's luxury item so they get blamed when the budget fails."
+
+  press_release:
+    id: "press_release"
+    name: "The Crisis Press Statement"
+    description: >
+      Following a major house scandal, the housemates must collaboratively draft a 4-line
+      public relations statement explaining their unity and sportsmanship.
+    constraints:
+      max_sentences: 4
+      required_keywords: ["integrity", "unity", "dedication"]
+    saboteur_objectives:
+      - name: "The Toxic Gaffe"
+        goal: "Subtly slip in a contradicting or insulting line that ruins the public apology."
+
