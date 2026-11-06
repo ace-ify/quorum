@@ -17,3 +17,7 @@ env/
 .vscode/
 .idea/
 
+# Demo Video Recordings
+*.mp4
+
+

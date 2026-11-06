@@ -1,0 +1,29 @@
+1
+00:00:00,000 --> 00:00:15,000
+BlindCouncil: Multi-Agent Blind Architecture Review Desk (Track 01: Best Business Workflow)
+Powered by Switch AI — Eliminating LLM Sycophancy & Groupthink via Server-Enforced Room Isolation
+
+2
+00:00:16,000 --> 00:00:36,000
+Switch Console: Soundproof Isolated Chambers (#audit-security, #audit-scalability, #audit-finops)
+Specialists independently audit RFCs with zero packet leakage between chambers
+
+3
+00:00:37,000 --> 00:01:02,000
+Discord Integration: Human Lead in #review-desk submits RFC & steers trade-offs
+Delphi Blind Review: Specialists debate publicly only AFTER blind scorecards are locked
+
+4
+00:01:03,000 --> 00:01:38,000
+Delphi Review Engine: Athena detects hidden orthogonal tensions (Cost vs Latency vs Security)
+Switch Server-Enforced Proof: 12/12 socket pairs verified • 100% BLIND ISOLATION
+
+5
+00:01:39,000 --> 00:01:53,000
+Deliverables: Michael Nygard ADR.md + GitHub PR Review Sticky Comment
+Section 6: Implementation Manifest & Scaffolding Spec for Coding Agents
+
+6
+00:01:54,000 --> 00:02:00,000
+Autonomous Implementer Handoff (@ClaudeCode / @Codex): Scaffolded file matrix & verification
+Automated Test Suite: 5/5 Unit Tests Passed in 0.015s
