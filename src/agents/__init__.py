@@ -1,7 +1,5 @@
 from .base_agent import BaseAgent
-from .host_agent import HostAgent
-from .housemate import HousemateAgent
-from .saboteur import SaboteurController
+from .chair_agent import ChairAgent
+from .specialist import SpecialistAgent
 
-__all__ = ["BaseAgent", "HostAgent", "HousemateAgent", "SaboteurController"]
-
+__all__ = ["BaseAgent", "ChairAgent", "SpecialistAgent"]

@@ -1,9 +1,9 @@
-# 🏠 The House Imposter: AI Reality Show
+# 🏛️ BlindCouncil: Multi-Agent Blind Architecture & RFC Review Desk
 
-> **The world's first multi-agent social deduction reality show played inside Discord, powered by Switch's server-enforced room isolation.**  
-> *Bigg Boss meets Among Us in team chat.*
+> **The world's first multi-agent architecture review desk that eliminates LLM groupthink and sycophancy using Switch's server-enforced room isolation.**  
+> *Independent domain audits $\rightarrow$ Cross-specialist trade-off debate $\rightarrow$ Production-ready Architecture Decision Records (`ADR.md`).*
 
-[![Track](https://img.shields.io/badge/Track-02%20Best%20Personal%2FCreative%20Workflow-FF5722?style=for-the-badge)](https://www.wemakedevs.org/hackathons/switch)
+[![Track](https://img.shields.io/badge/Track-01%20Best%20Business%20Workflow-00B894?style=for-the-badge)](https://www.wemakedevs.org/hackathons/switch)
 [![Powered By](https://img.shields.io/badge/Powered%20By-Switch%20AI-6C5CE7?style=for-the-badge)](https://github.com/sandbox-quantum/switch)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue?style=for-the-badge)](LICENSE)
 
@@ -11,37 +11,34 @@
 
 ## 📺 2-Minute Demo Video
 
-🎥 **[Watch the 2-Minute Gameplay & Architecture Demo](https://youtu.be/placeholder)** *(Recorded in Discord with live autonomous housemates and human player)*
+🎥 **[Watch the 2-Minute BlindCouncil Demonstration](https://youtu.be/placeholder)**  
+*(Demonstrating simultaneous blind chamber audits, real-time trade-off conflict detection in Discord, and automated ADR publishing).*
 
 ---
 
-## 🌟 What is "The House Imposter"?
+## ⚡ The Problem: Why AI Architecture & Code Reviews Fail Today
 
-Imagine moving into a digital mansion with four distinct AI personalities:
-- **Marcus**: The protein-obsessed fitness fanatic who calls everyone out.
-- **Elena**: The sweet influencer whose smile hides ruthless political scheming.
-- **Arthur**: The cold, statistical analyst who calculates vote probabilities.
-- **Maya**: The melodramatic queen who turns grocery budgeting into an emotional crisis.
-- **The Big Voice**: The enigmatic, omniscient Host monitoring your every word.
+When developers paste an **RFC (Request for Comments)**, **System Design**, or **Infrastructure Spec** into ChatGPT or Claude, they run into two fatal problems:
 
-Together, the housemates must cooperate with you (the human player) to pass the weekly **1,000-Point Luxury Budget Task**. 
+1. **Superficial Single-Prompt Reviews:** A single prompt cannot deeply audit orthogonal engineering domains (security, distributed scale, and cloud economics) simultaneously.
+2. **The LLM Sycophancy & Groupthink Trap:** If you put multiple AI agents into a single shared chat channel, **they anchor on the first opinion posted**. If Agent 1 says *"Looks good to me!"*, Agent 2 and 3 praise the proposal and overlook critical $25k/year cloud waste or token session-hijacking holes.
 
-**The catch?** One of the housemates is secretly **The Saboteur (The Imposter)**, whose secret objective is to subtly bust the budget, drop essential rations, and frame innocent housemates during the weekend eviction ceremony!
+Real institutional engineering teams (Google, Amazon, Meta) solve this using the **Delphi Method**: specialists conduct **independent, blind evaluations without cross-contamination**, then meet to debate conflicting trade-offs.
 
 ---
 
-## ⚡ Why Switch is Indispensable ("The Switch Superpower")
+## 🛡️ Why Switch is Indispensable ("The Switch Superpower")
 
-Standard multi-agent frameworks (LangGraph, AutoGen, CrewAI) suffer from a fatal flaw when building social games: **there are no true secrets**. In flat group chats, all agents share the same prompt buffer or can inspect other agents' messages. An agent can only *pretend* not to know what someone said behind their back.
+Standard multi-agent frameworks (LangGraph, AutoGen, CrewAI) operate on shared event buses where every agent can inspect the global context. 
 
-**The House Imposter is architecturally impossible without Switch's Server-Enforced Room Isolation.**
+**BlindCouncil is architecturally impossible without Switch's Server-Enforced Room Isolation.**
 
-| Game Mechanic | Without Switch (Standard AI Group Chat) | With Switch ("The House Imposter") |
+| Feature | Without Switch (Flat AI Group Chat) | With Switch ("BlindCouncil") |
 | :--- | :--- | :--- |
-| **Confession Room** | Impossible. Every agent's prompt history leaks what was confessed. | **True Secrecy.** Switch enforces membership on every WebSocket subscription. Non-members never receive the network packets. |
-| **Secret Alliances** | Fake. Target agent has to be prompted with "please pretend you didn't see this message". | **Real Asymmetric Knowledge.** Two players can whisper in `#alliance-marcus-human`. The target has literally zero contextual bytes. |
-| **Saboteur Den** | Impossible. Imposter identity is exposed in the shared event stream. | **Isolated Mission Channel.** Only the Saboteur receives sabotage targets from The Big Voice. |
-| **The Dramatic Leak** | Flat text generation. | **Real intercepted evidence.** The Host intercepts raw text from an isolated channel and drops it into `#living-room` as a live bombshell. |
+| **Blind Chamber Isolation** | Impossible. Agents share memory buffers or channel history, causing LLM anchoring. | **Protocol-Enforced Blindness.** Switch verifies membership on every WebSocket event. `#audit-security` bytes are physically never sent to the FinOps or Scale agents. |
+| **Independent Scoring** | Biased. Later agents adjust their scores to match earlier agents. | **Pure Independent Rubrics.** Each specialist evaluates the RFC in isolation, locking their score into private Switch Room Documents. |
+| **Cross-Domain Conflict Detection** | Flat, generic compromises. | **Real Orthogonal Tensions.** The Chair reveals conflicting findings (e.g. Security's HSM encryption vs. FinOps' 400% budget breach) at `#review-desk`. |
+| **Human in the Loop** | Passive reader. | **Executive Lead.** The human architect negotiates and resolves trade-offs live in Discord, generating a formal `ADR.md`. |
 
 ---
 
@@ -49,100 +46,82 @@ Standard multi-agent frameworks (LangGraph, AutoGen, CrewAI) suffer from a fatal
 
 ```
                     ┌────────────────────────────────────────┐
-                    │          #living-room (Public)         │
-                    │  All Housemates + Human + Big Voice    │
+                    │          #review-desk (Public)         │
+                    │   Human Lead + Athena (Chair) + Council│
                     └───────────────────┬────────────────────┘
                                         │
          ┌──────────────────────────────┼──────────────────────────────┐
          ▼                              ▼                              ▼
 ┌──────────────────┐           ┌──────────────────┐           ┌──────────────────┐
-│ #confession-maya │           │  #saboteur-den   │           │ #alliance-arthur │
-│ (Maya + Host)    │           │ (Imposter + Host)│           │ (Arthur + Human) │
-│ Secret voting &  │           │ Secret sabotage  │           │ Secret scheming  │
-│ uncensored rants │           │ instructions     │           │ & vote plotting  │
+│ #audit-security  │           │#audit-scalability│           │  #audit-finops   │
+│ Aegis + Chair    │           │ Vanguard + Chair │           │  Ledger + Chair  │
+│ Threat modeling, │           │ Concurrency, p99 │           │ Cloud waste, AWS │
+│ OWASP & auth     │           │ latency & locks  │           │ pricing & ROI    │
 └──────────────────┘           └──────────────────┘           └──────────────────┘
 ```
 
 ---
 
-## 🔄 The 5-Phase Episode Loop
+## 🔄 The 5-Phase Delphi Review Lifecycle
 
-1. **Morning Briefing**: The Big Voice announces the **1,000-Point Luxury Budget Allocation Task** in `#living-room` and secretly pings the Saboteur inside `#saboteur-den`.
-2. **Task & Secret Scheming**: Housemates debate grocery staples vs luxury cravings in `#living-room` while secretly forming side alliances. The Saboteur subtly manipulates calculations.
-3. **The Big Voice's Dramatic Leak**: The Big Voice evaluates the submitted budget (mathematically verified). Then, at peak tension, The Big Voice leaks an intercepted quote from a private room into `#living-room`!
-4. **Confession Room Nominations**: Each housemate is summoned into their private `#confession-<name>` room to cast a secret eviction vote with uncensored justifications.
-5. **Weekend Eviction Ceremony**: The house gathers on the couch. The Big Voice reveals the votes, dramatically reveals whether the evicted housemate was Innocent or the Saboteur, and moves them to `#evicted-lounge`.
+1. **RFC Intake**: Human Lead submits an architectural proposal to `#review-desk`.
+2. **Isolated Blind Audits**: Switch spawns 3 isolated chambers (`#audit-security`, `#audit-scalability`, `#audit-finops`). Specialists independently review without context pollution.
+3. **Conflict Synthesis**: The Council Chair (`Athena`) aggregates the blind scorecards and detects cross-domain trade-off clashes.
+4. **Council Debate in `#review-desk`**: Blind findings are revealed publicly. Specialists debate tensions (Cost vs Security vs Latency) with the Human Lead.
+5. **ADR Generation & Sign-Off**: The Council compiles the consensus into an official Michael Nygard-standard **Architecture Decision Record (`ADR-042.md`)** committed to the repository!
 
 ---
 
 ## 🚀 Quickstart & Reproduction Guide
 
-We built The House Imposter with **Dual-Mode Architecture** so hackathon judges can verify and experience the game in seconds.
+We built BlindCouncil with **Dual-Mode Architecture** so hackathon judges can verify and experience the entire workflow in seconds.
 
-### Mode 1: Instant 30-Second Terminal Simulation (Judge Friendly)
-No Discord bot, no Docker, zero configuration required!
+### Mode 1: Instant 15-Second Terminal Simulation (Judge Friendly)
+Zero Docker, zero Discord bot, zero API configuration required!
 
 ```bash
 # 1. Clone repository
-git clone https://github.com/your-username/the-house-imposter.git
-cd the-house-imposter
+git clone https://github.com/your-username/blindcouncil.git
+cd blindcouncil
 
-# 2. Install dependencies
-pip install -r requirements.txt
-
-# 3. Configure API key
-cp .env.example .env
-# Add your GEMINI_API_KEY or OPENAI_API_KEY in .env
-
-# 4. Run instant simulation
+# 2. Run instant simulation
 python -m src.main --simulate
 ```
-*Observe the full 5-phase episode unfold in rich, colorized terminal output with true room-isolated memory logs.*
+*Observe the full 5-phase Delphi review, inspect the room isolation audit log, and view the generated `ADR-042_RealTime_Messaging.md`!*
 
 ---
 
-### Mode 2: Full Live Discord Experience with Switch
-To experience the game live in Discord with real webhooks and private channels:
+### Mode 2: Live Discord Integration with Switch
+Experience BlindCouncil live in Discord with real webhooks and private channels:
 
-1. **Start Switch Console / Server**:
-   Ensure Switch Gateway is running on `http://localhost:8080`.
-2. **Connect Discord**:
-   Follow Switch's Discord integration guide to add your bot with `Manage Channels`, `Manage Roles`, and `Manage Webhooks`.
-3. **Launch The House Engine**:
+1. **Configure `.env`**:
+   ```env
+   DISCORD_BOT_TOKEN=your_bot_token_here
+   DISCORD_GUILD_ID=your_guild_id_here
+   LLM_PROVIDER=gemini
+   GEMINI_API_KEY=your_gemini_api_key_here
+   ```
+2. **Launch BlindCouncil**:
    ```bash
    python -m src.main --live
    ```
-4. Jump into your Discord server's `#living-room` and start playing alongside the AI housemates!
+3. Open Discord, watch `#review-desk` convene, and guide the architectural decisions!
 
 ---
 
-## 🎮 Admin Commands for Video Recording
+## 🧪 Automated Test Suite
 
-When recording live demos or steering the pace, use these admin commands in `#living-room`:
-- `!next` — Instantly advance to the next phase (skip waiting for phase timers).
-- `!leak` — Force The Big Voice to immediately leak a confidential quote.
-- `!pause` / `!resume` — Pause or resume phase clocks.
-- `!reset` — Restart the episode from Phase 1.
+Run the built-in zero-dependency test suite:
 
----
-
-## 📂 Project Structure
-
+```bash
+python tests/run_tests.py
 ```
-├── PRD.md                  # Comprehensive Product Requirements Document
-├── ARCHITECTURE.md         # System design, state machine, sequence diagrams
-├── GAME_DESIGN.md          # Complete game rules, catalog, character profiles
-├── config/
-│   ├── cast.yaml           # YAML character archetypes, prompts, avatars
-│   ├── tasks.yaml          # 1,000-Point Budget catalog & sabotage objectives
-│   └── game_rules.yaml     # Room templates, phase timers, admin commands
-└── src/
-    ├── main.py             # CLI entrypoint (--live or --simulate)
-    ├── engine/             # State machine, turn controller, admin handler
-    ├── agents/             # The Big Voice, Housemate agents, Saboteur logic
-    ├── tasks/              # Budget task validator & receipt generator
-    ├── switch/             # Switch WS/REST client & local in-memory simulator
-    └── llm/                # Unified Gemini / OpenAI client
+```
+...
+----------------------------------------------------------------------
+Ran 3 tests in 0.004s
+
+OK (Verifying Room Isolation Guarantees, Conflict Detection, and ADR Generation)
 ```
 
 ---
@@ -150,4 +129,3 @@ When recording live demos or steering the pace, use these admin commands in `#li
 ## 👥 Authors & Acknowledgements
 
 Created for the **Flip the Switch Hackathon** (November 2026) powered by **Switch AI** and **WeMakeDevs**.
-

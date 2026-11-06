@@ -1,7 +1,7 @@
 """
-The House Imposter: AI Reality Show - Main Entrypoint
-Run with:
-  python -m src.main --simulate    # Instant 30s terminal simulation (Judge-friendly)
+BlindCouncil: Multi-Agent Blind Architecture & RFC Review Desk
+Main Entrypoint supporting:
+  python -m src.main --simulate    # Instant 15s terminal simulation with room isolation proof
   python -m src.main --live        # Live connection to Switch Gateway & Discord
 """
 import sys
@@ -23,217 +23,216 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
-from .tasks.budget_task import BudgetTask
+from .review.models import RFCProposal
 from .llm.client import LLMClient
 from .switch.mock_client import MockSwitchClient
-from .switch.client import SwitchLiveClient
 from .switch.discord_client import DiscordLiveClient
-from .agents.host_agent import HostAgent
-from .agents.housemate import HousemateAgent
-from .agents.saboteur import SaboteurController
-from .engine.coordinator import EpisodeCoordinator
+from .agents.chair_agent import ChairAgent
+from .agents.specialist import SpecialistAgent
+from .engine.council_coordinator import CouncilCoordinator
 
-console = Console()
+console = Console(highlight=False)
 
-def load_cast_config():
-    path = Path("config/cast.yaml")
+def load_specialists_config():
+    path = Path("config/specialists.yaml")
     if not path.exists():
-        path = Path(__file__).parent.parent / "config" / "cast.yaml"
+        path = Path(__file__).parent.parent / "config" / "specialists.yaml"
     with open(path, "r", encoding="utf-8") as f:
         return yaml.safe_load(f)
 
+def load_sample_rfc() -> RFCProposal:
+    path = Path("config/sample_rfcs/rfc_001_realtime_chat_architecture.md")
+    if not path.exists():
+        path = Path(__file__).parent.parent / "config" / "sample_rfcs" / "rfc_001_realtime_chat_architecture.md"
+    with open(path, "r", encoding="utf-8") as f:
+        content = f.read()
+    return RFCProposal(
+        rfc_id="RFC-042",
+        title="RFC-042: Real-Time Messaging & Event Streaming Architecture",
+        author="Staff Platform Engineer",
+        content=content,
+        target_traffic="100,000 Concurrent WebSockets (25,000 msg/sec)"
+    )
+
 async def run_simulation(use_online_llm: bool = False):
     console.print(Panel.fit(
-        "[bold magenta]🏠 THE HOUSE IMPOSTER: AI REALITY SHOW[/bold magenta]\n"
-        "[italic cyan]Powered by Switch AI's Server-Enforced Room Isolation[/italic cyan]",
-        border_style="magenta"
+        "[bold cyan]🏛️ BLINDCOUNCIL: MULTI-AGENT BLIND ARCHITECTURE REVIEW DESK[/bold cyan]\n"
+        "[italic magenta]Powered by Switch AI's Server-Enforced Room Isolation[/italic magenta]",
+        border_style="cyan"
     ))
 
-    cast_cfg = load_cast_config()
-    switch_mock = MockSwitchClient(workspace_id="the-house-season-1")
+    spec_cfg = load_specialists_config()
+    rfc = load_sample_rfc()
+    switch_mock = MockSwitchClient(workspace_id="blindcouncil-eng")
     llm = LLMClient() if use_online_llm else LLMClient(use_mock=True)
-    budget_task = BudgetTask("config/tasks.yaml")
 
-    # Terminal message printer hook
+    # Terminal printer hook
     async def log_event_to_terminal(event: dict):
         room = event.get("room_id", "unknown")
         sender = event.get("sender_id", "system")
         content = event.get("content", "")
 
         color = "white"
-        if sender == "host":
+        if sender == "chair":
             color = "bold yellow"
-        elif sender == "marcus":
+        elif sender == "security":
             color = "bold red"
-        elif sender == "elena":
-            color = "bold green"
-        elif sender == "arthur":
+        elif sender == "scalability":
             color = "bold blue"
-        elif sender == "maya":
-            color = "bold magenta"
+        elif sender == "finops":
+            color = "bold green"
 
         tag = f"[{room.upper()}]"
-        console.print(f"[dim]{tag:<22}[/dim] [{color}]{sender.upper()}:[/{color}] {content}\n")
+        console.print(f"[dim]{tag:<24}[/dim] [{color}]{sender.upper()}:[/{color}] {content}\n")
 
-    # Host Agent
-    host_cfg = cast_cfg["host"]
-    host = HostAgent(
-        agent_id=host_cfg["id"],
-        name=host_cfg["name"],
-        system_prompt=host_cfg["system_prompt"],
+    # Chair Agent
+    chair_cfg = spec_cfg["chair"]
+    chair = ChairAgent(
+        agent_id=chair_cfg["id"],
+        name=chair_cfg["name"],
+        system_prompt=chair_cfg["system_prompt"],
         switch_client=switch_mock,
         llm_client=llm,
-        budget_task=budget_task,
-        avatar_url=host_cfg.get("avatar_url")
+        avatar_url=chair_cfg.get("avatar_url")
     )
-    await switch_mock.register_agent(host.agent_id, host.on_event_received)
-    await switch_mock.register_agent(host.agent_id, log_event_to_terminal)
+    await switch_mock.register_agent(chair.agent_id, chair.on_event_received)
+    await switch_mock.register_agent(chair.agent_id, log_event_to_terminal)
 
-    # Housemates
-    housemates = []
-    for h_cfg in cast_cfg["housemates"]:
-        hm = HousemateAgent(
-            agent_id=h_cfg["id"],
-            name=h_cfg["name"],
-            archetype=h_cfg["archetype"],
-            system_prompt=h_cfg["system_prompt"],
+    # Specialists
+    specialists = []
+    for s_cfg in spec_cfg["specialists"]:
+        s = SpecialistAgent(
+            agent_id=s_cfg["id"],
+            name=s_cfg["name"],
+            title=s_cfg["title"],
+            dimension=s_cfg["dimension"],
+            system_prompt=s_cfg["system_prompt"],
             switch_client=switch_mock,
             llm_client=llm,
-            obsessions=h_cfg.get("obsessions"),
-            catchphrases=h_cfg.get("catchphrases"),
-            avatar_url=h_cfg.get("avatar_url")
+            avatar_url=s_cfg.get("avatar_url")
         )
-        await switch_mock.register_agent(hm.agent_id, hm.on_event_received)
-        housemates.append(hm)
+        await switch_mock.register_agent(s.agent_id, s.on_event_received)
+        specialists.append(s)
 
-    # Saboteur Controller (secretly picks or forces Arthur / Elena)
-    saboteur_ctrl = SaboteurController(housemates, force_saboteur_id="arthur")
-
-    coordinator = EpisodeCoordinator(
+    coordinator = CouncilCoordinator(
         switch_client=switch_mock,
-        host_agent=host,
-        housemates=housemates,
-        saboteur_controller=saboteur_ctrl,
-        budget_task=budget_task,
+        chair_agent=chair,
+        specialists=specialists,
+        rfc_proposal=rfc,
         human_player_id="human",
+        human_player_name="LeadArchitect",
         auto_pacing=False
     )
 
-    console.print(f"[bold green]✓ Episode initialized with Saboteur:[/bold green] [bold red]{saboteur_ctrl.saboteur_name}[/bold red]")
-    console.print("[dim]Starting 5-Phase Reality Episode...[/dim]\n")
+    console.print(f"[bold green]✓ Review Initialized for Proposal:[/bold green] [bold cyan]{rfc.title}[/bold cyan]")
+    console.print("[dim]Executing 5-Phase Delphi Blind Review Lifecycle...[/dim]\n")
 
-    await coordinator.run_episode()
+    await coordinator.run_review()
 
     # Verify & display Room-Level Isolation Proof
     table = Table(title="🛡️ Switch Server-Enforced Room Isolation Audit Log", style="cyan")
-    table.add_column("Agent", style="bold")
-    table.add_column("Target Isolated Room", style="yellow")
+    table.add_column("Specialist", style="bold")
+    table.add_column("Target Isolated Chamber", style="yellow")
     table.add_column("Packets Received", justify="center")
-    table.add_column("Isolation Status", style="bold green")
+    table.add_column("Blind Isolation Status", style="bold green")
 
-    # Marcus should NEVER see Elena's confession or Saboteur Den
-    m_conf = switch_mock.verify_isolation("marcus", "confession-elena")
-    table.add_row("Marcus", "#confession-elena", "0", "✅ 100% ISOLATED" if m_conf else "❌ LEAKED")
+    # Aegis must NEVER receive Vanguard's or Ledger's packets during blind audit
+    sec_scale = switch_mock.verify_isolation("security", "audit-scalability")
+    table.add_row("Aegis (Security)", "#audit-scalability", "0", "✅ 100% BLIND ISOLATION" if sec_scale else "❌ LEAKED")
 
-    # Maya should NEVER see Arthur's confession
-    maya_conf = switch_mock.verify_isolation("maya", "confession-arthur")
-    table.add_row("Maya", "#confession-arthur", "0", "✅ 100% ISOLATED" if maya_conf else "❌ LEAKED")
+    sec_fin = switch_mock.verify_isolation("security", "audit-finops")
+    table.add_row("Aegis (Security)", "#audit-finops", "0", "✅ 100% BLIND ISOLATION" if sec_fin else "❌ LEAKED")
 
-    # Elena should NEVER see the Saboteur Den
-    elena_sab = switch_mock.verify_isolation("elena", "saboteur-den")
-    table.add_row("Elena", "#saboteur-den", "0", "✅ 100% ISOLATED" if elena_sab else "❌ LEAKED")
+    # Vanguard must NEVER receive Aegis's packets
+    scale_sec = switch_mock.verify_isolation("scalability", "audit-security")
+    table.add_row("Vanguard (Scale)", "#audit-security", "0", "✅ 100% BLIND ISOLATION" if scale_sec else "❌ LEAKED")
 
-    # Marcus should NEVER see the Saboteur Den
-    marcus_sab = switch_mock.verify_isolation("marcus", "saboteur-den")
-    table.add_row("Marcus", "#saboteur-den", "0", "✅ 100% ISOLATED" if marcus_sab else "❌ LEAKED")
+    # Ledger must NEVER receive Aegis's packets
+    fin_sec = switch_mock.verify_isolation("finops", "audit-security")
+    table.add_row("Ledger (FinOps)", "#audit-security", "0", "✅ 100% BLIND ISOLATION" if fin_sec else "❌ LEAKED")
 
     console.print("\n")
     console.print(table)
-    console.print("\n[bold green]🎉 Episode completed successfully with zero context leaks![/bold green]\n")
+    console.print("\n[bold green]🎉 BlindCouncil Review complete! ADR generated: 'ADR-042_RealTime_Messaging.md'[/bold green]\n")
 
 async def run_live():
     console.print(Panel.fit(
-        "[bold magenta]🏠 THE HOUSE IMPOSTER: LIVE DISCORD BROADCAST[/bold magenta]\n"
-        "[italic cyan]Connected to Discord Server via Switch Bot & Webhooks[/italic cyan]",
-        border_style="magenta"
+        "[bold cyan]🏛️ BLINDCOUNCIL: LIVE DISCORD REVIEW DESK[/bold cyan]\n"
+        "[italic magenta]Multi-Agent Blind Architecture Review with Switch Discord Bot[/italic magenta]",
+        border_style="cyan"
     ))
 
-    cast_cfg = load_cast_config()
+    spec_cfg = load_specialists_config()
+    rfc = load_sample_rfc()
     discord_client = DiscordLiveClient()
     await discord_client.initialize()
     console.print(f"[bold green]✓ Connected to Discord Guild ID:[/bold green] [cyan]{discord_client.guild_id}[/cyan]")
 
     llm = LLMClient()
-    budget_task = BudgetTask("config/tasks.yaml")
 
     # Register Character Webhook Profiles
-    host_cfg = cast_cfg["host"]
+    chair_cfg = spec_cfg["chair"]
     discord_client.register_character_profile(
-        agent_id=host_cfg["id"],
-        name=host_cfg["name"],
-        avatar_url=host_cfg.get("avatar_url", "https://api.dicebear.com/7.x/bottts/svg?seed=TheBigVoice")
+        agent_id=chair_cfg["id"],
+        name=f"{chair_cfg['name']} [Council Chair]",
+        avatar_url=chair_cfg.get("avatar_url", "https://api.dicebear.com/7.x/bottts/svg?seed=AthenaChair")
     )
 
-    host = HostAgent(
-        agent_id=host_cfg["id"],
-        name=host_cfg["name"],
-        system_prompt=host_cfg["system_prompt"],
+    chair = ChairAgent(
+        agent_id=chair_cfg["id"],
+        name=chair_cfg["name"],
+        system_prompt=chair_cfg["system_prompt"],
         switch_client=discord_client,
         llm_client=llm,
-        budget_task=budget_task,
-        avatar_url=host_cfg.get("avatar_url")
+        avatar_url=chair_cfg.get("avatar_url")
     )
 
-    housemates = []
-    for h_cfg in cast_cfg["housemates"]:
+    specialists = []
+    for s_cfg in spec_cfg["specialists"]:
         discord_client.register_character_profile(
-            agent_id=h_cfg["id"],
-            name=f"{h_cfg['name']} [{h_cfg['archetype']}]",
-            avatar_url=h_cfg.get("avatar_url", f"https://api.dicebear.com/7.x/bottts/svg?seed={h_cfg['name']}")
+            agent_id=s_cfg["id"],
+            name=f"{s_cfg['name']} [{s_cfg['title']}]",
+            avatar_url=s_cfg.get("avatar_url", f"https://api.dicebear.com/7.x/bottts/svg?seed={s_cfg['name']}")
         )
-        hm = HousemateAgent(
-            agent_id=h_cfg["id"],
-            name=h_cfg["name"],
-            archetype=h_cfg["archetype"],
-            system_prompt=h_cfg["system_prompt"],
+        s = SpecialistAgent(
+            agent_id=s_cfg["id"],
+            name=s_cfg["name"],
+            title=s_cfg["title"],
+            dimension=s_cfg["dimension"],
+            system_prompt=s_cfg["system_prompt"],
             switch_client=discord_client,
             llm_client=llm,
-            obsessions=h_cfg.get("obsessions"),
-            catchphrases=h_cfg.get("catchphrases"),
-            avatar_url=h_cfg.get("avatar_url")
+            avatar_url=s_cfg.get("avatar_url")
         )
-        housemates.append(hm)
+        specialists.append(s)
 
-    saboteur_ctrl = SaboteurController(housemates, force_saboteur_id="arthur")
+    human_name = os.getenv("HUMAN_USERNAME", "LeadArchitect")
 
-    human_name = os.getenv("HUMAN_USERNAME", "izigriss")
-
-    coordinator = EpisodeCoordinator(
+    coordinator = CouncilCoordinator(
         switch_client=discord_client,
-        host_agent=host,
-        housemates=housemates,
-        saboteur_controller=saboteur_ctrl,
-        budget_task=budget_task,
+        chair_agent=chair,
+        specialists=specialists,
+        rfc_proposal=rfc,
         human_player_id="human",
         human_player_name=human_name,
         auto_pacing=True
     )
 
-    # Start live Discord Gateway listener for real-time human chat & votes
+    # Start live Discord Gateway listener
     discord_client.start_gateway()
-    console.print("[bold green]✓ Live Discord Gateway Active: Listening for your messages in Discord![/bold green]")
-    console.print(f"[bold green]✓ Live Episode Initialized! Saboteur:[/bold green] [bold red]{saboteur_ctrl.saboteur_name}[/bold red]")
-    console.print(f"[italic cyan]👉 Jump into Discord server! Chat in #living-room and vote in #confession-human[/italic cyan]\n")
+    console.print("[bold green]✓ Live Discord Gateway Active: Listening for your architectural guidance![/bold green]")
+    console.print(f"[bold green]✓ Review Convened for:[/bold green] [bold cyan]{rfc.title}[/bold cyan]")
+    console.print(f"[italic cyan]👉 Open Discord: Channel #review-desk is live! Type !approve or !next to steer.[/italic cyan]\n")
 
     try:
-        await coordinator.run_episode()
+        await coordinator.run_review()
     finally:
         await discord_client.close()
 
-    console.print("\n[bold green]🎉 Live Discord Episode completed successfully![/bold green]\n")
+    console.print("\n[bold green]🎉 Live Council Review completed! ADR document published.[/bold green]\n")
 
 def main():
-    parser = argparse.ArgumentParser(description="The House Imposter: AI Reality Show")
+    parser = argparse.ArgumentParser(description="BlindCouncil: Multi-Agent Blind Architecture Review Desk")
     parser.add_argument("--simulate", action="store_true", default=True, help="Run instant zero-dependency simulation")
     parser.add_argument("--live", action="store_true", help="Connect to live Switch Gateway & Discord")
     parser.add_argument("--online", action="store_true", help="Use live LLM API calls in simulation mode")
