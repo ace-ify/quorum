@@ -117,7 +117,8 @@ class DiscordLiveClient:
                 "topic": topic
             }
 
-            is_private = ("confession" in clean_name or "saboteur" in clean_name or "alliance" in clean_name or "evicted" in clean_name)
+            # BlindCouncil private chambers (#audit-* and #dev-*) are strictly locked
+            is_private = ("audit" in clean_name or "dev" in clean_name or "blind" in clean_name or "confession" in clean_name)
             if is_private:
                 # Deny VIEW_CHANNEL (1024) to @everyone
                 overwrites = [

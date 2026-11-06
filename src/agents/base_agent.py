@@ -26,8 +26,6 @@ class BaseAgent:
         
         # Isolated memory buffers: room_id -> list of message events
         self.room_histories: Dict[str, List[dict]] = {}
-        # Secret flags
-        self.is_saboteur = False
 
     def on_event_received(self, event: dict):
         """
@@ -60,11 +58,6 @@ class BaseAgent:
         """
         history = self.room_histories.get(room_id, [])
         sys_prompt = self.system_prompt
-        if self.is_saboteur:
-            sys_prompt += (
-                "\n[SECRET ROLE: YOU ARE THE SABOTEUR]\n"
-                "Your mission is to subtly derail house tasks, create confusion, and frame others without being exposed."
-            )
         if context_notes:
             sys_prompt += f"\n[CURRENT CONTEXT]\n{context_notes}"
 

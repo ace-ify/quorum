@@ -19,22 +19,22 @@ async def test_room_isolation_delivery():
     await switch.register_agent("agent_a", cb_a)
     await switch.register_agent("agent_b", cb_b)
 
-    # Room 1: Public (both A and B)
-    await switch.create_room("living-room", ["agent_a", "agent_b"])
-    # Room 2: Private Confession for A (A only)
-    await switch.create_room("confession-a", ["agent_a"])
+    # Room 1: Public Review Desk (both Aegis and Vanguard)
+    await switch.create_room("review-desk", ["aegis", "vanguard"])
+    # Room 2: Isolated Blind Chamber for Aegis (Aegis only)
+    await switch.create_room("audit-security", ["aegis"])
 
     # Post to public room -> Both should receive
-    await switch.post_message("agent_a", "living-room", "Hello all!")
+    await switch.post_message("aegis", "review-desk", "RFC Intake")
     assert len(received_a) == 1
     assert len(received_b) == 1
 
-    # Post to isolated confession-a -> ONLY Agent A should receive, Agent B must get 0 packets
-    await switch.post_message("agent_a", "confession-a", "My secret confession!")
+    # Post to isolated audit-security -> ONLY Aegis should receive, Vanguard must get 0 packets
+    await switch.post_message("aegis", "audit-security", "Security Score: 7/10")
     assert len(received_a) == 2
-    assert len(received_b) == 1 # Agent B did NOT receive the confession!
+    assert len(received_b) == 1 # Vanguard did NOT receive the private security audit!
 
     # Verify audit check
-    assert switch.verify_isolation("agent_b", "confession-a") is True
-    assert switch.verify_isolation("agent_a", "confession-a") is False
+    assert switch.verify_isolation("vanguard", "audit-security") is True
+    assert switch.verify_isolation("aegis", "audit-security") is False
 

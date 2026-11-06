@@ -39,3 +39,4 @@ patterns:
     - name: "Per-User Crypto-Shredding"
       origin: "EU GDPR Article 17 Architecture Standard"
       description: "Encrypt all user-identifiable records with a unique user-specific KMS key. When a user requests 'Right to Erasure', destroy that specific key. Data in immutable append-only logs becomes cryptographically unrecoverable ciphertext without breaking log offsets."
+

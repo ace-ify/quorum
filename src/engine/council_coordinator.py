@@ -17,6 +17,7 @@ class CouncilPhase(Enum):
     CONFLICT_SYNTHESIS = "conflict_synthesis"
     COUNCIL_DEBATE = "council_debate"
     ADR_PUBLICATION = "adr_publication"
+    DEV_HANDOFF = "dev_handoff"
     COMPLETED = "completed"
 
 class CouncilCoordinator:
@@ -94,6 +95,9 @@ class CouncilCoordinator:
         # Phase 5: ADR Generation & Publication
         await self.advance_phase()
 
+        # Phase 6: Autonomous Implementer Handoff (Claude Code / Codex Bridge)
+        await self.advance_phase()
+
     async def advance_phase(self) -> CouncilPhase:
         if self.current_phase == CouncilPhase.INIT:
             self.current_phase = CouncilPhase.SUBMISSION
@@ -110,6 +114,9 @@ class CouncilCoordinator:
         elif self.current_phase == CouncilPhase.COUNCIL_DEBATE:
             self.current_phase = CouncilPhase.ADR_PUBLICATION
             await self._run_adr_publication_phase()
+        elif self.current_phase == CouncilPhase.ADR_PUBLICATION:
+            self.current_phase = CouncilPhase.DEV_HANDOFF
+            await self._run_dev_handoff_phase()
         else:
             self.current_phase = CouncilPhase.COMPLETED
 
@@ -181,6 +188,34 @@ class CouncilCoordinator:
             human_author=self.human_name,
             user_decisions=self.user_decisions
         )
+
+    async def _run_dev_handoff_phase(self):
+        """
+        Phase 6: The Autonomous Implementer Handoff.
+        Athena provisions #dev-implementation and hands off approved ADR action items
+        to terminal coding agents (Claude Code / Codex / Developer Agent).
+        """
+        dev_room = "dev-implementation"
+        await self.switch_client.create_room(
+            dev_room,
+            [self.chair.agent_id, self.human_id, "claudecode"],
+            "Autonomous Code Implementation Room"
+        )
+        handoff_msg = (
+            "🚀 **[SWITCH IMPLEMENTER HANDOFF: BLINDCOUNCIL ➔ CLAUDE CODE]** 🚀\n\n"
+            f"**Target System:** `{self.rfc.title}`\n"
+            f"**Approved Architectural Contract:** `{self.rfc.rfc_id or 'ADR-042'}.md`\n\n"
+            "Attention **@ClaudeCode** / **@CodexDeveloper**:\n"
+            "The Architecture Review Board has officially locked the decision. You are authorized to begin repository implementation.\n\n"
+            "**Approved Implementation Action Items:**\n"
+            "1. [ ] Deploy 4-node cluster with auto-scaling triggers at 75% memory threshold.\n"
+            "2. [ ] Integrate Bloom filter middleware on WebSocket heartbeat (<1ms check).\n"
+            "3. [ ] Enforce Customer-Managed KMS Key (CMK) with envelope encryption on workers.\n"
+            "4. [ ] Configure AWS PrivateLink VPC endpoints for inter-service communication.\n\n"
+            "👉 *Terminal coding agent is initialized in this workspace. Run unit tests and submit PR for final Council sign-off.*"
+        )
+        await self.chair.speak(dev_room, handoff_msg)
+        await self.chair.speak(self.public_room, f"🔄 **[PIPELINE HANDOFF]** Council decisions handed off to `@ClaudeCode` in `#{dev_room}` for implementation.")
 
     async def handle_human_message(self, room_name: str, author_id: str, author_name: str, content: str):
         """

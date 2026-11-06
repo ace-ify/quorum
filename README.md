@@ -62,13 +62,34 @@ Standard multi-agent frameworks (LangGraph, AutoGen, CrewAI) operate on shared e
 
 ---
 
-## 🔄 The 5-Phase Delphi Review Lifecycle
+## 🔄 The 6-Phase Delphi Review Lifecycle
 
-1. **RFC Intake**: Human Lead submits an architectural proposal to `#review-desk`.
-2. **Isolated Blind Audits**: Switch spawns 3 isolated chambers (`#audit-security`, `#audit-scalability`, `#audit-finops`). Specialists independently review without context pollution.
-3. **Conflict Synthesis**: The Council Chair (`Athena`) aggregates the blind scorecards and detects cross-domain trade-off clashes.
-4. **Council Debate in `#review-desk`**: Blind findings are revealed publicly. Specialists debate tensions (Cost vs Security vs Latency) with the Human Lead.
-5. **ADR Generation & Sign-Off**: The Council compiles the consensus into an official Michael Nygard-standard **Architecture Decision Record (`ADR-042.md`)** committed to the repository!
+1. **RFC Intake & Interactive Scoping**: Human Lead submits an architectural proposal to `#review-desk`. The Council auto-calibrates scale tier (MVP vs Enterprise) and summons relevant domain specialists.
+2. **Isolated Blind Audits**: Switch spawns isolated chambers (`#audit-security`, `#audit-scalability`, `#audit-finops`, `#audit-database`, `#audit-compliance`). Specialists independently audit the spec with line-level RFC citations and zero cross-agent context pollution.
+3. **Conflict Synthesis**: The Council Chair (`Athena`) aggregates blind scorecards and maps orthogonal trade-off clashes.
+4. **Council Debate in `#review-desk`**: Blind findings are revealed publicly. Specialists debate tensions (Latency vs Cost vs Security vs Data Consistency) with the Human Lead, who steers naturally or with fast commands (`!summary`, `!diagram`, `!checklist`).
+5. **ADR & PR Comment Publication**: The Council compiles the consensus into an official Michael Nygard **Architecture Decision Record (`ADR-042.md`)** AND a GitHub PR review sticky comment (`PR_COMMENT.md`).
+6. **Autonomous Implementer Handoff (Claude Code Bridge)**: Athena spins up `#dev-implementation` and delivers the verified architectural action items to terminal coding agents (**Claude Code / Codex**) to begin repository implementation!
+
+---
+
+## 👥 The Council Roster & Dynamic Specialist Factory
+
+BlindCouncil includes a battle-tested roster of 5 core domain specialists + an extensible factory for on-the-fly custom creation:
+
+| Specialist | Identity | Sovereign Domain Authority | Key Verification Rubric |
+| :--- | :--- | :--- | :--- |
+| **Athena** | Principal Architect | Council Chair & Trade-off Synthesis | Delphi coordination, conflict detection & ADR generation |
+| **Aegis** | Staff Security Auditor | Threat Modeling & Zero-Trust | OWASP ASVS 4.0, token revocation, envelope encryption |
+| **Vanguard**| Principal Systems Architect | Scalability, Concurrency & p99 Latency | Queue theory, thundering herds, backpressure, fanout |
+| **Ledger** | Lead FinOps Specialist | Cloud Economics & Unit Cost | AWS/GCP TCO, egress tax, auto-sharding provisioned thresholds |
+| **Titan** | Staff Database Architect | ACID Guarantees & Storage Engines | Transactional Outbox, CDC, single-table keys, lock contention |
+| **Verity** | Principal Governance Auditor | Privacy & Regulatory Compliance | GDPR Article 17 Crypto-Shredding, CCPA, SOC2 audit trails |
+
+*Need a mobile, hardware, or ML specialist? BlindCouncil spawns custom experts on the fly:*
+```bash
+python -m src.main --simulate --add-specialist "Volt:Staff Hardware Engineer:Battery & Thermal Footprint"
+```
 
 ---
 
@@ -84,10 +105,16 @@ Zero Docker, zero Discord bot, zero API configuration required!
 git clone https://github.com/your-username/blindcouncil.git
 cd blindcouncil
 
-# 2. Run instant simulation
-python -m src.main --simulate
+# 2. Run instant simulation (Sample 1: Real-Time Messaging WebSocket Cluster)
+python -m src.main --simulate --sample realtime_chat
+
+# Or run Sample 2 (Zero-Downtime Aurora to DynamoDB Migration)
+python -m src.main --simulate --sample database_migration
+
+# Or spawn a custom specialist dynamically
+python -m src.main --simulate --add-specialist "Volt:Staff Hardware Engineer:Battery & Thermal Footprint"
 ```
-*Observe the full 5-phase Delphi review, inspect the room isolation audit log, and view the generated `ADR-042_RealTime_Messaging.md`!*
+*Observe the full 6-phase Delphi review, inspect the room isolation audit log, and view the generated `ADR-XXX.md` and `PR_COMMENT_XXX.md`!*
 
 ---
 
@@ -117,11 +144,11 @@ Run the built-in zero-dependency test suite:
 python tests/run_tests.py
 ```
 ```
-...
+.....
 ----------------------------------------------------------------------
-Ran 3 tests in 0.004s
+Ran 5 tests in 0.011s
 
-OK (Verifying Room Isolation Guarantees, Conflict Detection, and ADR Generation)
+OK (Verifying Room Isolation Guarantees, Conflict Detection, ADR & PR Generation, Dynamic Specialist Factory, and Multi-Input Ingestion Engine)
 ```
 
 ---

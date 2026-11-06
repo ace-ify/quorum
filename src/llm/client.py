@@ -107,64 +107,40 @@ class LLMClient:
         cid = (character_id or "").lower()
         ph = (phase or "").lower()
 
-        if cid == "host":
-            if "briefing" in ph:
-                return (
-                    "📢 *CHIME SOUNDS* Attention Housemates! The Big Voice has arrived. "
-                    "Today is the Luxury Budget Allocation Task! You have 1,000 points. "
-                    "Fail to keep essentials, and you shall feast on dry water crackers. Begin your negotiations in #living-room!"
-                )
-            elif "leak" in ph:
-                return (
-                    "🚨 *RED LIGHTS FLASH* The Big Voice intercepts everything! "
-                    "Earlier, a whisper was captured in the secret corridors: "
-                    "'Let's let Marcus waste his points on protein, then we'll blame Arthur for the fail.' Discuss!"
-                )
-            elif "confession" in ph:
-                return "Enter, speak your truth, and name your eviction target. The walls are soundproof, but The Big Voice forgets nothing."
-            elif "eviction" in ph:
-                return "The votes have been counted with ruthless precision. One of you leaves The House tonight forever."
-            return "The Big Voice watches in silence. Continue."
+        if cid in ["chair", "athena"]:
+            return (
+                "🏛️ As Council Chair, I synthesize the findings across Security, Scalability, FinOps, and Storage. "
+                "We must balance resilience with cloud economics before locking our official ADR."
+            )
 
-        elif cid == "marcus":
-            if "confession" in ph:
-                return "Big Voice, I nominate Arthur! He's always crunching numbers like a robot and trying to cut my protein intake. The man is clearly sabotaging my gains!"
-            if "task" in ph:
-                return (
-                    "Look, we are NOT debating this. We need the 150-pt Flour & Rice, 100-pt Lentils, 100-pt Oil, "
-                    "and my 250-pt Whey Protein Tub! That's 600 points. We have 400 left. Do NOT touch my protein!"
-                )
-            return "Enough excuses! If you don't put in work, don't talk to me."
+        elif cid in ["security", "aegis"]:
+            return (
+                "🛡️ From a Zero-Trust threat modeling posture: In-band token refreshes without centralized revocation "
+                "guarantees represent an unacceptable session hijacking risk. We mandate customer-managed KMS envelope encryption."
+            )
 
-        elif cid == "elena":
-            if "confession" in ph:
-                return "Big Voice, I nominate Marcus. He's so aggressive and rude! And honestly, Arthur is super sketchy with his spreadsheets. But Marcus needs to go."
-            if "task" in ph:
-                return (
-                    "Guys, positive vibes please! Marcus, don't yell. All I ask for is the 200-pt Imported Espresso Roast. "
-                    "A civilized house needs good coffee. Can we please agree on that?"
-                )
-            return "I'm literally just trying to keep peace in this house!"
+        elif cid in ["scalability", "vanguard"]:
+            return (
+                "⚡ On distributed scalability and p99 latency: Synchronous multi-region database writes will spike "
+                "checkout latency past 80ms. We require asynchronous event-stream batching with Redis Bloom filter caching."
+            )
 
-        elif cid == "arthur":
-            if "confession" in ph:
-                return "The Big Voice, I nominate Elena. Her insistence on luxury espresso without contributing to essential calories suggests deliberate resource depletion. Probability of her guilt: 78%."
-            if "task" in ph:
-                return (
-                    "Let us proceed logically. Essentials total 350 points (Rice 150 + Dal 100 + Oil 100). "
-                    "Adding Marcus's protein (250) and Elena's espresso (200) brings us to 800 points. "
-                    "If we add Wi-Fi (250), we reach 1,050 points—which exceeds our ceiling by 50 points. Someone must compromise."
-                )
-            return "Facts over feelings. The arithmetic is indisputable."
+        elif cid in ["finops", "ledger"]:
+            return (
+                "💰 Reviewing infrastructure ROI: Starting with an un-sharded 12-node cluster produces $2,100/mo in idle compute waste. "
+                "We recommend beginning with 4 provisioned nodes and auto-sharding triggers."
+            )
 
-        elif cid == "maya":
-            if "confession" in ph:
-                return "Big Voice! I am sobbing right now! Arthur was condescending to me again! I nominate Arthur! He is 100% the Saboteur sent to break my spirit!"
-            if "task" in ph:
-                return (
-                    "Excuse me?! Marcus gets his protein and Elena gets fancy coffee, but my 200-pt Luxury Spa & Bath Salts are 'unnecessary'?! "
-                    "After the trauma of this house?! I am being targeted! If I don't get my bath salts, I am boycotting this entire task!"
-                )
-            return "I can't even with this house right now! Unbelievable!"
+        elif cid in ["database", "titan"]:
+            return (
+                "🏛️ Evaluating data consistency and storage engines: Dual-writes between Redis streams and relational storage "
+                "will introduce ghost rows during worker crashes. A Transactional Outbox pattern with UUID idempotency keys is required."
+            )
 
-        return "I am watching everyone closely. Let's make sure our task succeeds."
+        elif cid in ["compliance", "verity"]:
+            return (
+                "⚖️ Evaluating regulatory posture: Retaining un-expirable user message history in append-only streams "
+                "violates GDPR Article 17 Right to Erasure. Per-user crypto-shredding keys must be enforced."
+            )
+
+        return "Evaluating architectural proposal against core domain invariants."
