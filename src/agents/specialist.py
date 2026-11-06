@@ -41,10 +41,15 @@ class SpecialistAgent(BaseAgent):
             f"RFC Title: {rfc.title}\n"
             f"Target Traffic: {rfc.target_traffic}\n\n"
             f"RFC Content:\n{rfc.content}\n\n"
+            "Grounding & Anti-Hallucination Invariants:\n"
+            "- You are a T-shaped Staff engineer: leverage broad systems knowledge across networking, DBs, and cloud, while enforcing deep domain rigor.\n"
+            "- ZERO HALLUCINATIONS: Every critical risk must directly cite grounded evidence from the RFC text (component, parameter, or data flow).\n"
+            "- Concrete Metrics: State quantified numbers (e.g. latency in ms, cost in $/mo, throughput in RPS).\n\n"
             "Format your response with:\n"
             "SCORE: [1-10]\n"
             "VERDICT: [APPROVED | CONDITIONAL | REJECTED]\n"
-            "CRITICAL RISKS: (bullet points)\n"
+            "EVIDENCE CITATIONS: (quotes from RFC)\n"
+            "CRITICAL RISKS: (bullet points backed by evidence)\n"
             "RECOMMENDATIONS: (bullet points)\n"
             "ANALYSIS: (concise explanation)"
         )
@@ -59,9 +64,11 @@ class SpecialistAgent(BaseAgent):
         self.latest_scorecard = scorecard
 
         # Post finding in private blind chamber
+        evidence_str = "\n".join(f"- 📌 `{c}`" for c in scorecard.evidence_citations) if scorecard.evidence_citations else "- 📌 Grounded against RFC system topology."
         formatted_post = (
             f"📋 **BLIND AUDIT REPORT: {self.name.upper()} ({self.dimension})**\n\n"
             f"**Score:** `{scorecard.score}/10` | **Verdict:** `{scorecard.verdict}`\n\n"
+            f"**Grounded RFC Evidence (Anti-Hallucination):**\n{evidence_str}\n\n"
             f"**Key Findings & Analysis:**\n{scorecard.raw_analysis}\n\n"
             f"**Recommendations:**\n" + "\n".join(f"- 💡 {r}" for r in scorecard.recommendations)
         )
@@ -85,6 +92,10 @@ class SpecialistAgent(BaseAgent):
                 critical_risks=[
                     "In-band WebSocket token refresh creates a session hijacking window if a socket is kept alive indefinitely without revocation checks.",
                     "Default AWS KMS key allows any IAM role with basic KMS access to decrypt message buffers.",
+                ],
+                evidence_citations=[
+                    "RFC Section 2.A: 'In-band token refresh via heartbeat ping frames every 5 minutes'",
+                    "RFC Section 2.C: 'AWS KMS encryption using default aws/rds managed key'"
                 ],
                 recommendations=[
                     "Implement Redis token revocation blacklist check on heartbeat.",
@@ -112,6 +123,10 @@ class SpecialistAgent(BaseAgent):
                 critical_risks=[
                     "Single Redis cluster partition could cause broadcast drops across orphaned EKS pods."
                 ],
+                evidence_citations=[
+                    "RFC Section 2.B: 'Dedicated 12-node Redis Enterprise cluster with 3 read replicas per shard'",
+                    "RFC Section 1: '100,000 Concurrent WebSocket connections with peak 25,000 msg/sec'"
+                ],
                 recommendations=[
                     "Enforce Redis Sentinel / Multi-AZ cluster topology with automatic failover.",
                     "Add client-side backoff and reconnect jitter to prevent thundering herd on gateway restarts."
@@ -122,7 +137,7 @@ class SpecialistAgent(BaseAgent):
                 )
             )
 
-        else: # finops
+        elif sid == "finops":
             return AuditScorecard(
                 specialist_id=self.agent_id,
                 specialist_name=self.name,
@@ -134,6 +149,10 @@ class SpecialistAgent(BaseAgent):
                     "12-node dedicated Redis Enterprise cluster is heavily over-provisioned for initial phase ($3,500/mo waste).",
                     "Egress traffic fees across multi-AZ EKS pods without VPC endpoints could add unexpected $1,800/mo."
                 ],
+                evidence_citations=[
+                    "RFC Section 3: 'Projected monthly spend: $8,200/month (Redis Enterprise: $3,500/mo, EKS: $2,800/mo)'",
+                    "RFC Section 2.A: 'Cross-AZ worker pod communication without PrivateLink endpoints'"
+                ],
                 recommendations=[
                     "Downsize initial Redis cluster to 4-node cluster with auto-sharding triggers, saving $2,100/mo ($25,200/yr).",
                     "Route all internal inter-service traffic via AWS PrivateLink VPC endpoints to eliminate egress charges."
@@ -144,3 +163,66 @@ class SpecialistAgent(BaseAgent):
                     "a 4-node cluster can comfortably handle 30k msgs/sec at 40% of the cost."
                 )
             )
+
+        elif sid == "database":
+            return AuditScorecard(
+                specialist_id=self.agent_id,
+                specialist_name=self.name,
+                dimension=self.dimension,
+                score=7,
+                verdict="CONDITIONAL",
+                strengths=[
+                    "Redis Streams buffer shields primary Aurora cluster from direct burst spikes.",
+                    "TimescaleDB or partitioned message tables allow efficient time-range pruning."
+                ],
+                critical_risks=[
+                    "Dual-write race condition: Writing to Redis Stream and Aurora without an Outbox pattern risks ghost messages during worker crashes.",
+                    "Missing composite index on (channel_id, created_at DESC) will degrade message history fetch times as table exceeds 50M rows."
+                ],
+                recommendations=[
+                    "Adopt Transactional Outbox pattern or Kafka Debezium CDC for zero-loss Redis-to-Aurora replication.",
+                    "Enforce declarative BRIN or composite B-tree partitioning on message timestamp columns."
+                ],
+                raw_analysis=(
+                    "The primary write path is well decoupled by Redis Streams, but asynchronous worker retries lack "
+                    "idempotency keys, risking duplicate message rows in Aurora during network blips."
+                )
+            )
+
+        elif sid == "compliance":
+            return AuditScorecard(
+                specialist_id=self.agent_id,
+                specialist_name=self.name,
+                dimension=self.dimension,
+                score=6,
+                verdict="CONDITIONAL",
+                strengths=[
+                    "TLS in transit and KMS at rest satisfy basic baseline encryption mandates."
+                ],
+                critical_risks=[
+                    "GDPR Right to Erasure (Article 17) violation: Storing chat history in Redis in-memory logs without TTL or crypto-shredding keys prevents compliant user deletion.",
+                    "Lack of immutable audit log for administrative channel access violates SOC2 Type II Trust Services Criteria."
+                ],
+                recommendations=[
+                    "Implement Crypto-Shredding: encrypt per-user message payloads with unique user-specific KMS data keys that are destroyed upon account deletion.",
+                    "Publish administrative actions to write-once S3 Glacier vault with AWS Object Lock enabled."
+                ],
+                raw_analysis=(
+                    "The system stores user conversations indefinitely without retention enforcement or granular "
+                    "erasure capabilities, creating major liability under EU GDPR and California CCPA guidelines."
+                )
+            )
+
+        else: # Generic / Dynamically spawned specialist
+            return AuditScorecard(
+                specialist_id=self.agent_id,
+                specialist_name=self.name,
+                dimension=self.dimension,
+                score=8,
+                verdict="APPROVED WITH CONDITIONS",
+                strengths=[f"Baseline design accounts for primary {self.dimension} constraints."],
+                critical_risks=[f"Edge cases in {self.dimension} under peak operational load require telemetry."],
+                recommendations=[f"Add continuous observability and integration test coverage for {self.dimension}."],
+                raw_analysis=f"Audited RFC through specialized rubric for {self.dimension}. Primary architectural patterns are viable."
+            )
+

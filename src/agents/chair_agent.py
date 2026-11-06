@@ -32,18 +32,28 @@ class ChairAgent(BaseAgent):
         self.conflict_report: Optional[ConflictReport] = None
         self.resolved_trade_offs: List[Dict[str, str]] = []
 
-    async def announce_rfc_intake(self, public_room: str, rfc: RFCProposal):
+    async def announce_rfc_intake(self, public_room: str, rfc: RFCProposal, specialists: Optional[List[Any]] = None):
         """
         Phase 1: RFC Intake announcement in #review-desk.
         """
+        chamber_bullets = []
+        if specialists:
+            for s in specialists:
+                chamber_bullets.append(f"• `#audit-{s.agent_id}` — **{s.name}** ({s.dimension})")
+        else:
+            chamber_bullets = [
+                "• `#audit-security` — **Aegis** (Threat Modeling & Compliance)",
+                "• `#audit-scalability` — **Vanguard** (Throughput, Latency & DB Contention)",
+                "• `#audit-finops` — **Ledger** (Cloud Economics & Compute Waste)"
+            ]
+
+        chambers_str = "\n".join(chamber_bullets)
         intake_msg = (
             "🏛️ **BLINDCOUNCIL: ARCHITECTURAL REVIEW CONVENED** 🏛️\n\n"
             f"**Proposal Under Review:** `{rfc.title}`\n"
             f"**Author / Lead:** {rfc.author} | **Target Scale:** {rfc.target_traffic}\n\n"
-            "The Council is now spinning up **three isolated blind audit chambers**:\n"
-            "• `#audit-security` — **Aegis** (Threat Modeling & Compliance)\n"
-            "• `#audit-scalability` — **Vanguard** (Throughput, Latency & DB Contention)\n"
-            "• `#audit-finops` — **Ledger** (Cloud Economics & Compute Waste)\n\n"
+            f"The Council is now spinning up **{len(chamber_bullets)} isolated blind audit chambers**:\n"
+            f"{chambers_str}\n\n"
             "🔒 *Notice: To eliminate LLM groupthink and sycophancy, Switch enforces server-level room isolation. "
             "Specialists cannot see each other's analyses until blind scorecards are locked.*"
         )
@@ -60,6 +70,8 @@ class ChairAgent(BaseAgent):
         sec = self.scorecards.get("security")
         scale = self.scorecards.get("scalability")
         fin = self.scorecards.get("finops")
+        db = self.scorecards.get("database")
+        comp = self.scorecards.get("compliance")
 
         # Conflict 1: Scale vs FinOps (Cluster Sizing)
         if scale and fin:
@@ -67,9 +79,11 @@ class ChairAgent(BaseAgent):
                 dimensions=["Scalability", "FinOps"],
                 title="Redis Cluster Sizing: 12 Nodes vs 4 Nodes",
                 description="Vanguard demands 12-node dedicated cluster for maximum fanout buffer; Ledger flags $2,100/mo in idle waste.",
-                specialist_a_view=f"Vanguard: 12 nodes ensure 25,000 msg/sec buffer headroom.",
-                specialist_b_view=f"Ledger: Initial 100k connections can run on 4 nodes, saving $25,200/year.",
-                resolution_prompt="Decide: Start with 4 nodes + auto-sharding triggers, or deploy full 12 nodes upfront?"
+                specialist_a_view="Vanguard: 12 nodes ensure 25,000 msg/sec buffer headroom.",
+                specialist_b_view="Ledger: Initial 100k connections can run on 4 nodes, saving $25,200/year.",
+                resolution_prompt="Decide: Start with 4 nodes + auto-sharding triggers, or deploy full 12 nodes upfront?",
+                primary_domain="FinOps",
+                trade_off_type="PARETO_COMPROMISE"
             ))
 
         # Conflict 2: Security vs Scalability (Token Verification Latency)
@@ -80,7 +94,22 @@ class ChairAgent(BaseAgent):
                 description="Aegis warns in-band heartbeat bypasses revocation; Vanguard warns central DB lookups on 100k pings destroy p99 latency.",
                 specialist_a_view="Aegis: Centralized revocation check required to prevent session hijacking.",
                 specialist_b_view="Vanguard: Database lookups on 100k WebSockets every 5m causes 80ms latency spikes.",
-                resolution_prompt="Decide: Use Redis Bloom Filter for instant <1ms revocation checks."
+                resolution_prompt="Decide: Use Redis Bloom Filter for instant <1ms revocation checks.",
+                primary_domain="Security",
+                trade_off_type="PARETO_COMPROMISE"
+            ))
+
+        # Conflict 3: Database vs Compliance (GDPR Erasure in Distributed Streams)
+        if db and comp:
+            issues.append(ConflictIssue(
+                dimensions=["Data Storage", "Compliance"],
+                title="GDPR Right to Erasure vs Append-Only Stream Immutability",
+                description="Verity mandates GDPR Article 17 user data erasure; Titan notes distributed event streams are append-only.",
+                specialist_a_view="Titan: Mutating append-only stream offsets corrupts consumer watermarks.",
+                specialist_b_view="Verity: Un-deletable PII in message queues incurs up to 4% global turnover regulatory fines.",
+                resolution_prompt="Decide: Implement Crypto-Shredding with ephemeral user-specific KMS encryption keys.",
+                primary_domain="Compliance",
+                trade_off_type="PARETO_COMPROMISE"
             ))
 
         self.conflict_report = ConflictReport(issues=issues)
@@ -142,8 +171,15 @@ class ChairAgent(BaseAgent):
             }
         ]
 
+        # Dynamic slug and filename
+        clean_title = "".join(c if c.isalnum() else "_" for c in rfc.title.split(":")[-1].strip())
+        clean_title = clean_title.strip("_")[:30]
+        adr_id = rfc.rfc_id if rfc.rfc_id else "ADR-042"
+        out_path = f"{adr_id}_{clean_title}.md"
+        pr_comment_path = f"PR_COMMENT_{adr_id}_{clean_title}.md"
+
         doc = ADRDocument(
-            adr_id="ADR-042",
+            adr_id=adr_id,
             title=rfc.title,
             status=status,
             date_str="2026-11-06",
@@ -153,29 +189,35 @@ class ChairAgent(BaseAgent):
             scorecards=self.scorecards,
             resolved_trade_offs=decisions,
             action_items=[
-                "Deploy 4-node Redis cluster with AWS CloudWatch CPU/Memory alarm at 75%.",
-                "Integrate Redis Bloom filter middleware for WebSocket heartbeat revocation check.",
-                "Enforce Customer-Managed KMS Key (CMK) with IAM boundary on Aurora DB.",
+                "Deploy 4-node cluster with auto-scaling triggers at 75% memory threshold.",
+                "Integrate Bloom filter middleware for WebSocket heartbeat revocation check (<1ms latency).",
+                "Enforce Customer-Managed KMS Key (CMK) with envelope encryption.",
+                "Adopt Crypto-Shredding per user to satisfy GDPR Article 17 Right to Erasure in event logs.",
                 "Configure AWS PrivateLink VPC endpoints for inter-service traffic to eliminate egress fees."
             ]
         )
 
         adr_md = ADRGenerator.render_markdown(doc)
+        pr_md = ADRGenerator.render_github_pr_comment(doc)
 
-        # Write to disk
-        out_path = "ADR-042_RealTime_Messaging.md"
+        # Write ADR and PR Comment to disk
         with open(out_path, "w", encoding="utf-8") as f:
             f.write(adr_md)
+
+        with open(pr_comment_path, "w", encoding="utf-8") as f:
+            f.write(pr_md)
 
         # Publish summary in chat
         summary_msg = (
             "🎉 **COUNCIL CONSENSUS REACHED — ADR PUBLISHED!** 🎉\n\n"
             f"**Decision Status:** `{status}` (Average Council Score: `{avg_score:.1f}/10`)\n"
-            f"📄 Full document generated: **`{out_path}`**\n\n"
+            f"📄 Full ADR Document: **`{out_path}`**\n"
+            f"💬 GitHub PR Review Comment: **`{pr_comment_path}`**\n\n"
             "```markdown\n"
             f"{adr_md[:1200]}...\n"
-            "[Full ADR committed to repository]\n"
+            "[Full ADR & PR Comment committed to repository]\n"
             "```"
         )
         await self.speak(public_room, summary_msg)
         return adr_md
+

@@ -107,3 +107,4 @@ The workflow culminates in an official, Git-ready markdown document adhering to 
 - **Blind Scorecard:** Quantitative scores (1-10) across Security, Scalability, and FinOps.
 - **Key Architectural Trade-offs & Human Decisions:** Formal record of resolved clashes (e.g. why the team chose asynchronous encryption to save $8,000/mo while mitigating risk via KMS envelopes).
 - **Actionable Mitigation Checklist:** Concrete tasks for the development team before production deployment.
+

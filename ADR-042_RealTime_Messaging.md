@@ -2,7 +2,7 @@
 
 **Status:** `APPROVED WITH CONDITIONS`  
 **Date:** 2026-11-06  
-**Author / Lead:** izigriss  
+**Author / Lead:** LeadArchitect  
 **Council Reviewers:** Athena, Aegis, Vanguard, Ledger  
 
 ---

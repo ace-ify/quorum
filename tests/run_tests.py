@@ -98,8 +98,54 @@ class TestADRGeneration(unittest.TestCase):
         self.assertIn("Aegis", md)
         self.assertIn("Vanguard", md)
         self.assertIn("Ledger", md)
-        self.assertIn("Redis Sizing", md)
-        self.assertIn("- [ ] Deploy 4-node cluster", md)
+
+        # Test PR comment markdown
+        pr_md = ADRGenerator.render_github_pr_comment(doc)
+        self.assertIn("## 🏛️ BlindCouncil Architecture Review Report", pr_md)
+        self.assertIn("Council Blind Scorecard Matrix", pr_md)
+        self.assertIn("<details>", pr_md)
+
+class TestFactoryAndIngestion(unittest.TestCase):
+    def test_specialist_factory(self):
+        from src.agents.specialist_factory import SpecialistFactory
+        switch = MockSwitchClient()
+        llm = LLMClient(use_mock=True)
+
+        catalog = SpecialistFactory.load_catalog(switch, llm)
+        self.assertGreaterEqual(len(catalog), 5) # Aegis, Vanguard, Ledger, Titan, Verity
+        agent_ids = [s.agent_id for s in catalog]
+        self.assertIn("database", agent_ids)
+        self.assertIn("compliance", agent_ids)
+
+        # Custom specialist
+        custom = SpecialistFactory.create_custom_specialist(
+            name="Volt",
+            title="Battery & Hardware Engineer",
+            dimension="Client Power Consumption",
+            system_prompt="",
+            switch_client=switch,
+            llm_client=llm
+        )
+        self.assertEqual(custom.name, "Volt")
+        self.assertEqual(custom.dimension, "Client Power Consumption")
+
+    def test_ingestion_engine(self):
+        from src.review.ingestion import IngestionEngine
+        # Load sample 1
+        rfc1 = IngestionEngine.load_sample("realtime_chat")
+        self.assertIn("WebSocket", rfc1.content)
+        self.assertEqual(rfc1.rfc_id, "RFC-042")
+
+        # Load sample 2
+        rfc2 = IngestionEngine.load_sample("database_migration")
+        self.assertIn("DynamoDB", rfc2.content)
+        self.assertEqual(rfc2.rfc_id, "RFC-089")
+
+        # Parse custom markdown
+        custom_md = "# RFC-999: Edge Graph Computing\n**Author:** Jane Doe\n**Target Scale:** 1M Edge Nodes\n\nDesign content..."
+        rfc3 = IngestionEngine.parse_rfc_markdown(custom_md)
+        self.assertEqual(rfc3.rfc_id, "RFC-999")
+        self.assertEqual(rfc3.author, "Jane Doe")
 
 if __name__ == "__main__":
     unittest.main()

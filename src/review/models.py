@@ -22,16 +22,19 @@ class AuditScorecard:
     strengths: List[str] = field(default_factory=list)
     critical_risks: List[str] = field(default_factory=list)
     recommendations: List[str] = field(default_factory=list)
+    evidence_citations: List[str] = field(default_factory=list) # Grounded citations from RFC text to prevent hallucinations
     raw_analysis: str = ""
 
 @dataclass
 class ConflictIssue:
-    dimensions: List[str] # e.g. ["Security", "FinOps"]
+    dimensions: List[str] # e.g. ["Security", "Scalability", "FinOps"]
     title: str
     description: str
     specialist_a_view: str
     specialist_b_view: str
     resolution_prompt: str
+    primary_domain: str = "" # Domain that holds sovereign authority over the underlying risk/constraint
+    trade_off_type: str = "PARETO_COMPROMISE" # PARETO_COMPROMISE or EXECUTIVE_POLICY_DECISION
 
 @dataclass
 class ConflictReport:
@@ -49,3 +52,4 @@ class ADRDocument:
     scorecards: Dict[str, AuditScorecard]
     resolved_trade_offs: List[Dict[str, str]]
     action_items: List[str]
+

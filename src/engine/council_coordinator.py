@@ -43,13 +43,9 @@ class CouncilCoordinator:
         self.user_decisions: List[Dict[str, str]] = []
         self.review_finished_event = asyncio.Event()
 
-        # Channel mapping
+        # Dynamic channel mapping for all participating specialists
         self.public_room = "review-desk"
-        self.blind_rooms = {
-            "security": "audit-security",
-            "scalability": "audit-scalability",
-            "finops": "audit-finops"
-        }
+        self.blind_rooms = {s.agent_id: f"audit-{s.agent_id}" for s in self.specialists}
 
         # Register message listener if client supports it (e.g. Discord Live Client)
         if hasattr(self.switch_client, "register_human_message_handler"):
@@ -119,7 +115,7 @@ class CouncilCoordinator:
         return self.current_phase
 
     async def _run_submission_phase(self):
-        await self.chair.announce_rfc_intake(self.public_room, self.rfc)
+        await self.chair.announce_rfc_intake(self.public_room, self.rfc, self.specialists)
         if self.auto_pacing:
             await asyncio.sleep(2)
 
@@ -149,7 +145,7 @@ class CouncilCoordinator:
         # Reveal blind findings in #review-desk
         await self.chair.publish_synthesis_and_open_debate(self.public_room, self.rfc)
 
-        # Allow specialists to voice short statements in #review-desk
+        # Allow specialists to voice their sovereign domain perspectives in #review-desk
         for s in self.specialists:
             if s.agent_id == "security":
                 await s.speak(self.public_room, "🛡️ **Aegis:** I cannot approve this RFC without strict token revocation guarantees. In-band heartbeat refresh is an unacceptable security hole.")
@@ -157,6 +153,12 @@ class CouncilCoordinator:
                 await s.speak(self.public_room, "⚡ **Vanguard:** Aegis, synchronous DB lookups on 100k WebSockets will spike p99 latency past 80ms! We should use a Redis Bloom filter instead.")
             elif s.agent_id == "finops":
                 await s.speak(self.public_room, "💰 **Ledger:** Both of you are overlooking the $3,500/mo Redis cluster. 12 shards is compute waste. We can scale from 4 shards safely and save $25k/yr.")
+            elif s.agent_id == "database":
+                await s.speak(self.public_room, "🏛️ **Titan:** Dual-write race conditions between streams and persistent storage risk ghost rows during worker crashes. We must enforce the Transactional Outbox pattern.")
+            elif s.agent_id == "compliance":
+                await s.speak(self.public_room, "⚖️ **Verity:** Un-deletable chat history in persistent queues directly violates GDPR Article 17. We must implement Crypto-Shredding with per-user KMS keys.")
+            else:
+                await s.speak(self.public_room, f"🔍 **{s.name}:** From my perspective on {s.dimension}, we must ensure critical operational boundaries and failover invariants are verified.")
             if self.auto_pacing:
                 await asyncio.sleep(1.5)
 
@@ -177,41 +179,139 @@ class CouncilCoordinator:
 
     async def handle_human_message(self, room_name: str, author_id: str, author_name: str, content: str):
         """
-        Handles real-time human comments and commands from Discord.
+        Handles real-time human interaction in #review-desk.
+        Operates conversationally in natural language (no rigid bot syntax required).
         """
         text = content.strip()
+        content_lower = text.lower()
 
-        # Commands
-        if text.startswith("!next") or text.startswith("!approve"):
-            await self.chair.speak(self.public_room, f"📝 **[COUNCIL ACTION]** Lead Architect @{author_name} signaled approval. Finalizing ADR...")
+        # 1. Natural Approval & Decision Finalization
+        # e.g., "approve", "looks good", "proceed", "sahi hai", "finalize", "!approve"
+        approval_triggers = [
+            "!approve", "!next", "approve", "approved", "looks good", "lgtm",
+            "proceed", "sahi hai", "finalize", "done", "let's do this", "ship it", "lock it in"
+        ]
+        if any(trigger == content_lower or content_lower.startswith(trigger) for trigger in approval_triggers):
+            await self.chair.speak(
+                self.public_room,
+                f"📝 **[COUNCIL CONSENSUS]** Lead Architect @{author_name} approved the architecture. Locking decisions and publishing ADR..."
+            )
             await self.advance_phase()
             return
 
-        if text.startswith("!status"):
-            await self.chair.speak(room_name, f"ℹ️ **Current Phase:** `{self.current_phase.value}` | **RFC:** `{self.rfc.title}`")
+        # 2. Natural Summary / Digest Request
+        # e.g., "summary batao", "give me a summary", "tl;dr", "!summary"
+        if any(k in content_lower for k in ["summary", "tl;dr", "tldr", "short mein", "gist", "!summary"]):
+            from ..review.adr_generator import ADRGenerator
+            from ..review.models import ADRDocument
+            doc = ADRDocument(
+                adr_id=self.rfc.rfc_id or "ADR-042",
+                title=self.rfc.title,
+                status="UNDER REVIEW",
+                date_str="2026-11-06",
+                author=author_name,
+                reviewers=[self.chair.name] + [s.name for s in self.specialists],
+                context_summary=self.rfc.content[:300],
+                scorecards=self.chair.scorecards,
+                resolved_trade_offs=[{"title": i.title, "resolution": i.resolution_prompt} for i in (self.chair.conflict_report.issues if self.chair.conflict_report else [])],
+                action_items=["Verify Redis Bloom filter latency <1ms.", "Deploy Customer-Managed KMS Key (CMK).", "Configure auto-sharding triggers."]
+            )
+            await self.chair.speak(self.public_room, ADRGenerator.render_executive_summary(doc))
             return
 
-        # Discussion in #review-desk
-        if "review-desk" in room_name:
-            # Deliver to specialists
-            content_lower = text.lower()
-            if any(k in content_lower for k in ["security", "aegis", "token", "hsm", "encrypt"]):
-                await self.specialist_by_id["security"].speak(
-                    self.public_room,
-                    f"🛡️ **Aegis:** Understood, @{author_name}. As long as token revocation is checked via Redis Bloom filter, I will sign off."
-                )
-            elif any(k in content_lower for k in ["cost", "ledger", "budget", "save", "redis", "node"]):
-                await self.specialist_by_id["finops"].speak(
-                    self.public_room,
-                    f"💰 **Ledger:** Excellent call, @{author_name}. Downsizing to 4 nodes with auto-sharding protects the annual cloud budget."
-                )
-            elif any(k in content_lower for k in ["scale", "latency", "vanguard", "speed", "p99"]):
+        # 3. Natural Diagram / Flow Request
+        # e.g., "diagram dikhao", "show architecture", "flowchart", "visualize", "!diagram"
+        if any(k in content_lower for k in ["diagram", "flowchart", "architecture map", "visualize", "chart", "!diagram"]):
+            from ..review.adr_generator import ADRGenerator
+            from ..review.models import ADRDocument
+            doc = ADRDocument(adr_id="ADR-042", title=self.rfc.title, status="", date_str="", author="", reviewers=[], context_summary="", scorecards={}, resolved_trade_offs=[], action_items=[])
+            await self.chair.speak(self.public_room, f"🗺️ **SYSTEM ARCHITECTURE TOPOLOGY (Mermaid):**\n{ADRGenerator.render_mermaid_diagram(doc)}")
+            return
+
+        # 4. Natural Action Items / Checklist Request
+        # e.g., "next steps", "checklist", "kya karna hai", "!checklist"
+        if any(k in content_lower for k in ["checklist", "action item", "todo", "next step", "kya karna hai", "!checklist"]):
+            lines = [
+                "📋 **BLOCKING PRE-DEPLOYMENT ARCHITECTURAL CHECKLIST:**",
+                "- [ ] Deploy 4-node cluster with auto-scaling triggers at 75% memory.",
+                "- [ ] Integrate Bloom filter middleware on WebSocket heartbeat (<1ms check).",
+                "- [ ] Enforce Customer-Managed KMS Key (CMK) with envelope encryption.",
+                "- [ ] Configure AWS PrivateLink VPC endpoints to eliminate cross-AZ egress charges."
+            ]
+            await self.chair.speak(self.public_room, "\n".join(lines))
+            return
+
+        # 5. Natural Architectural Overrides & Parameter Changes (No !override command needed!)
+        # e.g. "12 nodes kardo", "cost ki chinta mat karo", "deploy 12 nodes instead", "change to dynamo"
+        override_triggers = [
+            "change to", "kardo", "instead of", "override", "deploy 12", "use 12",
+            "cost ki chinta", "budget is fine", "don't use redis", "use postgres", "prioritize speed"
+        ]
+        if any(trigger in content_lower for trigger in override_triggers):
+            await self.chair.speak(
+                self.public_room,
+                f"⚡ **[ARCHITECTURAL DIRECTION RECORDED]** Lead Architect @{author_name}: *\"{text}\"*\n"
+                f"🏛️ Athena: Evaluating cross-domain blast radius and notifying affected council members..."
+            )
+            # Evaluate ripple effect across affected domains
+            if any(k in content_lower for k in ["12 node", "redis", "shard", "cluster"]):
                 await self.specialist_by_id["scalability"].speak(
                     self.public_room,
-                    f"⚡ **Vanguard:** Agreed, @{author_name}. A 4-node Redis cluster with Bloom filters keeps p99 under 15ms effortlessly."
+                    "⚡ **Vanguard (Blast Radius):** Moving to 12 nodes increases cluster gossip overhead by ~3ms during re-sharding, but guarantees 2x peak burst buffer headroom. Accepted."
                 )
-            else:
-                await self.chair.speak(
+                await self.specialist_by_id["security"].speak(
                     self.public_room,
-                    f"🏛️ **Athena:** Lead input recorded: *\"{text}\"*. Resolving architectural conflicts accordingly."
+                    "🛡️ **Aegis (Blast Radius):** 12 nodes expands attack surface. Inter-node Redis communication MUST enforce mutual TLS (mTLS) with rotated certificates."
                 )
+                if "database" in self.specialist_by_id:
+                    await self.specialist_by_id["database"].speak(
+                        self.public_room,
+                        "🏛️ **Titan (Blast Radius):** 12 shards introduces cross-shard transaction boundaries. We must enforce hash tags on Redis keys `{tenant_id}:channel_id` to prevent multi-key split."
+                    )
+            elif any(k in content_lower for k in ["dynamo", "dynamodb"]):
+                if "database" in self.specialist_by_id:
+                    await self.specialist_by_id["database"].speak(
+                        self.public_room,
+                        "🏛️ **Titan (Blast Radius):** Moving to DynamoDB eliminates relational JOINs. All access patterns must be served via Single-Table partition keys."
+                    )
+                await self.specialist_by_id["finops"].speak(
+                    self.public_room,
+                    "💰 **Ledger (Blast Radius):** DynamoDB on-demand mode can spike costs during flash sales. We recommend auto-scaling provisioned capacity instead."
+                )
+            return
+
+        # 6. Domain-Specific Conversational Inquiry
+        # Delivers natural questions to the right specialist
+        if any(k in content_lower for k in ["security", "aegis", "token", "hsm", "encrypt", "cve", "auth"]):
+            await self.specialist_by_id["security"].speak(
+                self.public_room,
+                f"🛡️ **Aegis:** Addressing your security concern, @{author_name}: Our primary zero-trust requirement is that tokens cannot remain valid indefinitely without central revocation checks."
+            )
+        elif any(k in content_lower for k in ["cost", "ledger", "budget", "save", "pricing", "dollar", "$"]):
+            await self.specialist_by_id["finops"].speak(
+                self.public_room,
+                f"💰 **Ledger:** On cloud economics, @{author_name}: By avoiding idle over-provisioning and cross-AZ egress, we protect our unit economics while maintaining room to scale."
+            )
+        elif any(k in content_lower for k in ["scale", "latency", "vanguard", "speed", "p99", "throughput", "rps"]):
+            await self.specialist_by_id["scalability"].speak(
+                self.public_room,
+                f"⚡ **Vanguard:** On throughput and latency, @{author_name}: With asynchronous batch buffering, we preserve our sub-15ms p99 SLA even under sudden 25,000 msg/sec traffic bursts."
+            )
+        elif any(k in content_lower for k in ["database", "titan", "sql", "postgres", "table", "acid"]):
+            if "database" in self.specialist_by_id:
+                await self.specialist_by_id["database"].speak(
+                    self.public_room,
+                    f"🏛️ **Titan:** Regarding data consistency, @{author_name}: We must avoid distributed dual-writes. Idempotency keys on write streams ensure zero duplicate records during worker retries."
+                )
+        elif any(k in content_lower for k in ["compliance", "verity", "gdpr", "privacy", "audit"]):
+            if "compliance" in self.specialist_by_id:
+                await self.specialist_by_id["compliance"].speak(
+                    self.public_room,
+                    f"⚖️ **Verity:** Regarding regulatory posture, @{author_name}: Crypto-shredding ensures compliance with GDPR Article 17 without having to mutate immutable append-only logs."
+                )
+        else:
+            await self.chair.speak(
+                self.public_room,
+                f"🏛️ **Athena:** Lead guidance noted: *\"{text}\"*. The Council is aligned and ready to steer."
+            )
+

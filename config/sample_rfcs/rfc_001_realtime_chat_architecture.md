@@ -27,3 +27,4 @@ Our current HTTP long-polling infrastructure is exhausting server memory, creati
    - Data at rest encrypted via AWS KMS default keys.
 5. **Cost Projection:**
    - Estimated monthly infrastructure spend: ~$8,200/month (EKS pods: $3,200, Redis Cluster: $3,500, Aurora: $1,500).
+

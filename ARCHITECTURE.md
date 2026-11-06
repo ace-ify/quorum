@@ -172,3 +172,4 @@ The Council Chair executes automated **Orthogonal Tension Analysis** across the 
 Like the previous foundation, BlindCouncil supports:
 - **`--simulate` (Terminal Judge Mode):** Executes the full 5-phase Delphi review on a sample RFC in 15 seconds, rendering colorized scorecards and outputting `ADR-001.md` right in the terminal.
 - **`--live` (Discord Mode):** Connects to the user's Discord server, creates `#review-desk` and the 3 private blind audit channels (`#audit-security`, `#audit-scalability`, `#audit-finops`), listens to human chat via Gateway WebSocket, and outputs the final ADR.
+
