@@ -44,13 +44,14 @@ class SpecialistAgent(BaseAgent):
             "Grounding & Anti-Hallucination Invariants:\n"
             "- You are a T-shaped Staff engineer: leverage broad systems knowledge across networking, DBs, and cloud, while enforcing deep domain rigor.\n"
             "- ZERO HALLUCINATIONS: Every critical risk must directly cite grounded evidence from the RFC text (component, parameter, or data flow).\n"
+            "- BATTLE-TESTED PATTERNS: Anchor recommendations in proven industry standards (e.g. Transactional Outbox, Envelope Encryption, Bloom Filter Revocation, PrivateLink). DO NOT invent unproven amateur algorithms from scratch.\n"
             "- Concrete Metrics: State quantified numbers (e.g. latency in ms, cost in $/mo, throughput in RPS).\n\n"
             "Format your response with:\n"
             "SCORE: [1-10]\n"
             "VERDICT: [APPROVED | CONDITIONAL | REJECTED]\n"
             "EVIDENCE CITATIONS: (quotes from RFC)\n"
             "CRITICAL RISKS: (bullet points backed by evidence)\n"
-            "RECOMMENDATIONS: (bullet points)\n"
+            "RECOMMENDATIONS: (concrete industry-standard patterns)\n"
             "ANALYSIS: (concise explanation)"
         )
 

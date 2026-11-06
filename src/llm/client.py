@@ -63,11 +63,25 @@ class LLMClient:
             try:
                 formatted_messages = [{"role": "system", "content": system_prompt}]
                 for m in messages:
-                    role = "assistant" if m.get("sender") == character_id else "user"
-                    formatted_messages.append({"role": role, "content": f"{m.get('sender', 'user')}: {m.get('content', '')}"})
+                    # Determine role accurately: only mark assistant if sender matches non-empty character_id or role is assistant
+                    sender = m.get("sender")
+                    explicit_role = m.get("role")
+                    if explicit_role:
+                        role = explicit_role
+                    elif character_id and sender and sender.lower() == character_id.lower():
+                        role = "assistant"
+                    else:
+                        role = "user"
 
-                if len(formatted_messages) == 1:
-                    formatted_messages.append({"role": "user", "content": "Please speak in character and respond to the current situation in the house."})
+                    content = m.get("content", "")
+                    prefix = f"{sender}: " if sender else ""
+                    formatted_messages.append({"role": role, "content": f"{prefix}{content}"})
+
+                # Invariant: Google Gemini / OpenAI protocol requires the prompt not to end on an assistant turn
+                if not formatted_messages or formatted_messages[-1]["role"] == "assistant":
+                    formatted_messages.append({"role": "user", "content": "Evaluate this architectural proposal through your sovereign domain rubric."})
+                elif len(formatted_messages) == 1:
+                    formatted_messages.append({"role": "user", "content": "Evaluate this architectural proposal through your sovereign domain rubric."})
 
                 resp = await self._client.chat.completions.create(
                     model=self.model,

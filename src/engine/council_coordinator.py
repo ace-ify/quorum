@@ -42,6 +42,7 @@ class CouncilCoordinator:
         self.current_phase = CouncilPhase.INIT
         self.user_decisions: List[Dict[str, str]] = []
         self.review_finished_event = asyncio.Event()
+        self.is_paused = False # Real-time human pause / interrupt flag
 
         # Dynamic channel mapping for all participating specialists
         self.public_room = "review-desk"
@@ -162,12 +163,16 @@ class CouncilCoordinator:
             if self.auto_pacing:
                 await asyncio.sleep(1.5)
 
-        # Allow time for human lead to chat / resolve (up to 45s or until !approve / !next)
+        # Allow time for human lead to chat, steer, or pause
         if self.auto_pacing:
-            for _ in range(45):
-                if self.current_phase != CouncilPhase.COUNCIL_DEBATE:
-                    break
+            countdown = 60
+            while countdown > 0 and self.current_phase == CouncilPhase.COUNCIL_DEBATE:
+                if self.is_paused:
+                    # While human has paused the floor, hold indefinitely
+                    await asyncio.sleep(1)
+                    continue
                 await asyncio.sleep(1)
+                countdown -= 1
 
     async def _run_adr_publication_phase(self):
         await self.chair.generate_and_publish_adr(
@@ -195,6 +200,7 @@ class CouncilCoordinator:
                 "• `!pr` — Render GitHub / GitLab PR review comment sticky\n"
                 "• `!diagram` — Render live Mermaid system architecture flowchart\n"
                 "• `!checklist` — Display blocking pre-deployment verification checklist\n"
+                "• `!pause` / `!resume` — Pause or resume debate floor\n"
                 "• `!approve` — Lock council consensus and publish final ADR\n\n"
                 "💬 **Conversational Steering (No commands needed):**\n"
                 "• Change architecture naturally: *\"12 nodes kardo, budget is fine\"* or *\"use DynamoDB instead\"*\n"
@@ -202,6 +208,23 @@ class CouncilCoordinator:
                 "• Approve naturally: *\"Looks good\"*, *\"LGTM\"*, or *\"Sahi hai\"*"
             )
             await self.chair.speak(self.public_room, help_msg)
+            return
+
+        # 0.1 Real-Time Human Interrupt / Pause / Resume
+        if any(trigger == content_lower or content_lower.startswith(trigger) for trigger in ["!pause", "pause", "wait", "ruko", "hold on", "stop"]):
+            self.is_paused = True
+            await self.chair.speak(
+                self.public_room,
+                f"⏸️ **[COUNCIL PAUSED]** Debate paused by Lead Architect @{author_name}. Specialists are holding their turns. Type *\"resume\"* or `!resume` when ready to proceed."
+            )
+            return
+
+        if any(trigger == content_lower or content_lower.startswith(trigger) for trigger in ["!resume", "resume", "continue", "chalo", "unpause"]):
+            self.is_paused = False
+            await self.chair.speak(
+                self.public_room,
+                f"▶️ **[COUNCIL RESUMED]** Debate floor reopened by @{author_name}. Resuming architectural review."
+            )
             return
 
         # 1. Natural Approval & Decision Finalization
