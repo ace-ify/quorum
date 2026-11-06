@@ -185,6 +185,25 @@ class CouncilCoordinator:
         text = content.strip()
         content_lower = text.lower()
 
+        # 0. Quick Command Cheatsheet
+        if text.startswith("!help") or content_lower in ["help", "commands"]:
+            help_msg = (
+                "⚡ **BLINDCOUNCIL FAST COMMANDS & CONVERSATION GUIDE:**\n\n"
+                "**Predefined Deliverable Shortcuts:**\n"
+                "• `!summary` — 3-bullet executive digest with key resolutions\n"
+                "• `!adr` — Render & export full Michael Nygard Architecture Decision Record\n"
+                "• `!pr` — Render GitHub / GitLab PR review comment sticky\n"
+                "• `!diagram` — Render live Mermaid system architecture flowchart\n"
+                "• `!checklist` — Display blocking pre-deployment verification checklist\n"
+                "• `!approve` — Lock council consensus and publish final ADR\n\n"
+                "💬 **Conversational Steering (No commands needed):**\n"
+                "• Change architecture naturally: *\"12 nodes kardo, budget is fine\"* or *\"use DynamoDB instead\"*\n"
+                "• Ask specialists directly: *\"Aegis, what is the token risk?\"* or *\"Vanguard, will p99 spike?\"*\n"
+                "• Approve naturally: *\"Looks good\"*, *\"LGTM\"*, or *\"Sahi hai\"*"
+            )
+            await self.chair.speak(self.public_room, help_msg)
+            return
+
         # 1. Natural Approval & Decision Finalization
         # e.g., "approve", "looks good", "proceed", "sahi hai", "finalize", "!approve"
         approval_triggers = [
@@ -197,6 +216,35 @@ class CouncilCoordinator:
                 f"📝 **[COUNCIL CONSENSUS]** Lead Architect @{author_name} approved the architecture. Locking decisions and publishing ADR..."
             )
             await self.advance_phase()
+            return
+
+        # 2. Predefined ADR / PR Deliverable Shortcuts
+        if any(k in content_lower for k in ["!adr", "export adr", "generate adr", "adr dikhao"]):
+            out_file = await self.chair.generate_and_publish_adr(
+                public_room=self.public_room,
+                rfc=self.rfc,
+                human_author=author_name,
+                user_decisions=self.user_decisions
+            )
+            return
+
+        if any(k in content_lower for k in ["!pr", "export pr", "github pr", "pr comment"]):
+            from ..review.adr_generator import ADRGenerator
+            from ..review.models import ADRDocument
+            doc = ADRDocument(
+                adr_id=self.rfc.rfc_id or "ADR-042",
+                title=self.rfc.title,
+                status="APPROVED WITH CONDITIONS",
+                date_str="2026-11-06",
+                author=author_name,
+                reviewers=[self.chair.name] + [s.name for s in self.specialists],
+                context_summary=self.rfc.content[:300],
+                scorecards=self.chair.scorecards,
+                resolved_trade_offs=[{"title": i.title, "resolution": i.resolution_prompt} for i in (self.chair.conflict_report.issues if self.chair.conflict_report else [])],
+                action_items=["Deploy 4-node cluster with auto-scaling triggers at 75% memory.", "Integrate Bloom filter middleware.", "Enforce Customer-Managed KMS Key (CMK)."]
+            )
+            pr_md = ADRGenerator.render_github_pr_comment(doc)
+            await self.chair.speak(self.public_room, f"💬 **GITHUB PR REVIEW COMMENT FORMAT:**\n\n```markdown\n{pr_md}\n```")
             return
 
         # 2. Natural Summary / Digest Request

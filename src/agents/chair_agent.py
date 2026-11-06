@@ -141,7 +141,12 @@ class ChairAgent(BaseAgent):
                 lines.append(f"• *{issue.specialist_b_view}*")
                 lines.append(f"👉 **Question for Lead:** {issue.resolution_prompt}\n")
 
-        lines.append("💬 **The floor is open in `#review-desk`!** Specialists, defend your positions. Human Lead, provide your executive decisions.")
+        lines.append(
+            "💬 **The floor is open in `#review-desk`!**\n"
+            "• **Steer naturally in chat:** e.g., *\"12 nodes kardo\"*, *\"don't use redis\"*, or ask specialists questions.\n"
+            "• **Fast Shortcuts:** `!summary` • `!diagram` • `!adr` • `!pr` • `!checklist`\n"
+            "• **When aligned:** Type *\"approve\"* or `!approve` to lock in decisions and generate the final ADR."
+        )
         await self.speak(public_room, "\n".join(lines))
 
     async def generate_and_publish_adr(
