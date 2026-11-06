@@ -100,4 +100,61 @@ Our existing PostgreSQL database cluster (hosted on AWS RDS Aurora ...
 - [ ] Adopt Crypto-Shredding per user to satisfy GDPR Article 17 Right to Erasure in event logs.
 - [ ] Configure AWS PrivateLink VPC endpoints for inter-service traffic to eliminate egress fees.
 
+---
+
+## 6. Implementation Manifest & Scaffolding Spec
+> 🤖 *Autonomous handoff contract for terminal coding agents (Claude Code, Codex, Cursor).*  
+**Target Workspace:** `.`  
+**Target Git Branch:** `git checkout -b feat/rfc-089-zero_downtime_migration_from_p`  
+**Verification Test Command:** `pytest tests/ -v`  
+
+### 📂 File Scaffolding Action Matrix
+
+| File Path | Action | Mandated By | Purpose |
+| :--- | :---: | :--- | :--- |
+| `src/db/single_table_schema.py` | `CREATE` | Titan (Database) | Single-table DynamoDB data access objects with composite PK/SK design |
+| `src/migration/dual_write_syncer.py` | `CREATE` | Vanguard (Scalability) | Dual-writing middleware from legacy Postgres to DynamoDB with shadow reads |
+| `infra/terraform/dynamodb.tf` | `CREATE` | Ledger (FinOps) | Terraform spec with On-Demand Billing mode and Point-in-time Recovery |
+| `tests/test_dual_write_parity.py` | `CREATE` | Athena (Council Chair) | Consistency validation between Postgres and DynamoDB shadow writes |
+
+### 🧩 Code Contracts & Interface Signatures
+
+#### `src/db/single_table_schema.py` (`CREATE`)
+```python
+class UserSessionRepository:
+    """PK: USER#{id}, SK: SESSION#{token} single-table access pattern."""
+    def get_session(self, user_id: str, session_id: str):
+        pass
+```
+
+#### `src/migration/dual_write_syncer.py` (`CREATE`)
+```python
+class DualWriteSyncer:
+    def write_both(self, record: dict):
+        pass
+```
+
+#### `infra/terraform/dynamodb.tf` (`CREATE`)
+```python
+resource "aws_dynamodb_table" "sessions" {
+  name         = "user-sessions"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "PK"
+  range_key    = "SK"
+}
+```
+
+#### `tests/test_dual_write_parity.py` (`CREATE`)
+```python
+def test_record_parity():
+    pass
+```
+
+### ⚡ Terminal Coding Agent Handoff Command
+Execute the following CLI command to initiate autonomous repository implementation:
+```bash
+claude -p "Implement ADR RFC-089 according to Section 6 Implementation Manifest. Work on branch 'feat/rfc-089-zero_downtime_migration_from_p' and verify with 'pytest tests/ -v' before completion."
+```
+
+
 *Generated collaboratively by BlindCouncil on Switch AI.*

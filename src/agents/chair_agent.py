@@ -6,7 +6,7 @@ moderates the public debate in #review-desk, and compiles the official ADR.
 import os
 from typing import Dict, List, Optional, Any
 from .base_agent import BaseAgent
-from ..review.models import RFCProposal, AuditScorecard, ConflictIssue, ConflictReport, ADRDocument
+from ..review.models import RFCProposal, AuditScorecard, ConflictIssue, ConflictReport, ADRDocument, FileManifestItem
 from ..review.adr_generator import ADRGenerator
 
 class ChairAgent(BaseAgent):
@@ -31,6 +31,8 @@ class ChairAgent(BaseAgent):
         self.scorecards: Dict[str, AuditScorecard] = {}
         self.conflict_report: Optional[ConflictReport] = None
         self.resolved_trade_offs: List[Dict[str, str]] = []
+        self.last_adr_doc: Optional[ADRDocument] = None
+
 
     async def announce_rfc_intake(self, public_room: str, rfc: RFCProposal, specialists: Optional[List[Any]] = None):
         """
@@ -149,6 +151,204 @@ class ChairAgent(BaseAgent):
         )
         await self.speak(public_room, "\n".join(lines))
 
+    def _build_implementation_manifest(self, rfc: RFCProposal) -> List[FileManifestItem]:
+        content_lower = (rfc.title + " " + rfc.content).lower()
+
+        if "url" in content_lower or "shortener" in content_lower:
+            return [
+                FileManifestItem(
+                    file_path="src/services/base62_encoder.py",
+                    action="CREATE",
+                    purpose="Bi-directional Base62 encoder/decoder mapping 64-bit ID to 7-character string",
+                    mandated_by="Vanguard (Scalability)",
+                    interface_contract=(
+                        'BASE62_ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"\n\n'
+                        'def encode_base62(num: int) -> str:\n'
+                        '    """Converts a database integer sequence ID into a 7-char short code."""\n'
+                        '    pass\n\n'
+                        'def decode_base62(code: str) -> int:\n'
+                        '    """Converts a 7-char short code back into the primary key ID."""\n'
+                        '    pass'
+                    )
+                ),
+                FileManifestItem(
+                    file_path="src/middleware/ssrf_filter.py",
+                    action="CREATE",
+                    purpose="SSRF protection preventing redirection to cloud metadata or private subnets",
+                    mandated_by="Aegis (Security)",
+                    interface_contract=(
+                        'from ipaddress import ip_address\n\n'
+                        'def validate_target_url(destination_url: str) -> bool:\n'
+                        '    """Rejects AWS metadata (169.254.169.254), 127.0.0.1, and RFC-1918 private IPs."""\n'
+                        '    pass'
+                    )
+                ),
+                FileManifestItem(
+                    file_path="src/cache/bloom_filter.py",
+                    action="CREATE",
+                    purpose="Redis Bloom filter for fast negative lookups on non-existent short codes",
+                    mandated_by="Ledger (FinOps)",
+                    interface_contract=(
+                        'class ShortCodeBloomFilter:\n'
+                        '    """Filters 404 queries in cache to prevent database load spikes."""\n'
+                        '    def might_exist(self, code: str) -> bool:\n'
+                        '        pass\n\n'
+                        '    def add(self, code: str) -> None:\n'
+                        '        pass'
+                    )
+                ),
+                FileManifestItem(
+                    file_path="src/db/migrations/001_create_urls_table.sql",
+                    action="CREATE",
+                    purpose="Relational table schema with unique short_code index",
+                    mandated_by="Titan (Database)",
+                    interface_contract=(
+                        'CREATE TABLE urls (\n'
+                        '    id BIGINT AUTO_INCREMENT PRIMARY KEY,\n'
+                        '    short_code VARCHAR(10) NOT NULL UNIQUE,\n'
+                        '    destination_url TEXT NOT NULL,\n'
+                        '    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\n'
+                        '    INDEX idx_short_code (short_code)\n'
+                        ');'
+                    )
+                ),
+                FileManifestItem(
+                    file_path="tests/test_shortener.py",
+                    action="CREATE",
+                    purpose="End-to-end verification tests for encoding, SSRF guards, and cache layer",
+                    mandated_by="Athena (Council Chair)",
+                    interface_contract=(
+                        'def test_encode_decode_roundtrip():\n'
+                        '    assert decode_base62(encode_base62(1000000)) == 1000000\n\n'
+                        'def test_ssrf_rejects_metadata_endpoint():\n'
+                        '    assert validate_target_url("http://169.254.169.254/latest/meta-data") is False'
+                    )
+                )
+            ]
+        elif "dynamo" in content_lower or "migration" in content_lower:
+            return [
+                FileManifestItem(
+                    file_path="src/db/single_table_schema.py",
+                    action="CREATE",
+                    purpose="Single-table DynamoDB data access objects with composite PK/SK design",
+                    mandated_by="Titan (Database)",
+                    interface_contract=(
+                        'class UserSessionRepository:\n'
+                        '    """PK: USER#{id}, SK: SESSION#{token} single-table access pattern."""\n'
+                        '    def get_session(self, user_id: str, session_id: str):\n'
+                        '        pass'
+                    )
+                ),
+                FileManifestItem(
+                    file_path="src/migration/dual_write_syncer.py",
+                    action="CREATE",
+                    purpose="Dual-writing middleware from legacy Postgres to DynamoDB with shadow reads",
+                    mandated_by="Vanguard (Scalability)",
+                    interface_contract=(
+                        'class DualWriteSyncer:\n'
+                        '    def write_both(self, record: dict):\n'
+                        '        pass'
+                    )
+                ),
+                FileManifestItem(
+                    file_path="infra/terraform/dynamodb.tf",
+                    action="CREATE",
+                    purpose="Terraform spec with On-Demand Billing mode and Point-in-time Recovery",
+                    mandated_by="Ledger (FinOps)",
+                    interface_contract=(
+                        'resource "aws_dynamodb_table" "sessions" {\n'
+                        '  name         = "user-sessions"\n'
+                        '  billing_mode = "PAY_PER_REQUEST"\n'
+                        '  hash_key     = "PK"\n'
+                        '  range_key    = "SK"\n'
+                        '}'
+                    )
+                ),
+                FileManifestItem(
+                    file_path="tests/test_dual_write_parity.py",
+                    action="CREATE",
+                    purpose="Consistency validation between Postgres and DynamoDB shadow writes",
+                    mandated_by="Athena (Council Chair)",
+                    interface_contract=(
+                        'def test_record_parity():\n'
+                        '    pass'
+                    )
+                )
+            ]
+        else:
+            # Default / Realtime Messaging Cluster (RFC-042)
+            return [
+                FileManifestItem(
+                    file_path="src/middleware/bloom_filter.py",
+                    action="CREATE",
+                    purpose="Redis Bloom filter middleware for <1ms WebSocket heartbeat token revocation checks",
+                    mandated_by="Aegis (Security) & Vanguard (Scalability)",
+                    interface_contract=(
+                        'import redis\n\n'
+                        'class TokenRevocationFilter:\n'
+                        '    """Evaluates JWT revocation status in <1ms without database load."""\n'
+                        '    def __init__(self, r: redis.Redis):\n'
+                        '        self.redis = r\n\n'
+                        '    def is_revoked(self, jti: str) -> bool:\n'
+                        '        pass'
+                    )
+                ),
+                FileManifestItem(
+                    file_path="src/cluster/redis_scaler.py",
+                    action="CREATE",
+                    purpose="Redis cluster autoscaler scaling out from 4 nodes when memory hits 75%",
+                    mandated_by="Vanguard (Scalability) & Ledger (FinOps)",
+                    interface_contract=(
+                        'class RedisClusterAutoscaler:\n'
+                        '    """Maintains 4-node baseline and triggers scale-out at 75% memory load."""\n'
+                        '    def __init__(self, cluster_nodes: list, threshold: float = 0.75):\n'
+                        '        self.nodes = cluster_nodes\n'
+                        '        self.threshold = threshold\n\n'
+                        '    def evaluate_scale(self, current_memory_pct: float) -> bool:\n'
+                        '        pass'
+                    )
+                ),
+                FileManifestItem(
+                    file_path="src/security/envelope_encryption.py",
+                    action="CREATE",
+                    purpose="Customer-Managed KMS Key (CMK) envelope encryption for payload security at rest",
+                    mandated_by="Aegis (Security)",
+                    interface_contract=(
+                        'import boto3\n\n'
+                        'class EnvelopeEncryption:\n'
+                        '    """Encrypts message payloads using AWS KMS data key pairs."""\n'
+                        '    def __init__(self, kms_key_arn: str):\n'
+                        '        self.kms_key_arn = kms_key_arn\n\n'
+                        '    def encrypt_payload(self, raw_bytes: bytes) -> tuple[bytes, bytes]:\n'
+                        '        pass'
+                    )
+                ),
+                FileManifestItem(
+                    file_path="src/privacy/crypto_shredding.py",
+                    action="CREATE",
+                    purpose="Per-user cryptographic shredding to satisfy GDPR Article 17 Right to Erasure in event logs",
+                    mandated_by="Verity (Compliance)",
+                    interface_contract=(
+                        'class CryptoShredder:\n'
+                        '    """Destroys user decryption keys on erasure request, rendering logs unrecoverable."""\n'
+                        '    def shred_user(self, user_id: str) -> bool:\n'
+                        '        pass'
+                    )
+                ),
+                FileManifestItem(
+                    file_path="tests/test_messaging_cluster.py",
+                    action="CREATE",
+                    purpose="Verifies sub-1ms Bloom filter latency and payload encryption/shredding integrity",
+                    mandated_by="Athena (Council Chair)",
+                    interface_contract=(
+                        'def test_bloom_revocation_sub_millisecond():\n'
+                        '    pass\n\n'
+                        'def test_crypto_shredding_renders_unrecoverable():\n'
+                        '    pass'
+                    )
+                )
+            ]
+
     async def generate_and_publish_adr(
         self,
         public_room: str,
@@ -183,6 +383,9 @@ class ChairAgent(BaseAgent):
         out_path = f"{adr_id}_{clean_title}.md"
         pr_comment_path = f"PR_COMMENT_{adr_id}_{clean_title}.md"
 
+        manifest = self._build_implementation_manifest(rfc)
+        target_branch = f"feat/{adr_id.lower().replace('_', '-')}-{clean_title.lower()}"
+
         doc = ADRDocument(
             adr_id=adr_id,
             title=rfc.title,
@@ -199,8 +402,14 @@ class ChairAgent(BaseAgent):
                 "Enforce Customer-Managed KMS Key (CMK) with envelope encryption.",
                 "Adopt Crypto-Shredding per user to satisfy GDPR Article 17 Right to Erasure in event logs.",
                 "Configure AWS PrivateLink VPC endpoints for inter-service traffic to eliminate egress fees."
-            ]
+            ],
+            target_branch=target_branch,
+            target_directory=".",
+            test_verification_command="pytest tests/ -v",
+            implementation_manifest=manifest
         )
+        self.last_adr_doc = doc
+
 
         adr_md = ADRGenerator.render_markdown(doc)
         pr_md = ADRGenerator.render_github_pr_comment(doc)

@@ -105,6 +105,28 @@ class TestADRGeneration(unittest.TestCase):
         self.assertIn("Council Blind Scorecard Matrix", pr_md)
         self.assertIn("<details>", pr_md)
 
+        # Test Implementation Manifest & Scaffolding Spec (Section 6)
+        from src.review.models import FileManifestItem
+        doc.target_branch = "feat/adr-042-messaging"
+        doc.target_directory = "."
+        doc.test_verification_command = "pytest tests/ -v"
+        doc.implementation_manifest = [
+            FileManifestItem(
+                file_path="src/middleware/bloom_filter.py",
+                action="CREATE",
+                purpose="Sub-1ms token revocation filter",
+                mandated_by="Aegis (Security)",
+                interface_contract="def is_revoked(token_id: str) -> bool:\n    pass"
+            )
+        ]
+        md_with_manifest = ADRGenerator.render_markdown(doc)
+        self.assertIn("## 6. Implementation Manifest & Scaffolding Spec", md_with_manifest)
+        self.assertIn("src/middleware/bloom_filter.py", md_with_manifest)
+        self.assertIn("feat/adr-042-messaging", md_with_manifest)
+        self.assertIn("def is_revoked", md_with_manifest)
+        self.assertIn("claude -p", md_with_manifest)
+
+
 class TestFactoryAndIngestion(unittest.TestCase):
     def test_specialist_factory(self):
         from src.agents.specialist_factory import SpecialistFactory

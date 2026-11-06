@@ -25,6 +25,15 @@
 - [ ] Adopt Crypto-Shredding per user to satisfy GDPR Article 17 Right to Erasure in event logs.
 - [ ] Configure AWS PrivateLink VPC endpoints for inter-service traffic to eliminate egress fees.
 
+### 🚀 Implementer Handoff & Scaffolding Manifest
+- **Target Branch:** `feat/rfc-089-zero_downtime_migration_from_p`
+- **Verification Test Command:** `pytest tests/ -v`
+- **Files to Scaffold:** `4 files`
+  - `CREATE` `src/db/single_table_schema.py` — *Single-table DynamoDB data access objects with composite PK/SK design*
+  - `CREATE` `src/migration/dual_write_syncer.py` — *Dual-writing middleware from legacy Postgres to DynamoDB with shadow reads*
+  - `CREATE` `infra/terraform/dynamodb.tf` — *Terraform spec with On-Demand Billing mode and Point-in-time Recovery*
+  - `CREATE` `tests/test_dual_write_parity.py` — *Consistency validation between Postgres and DynamoDB shadow writes*
+
 <details>
 <summary>🔍 <b>Click to expand full specialist findings & raw blind analysis</b></summary>
 

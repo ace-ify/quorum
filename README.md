@@ -69,7 +69,8 @@ Standard multi-agent frameworks (LangGraph, AutoGen, CrewAI) operate on shared e
 3. **Conflict Synthesis**: The Council Chair (`Athena`) aggregates blind scorecards and maps orthogonal trade-off clashes.
 4. **Council Debate in `#review-desk`**: Blind findings are revealed publicly. Specialists debate tensions (Latency vs Cost vs Security vs Data Consistency) with the Human Lead, who steers naturally or with fast commands (`!summary`, `!diagram`, `!checklist`).
 5. **ADR & PR Comment Publication**: The Council compiles the consensus into an official Michael Nygard **Architecture Decision Record (`ADR-042.md`)** AND a GitHub PR review sticky comment (`PR_COMMENT.md`).
-6. **Autonomous Implementer Handoff (Claude Code Bridge)**: Athena spins up `#dev-implementation` and delivers the verified architectural action items to terminal coding agents (**Claude Code / Codex**) to begin repository implementation!
+6. **Autonomous Implementer Handoff (Claude Code / Codex Bridge)**: Athena spins up `#dev-implementation` and delivers a concrete **Implementation Manifest & Scaffolding Spec** (Target git branch, workspace directory, file matrix with `CREATE`/`MODIFY`, typed interface contracts, and test verification command) directly to terminal coding agents (**Claude Code / Codex**), eliminating guesswork on where files start.
+
 
 ---
 

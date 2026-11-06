@@ -100,4 +100,86 @@ Our current HTTP long-polling infrastructure is exhausting server memory, creati
 - [ ] Adopt Crypto-Shredding per user to satisfy GDPR Article 17 Right to Erasure in event logs.
 - [ ] Configure AWS PrivateLink VPC endpoints for inter-service traffic to eliminate egress fees.
 
+---
+
+## 6. Implementation Manifest & Scaffolding Spec
+> 🤖 *Autonomous handoff contract for terminal coding agents (Claude Code, Codex, Cursor).*  
+**Target Workspace:** `.`  
+**Target Git Branch:** `git checkout -b feat/rfc-042-real_time_messaging___event_st`  
+**Verification Test Command:** `pytest tests/ -v`  
+
+### 📂 File Scaffolding Action Matrix
+
+| File Path | Action | Mandated By | Purpose |
+| :--- | :---: | :--- | :--- |
+| `src/middleware/bloom_filter.py` | `CREATE` | Aegis (Security) & Vanguard (Scalability) | Redis Bloom filter middleware for <1ms WebSocket heartbeat token revocation checks |
+| `src/cluster/redis_scaler.py` | `CREATE` | Vanguard (Scalability) & Ledger (FinOps) | Redis cluster autoscaler scaling out from 4 nodes when memory hits 75% |
+| `src/security/envelope_encryption.py` | `CREATE` | Aegis (Security) | Customer-Managed KMS Key (CMK) envelope encryption for payload security at rest |
+| `src/privacy/crypto_shredding.py` | `CREATE` | Verity (Compliance) | Per-user cryptographic shredding to satisfy GDPR Article 17 Right to Erasure in event logs |
+| `tests/test_messaging_cluster.py` | `CREATE` | Athena (Council Chair) | Verifies sub-1ms Bloom filter latency and payload encryption/shredding integrity |
+
+### 🧩 Code Contracts & Interface Signatures
+
+#### `src/middleware/bloom_filter.py` (`CREATE`)
+```python
+import redis
+
+class TokenRevocationFilter:
+    """Evaluates JWT revocation status in <1ms without database load."""
+    def __init__(self, r: redis.Redis):
+        self.redis = r
+
+    def is_revoked(self, jti: str) -> bool:
+        pass
+```
+
+#### `src/cluster/redis_scaler.py` (`CREATE`)
+```python
+class RedisClusterAutoscaler:
+    """Maintains 4-node baseline and triggers scale-out at 75% memory load."""
+    def __init__(self, cluster_nodes: list, threshold: float = 0.75):
+        self.nodes = cluster_nodes
+        self.threshold = threshold
+
+    def evaluate_scale(self, current_memory_pct: float) -> bool:
+        pass
+```
+
+#### `src/security/envelope_encryption.py` (`CREATE`)
+```python
+import boto3
+
+class EnvelopeEncryption:
+    """Encrypts message payloads using AWS KMS data key pairs."""
+    def __init__(self, kms_key_arn: str):
+        self.kms_key_arn = kms_key_arn
+
+    def encrypt_payload(self, raw_bytes: bytes) -> tuple[bytes, bytes]:
+        pass
+```
+
+#### `src/privacy/crypto_shredding.py` (`CREATE`)
+```python
+class CryptoShredder:
+    """Destroys user decryption keys on erasure request, rendering logs unrecoverable."""
+    def shred_user(self, user_id: str) -> bool:
+        pass
+```
+
+#### `tests/test_messaging_cluster.py` (`CREATE`)
+```python
+def test_bloom_revocation_sub_millisecond():
+    pass
+
+def test_crypto_shredding_renders_unrecoverable():
+    pass
+```
+
+### ⚡ Terminal Coding Agent Handoff Command
+Execute the following CLI command to initiate autonomous repository implementation:
+```bash
+claude -p "Implement ADR RFC-042 according to Section 6 Implementation Manifest. Work on branch 'feat/rfc-042-real_time_messaging___event_st' and verify with 'pytest tests/ -v' before completion."
+```
+
+
 *Generated collaboratively by BlindCouncil on Switch AI.*

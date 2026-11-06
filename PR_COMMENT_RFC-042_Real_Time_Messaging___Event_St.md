@@ -25,6 +25,15 @@
 - [ ] Adopt Crypto-Shredding per user to satisfy GDPR Article 17 Right to Erasure in event logs.
 - [ ] Configure AWS PrivateLink VPC endpoints for inter-service traffic to eliminate egress fees.
 
+### 🚀 Implementer Handoff & Scaffolding Manifest
+- **Target Branch:** `feat/rfc-042-real_time_messaging___event_st`
+- **Verification Test Command:** `pytest tests/ -v`
+- **Files to Scaffold:** `5 files`
+  - `CREATE` `src/middleware/bloom_filter.py` — *Redis Bloom filter middleware for <1ms WebSocket heartbeat token revocation checks*
+  - `CREATE` `src/cluster/redis_scaler.py` — *Redis cluster autoscaler scaling out from 4 nodes when memory hits 75%*
+  - `CREATE` `src/security/envelope_encryption.py` — *Customer-Managed KMS Key (CMK) envelope encryption for payload security at rest*
+  - `CREATE` `src/privacy/crypto_shredding.py` — *Per-user cryptographic shredding to satisfy GDPR Article 17 Right to Erasure in event logs*
+
 <details>
 <summary>🔍 <b>Click to expand full specialist findings & raw blind analysis</b></summary>
 

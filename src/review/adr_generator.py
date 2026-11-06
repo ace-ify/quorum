@@ -79,6 +79,52 @@ class ADRGenerator:
         for item in doc.action_items:
             lines.append(f"- [ ] {item}")
 
+        # Section 6: Scaffolding Spec & Implementation Manifest for Coding Agents (Claude Code / Codex)
+        target_branch = doc.target_branch or f"feat/{doc.adr_id.lower().replace('_', '-')}-implementation"
+        target_dir = doc.target_directory or "."
+        verify_cmd = doc.test_verification_command or "pytest tests/ -v"
+
+        lines.extend([
+            "",
+            "---",
+            "",
+            "## 6. Implementation Manifest & Scaffolding Spec",
+            "> 🤖 *Autonomous handoff contract for terminal coding agents (Claude Code, Codex, Cursor).*  ",
+            f"**Target Workspace:** `{target_dir}`  ",
+            f"**Target Git Branch:** `git checkout -b {target_branch}`  ",
+            f"**Verification Test Command:** `{verify_cmd}`  ",
+            "",
+            "### 📂 File Scaffolding Action Matrix",
+            "",
+            "| File Path | Action | Mandated By | Purpose |",
+            "| :--- | :---: | :--- | :--- |"
+        ])
+
+        if doc.implementation_manifest:
+            for item in doc.implementation_manifest:
+                lines.append(f"| `{item.file_path}` | `{item.action}` | {item.mandated_by} | {item.purpose} |")
+
+            lines.extend([
+                "",
+                "### 🧩 Code Contracts & Interface Signatures",
+                ""
+            ])
+            for item in doc.implementation_manifest:
+                if item.interface_contract:
+                    lines.append(f"#### `{item.file_path}` (`{item.action}`)")
+                    lines.append(f"```python\n{item.interface_contract.strip()}\n```\n")
+
+            lines.extend([
+                "### ⚡ Terminal Coding Agent Handoff Command",
+                "Execute the following CLI command to initiate autonomous repository implementation:",
+                "```bash",
+                f'claude -p "Implement ADR {doc.adr_id} according to Section 6 Implementation Manifest. Work on branch \'{target_branch}\' and verify with \'{verify_cmd}\' before completion."',
+                "```",
+                ""
+            ])
+        else:
+            lines.append("*No files specified in scaffolding manifest.*\n")
+
         lines.append("\n*Generated collaboratively by BlindCouncil on Switch AI.*")
         return "\n".join(lines)
 
@@ -171,6 +217,18 @@ class ADRGenerator:
 
         lines.extend([
             "",
+            "### 🚀 Implementer Handoff & Scaffolding Manifest",
+            f"- **Target Branch:** `{doc.target_branch or 'feat/' + doc.adr_id.lower().replace('_', '-')}`",
+            f"- **Verification Test Command:** `{doc.test_verification_command or 'pytest tests/ -v'}`",
+            f"- **Files to Scaffold:** `{len(doc.implementation_manifest)} files`"
+        ])
+
+        if doc.implementation_manifest:
+            for item in doc.implementation_manifest[:4]:
+                lines.append(f"  - `{item.action}` `{item.file_path}` — *{item.purpose}*")
+
+        lines.extend([
+            "",
             "<details>",
             "<summary>🔍 <b>Click to expand full specialist findings & raw blind analysis</b></summary>",
             ""
@@ -198,44 +256,5 @@ class ADRGenerator:
 
         return "\n".join(lines)
 
-    @staticmethod
-    def render_executive_summary(doc: ADRDocument) -> str:
-        """
-        Renders a 3-bullet executive digest suitable for instant chat display.
-        """
-        lines = [
-            f"📋 **EXECUTIVE ARCHITECTURAL DIGEST: {doc.adr_id}**",
-            f"**Verdict:** `{doc.status}` | **Author:** {doc.author} | **Council:** {', '.join(doc.reviewers)}",
-            "",
-            "**Core Architectural Decisions:**"
-        ]
-        if doc.resolved_trade_offs:
-            for item in doc.resolved_trade_offs:
-                lines.append(f"• **{item.get('title', 'Decision')}:** {item.get('resolution', '')}")
-        else:
-            lines.append("• Standard architecture approved without trade-off contention.")
-
-        lines.append("\n**Actionable Pre-Merge Items:**")
-        for item in doc.action_items[:3]:
-            lines.append(f"• [ ] {item}")
-
-        return "\n".join(lines)
-
-    @staticmethod
-    def render_mermaid_diagram(doc: ADRDocument) -> str:
-        """
-        Generates a clean architectural flow diagram in Mermaid syntax.
-        """
-        return (
-            "```mermaid\n"
-            "graph TD\n"
-            "    Client[Clients: Web & Mobile] -->|WSS / TLS 1.3| Edge[Edge Gateway: EKS Pods]\n"
-            "    Edge -->|Heartbeat Auth <1ms| Bloom[Redis Bloom Filter Cache]\n"
-            "    Edge -->|Pub/Sub Streams 25k msg/s| Shards[Redis Enterprise: 4 Nodes]\n"
-            "    Shards -->|Transactional Outbox| DB[(AWS Aurora Serverless v2)]\n"
-            "    KMS[Customer-Managed KMS CMK] -.->|Envelope Encryption| Edge\n"
-            "    Shards -.->|Crypto-Shredding on Delete| Vault[GDPR Compliance Vault]\n"
-            "```"
-        )
 
 

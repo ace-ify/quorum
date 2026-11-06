@@ -193,7 +193,7 @@ class CouncilCoordinator:
         """
         Phase 6: The Autonomous Implementer Handoff.
         Athena provisions #dev-implementation and hands off approved ADR action items
-        to terminal coding agents (Claude Code / Codex / Developer Agent).
+        and concrete File Manifest & Code Contracts to terminal coding agents (Claude Code / Codex).
         """
         dev_room = "dev-implementation"
         await self.switch_client.create_room(
@@ -201,21 +201,47 @@ class CouncilCoordinator:
             [self.chair.agent_id, self.human_id, "claudecode"],
             "Autonomous Code Implementation Room"
         )
+
+        doc = getattr(self.chair, "last_adr_doc", None)
+        target_branch = doc.target_branch if doc and doc.target_branch else f"feat/{self.rfc.rfc_id.lower() if self.rfc.rfc_id else 'adr-042'}-impl"
+        target_dir = doc.target_directory if doc and doc.target_directory else "."
+        verify_cmd = doc.test_verification_command if doc and doc.test_verification_command else "pytest tests/ -v"
+        manifest_items = doc.implementation_manifest if doc and doc.implementation_manifest else []
+
+        manifest_lines = []
+        for i, item in enumerate(manifest_items, 1):
+            manifest_lines.append(f"{i}. `[{item.action}]` **`{item.file_path}`** — *{item.purpose}* (Mandated by: {item.mandated_by})")
+
+        contracts_preview = []
+        for item in manifest_items[:2]:
+            if item.interface_contract:
+                contracts_preview.append(f"**`{item.file_path}` Scaffold Contract:**\n```python\n{item.interface_contract.strip()}\n```")
+
+        contracts_str = "\n\n".join(contracts_preview)
+        if contracts_str:
+            contracts_str = "\n\n" + contracts_str
+
         handoff_msg = (
-            "🚀 **[SWITCH IMPLEMENTER HANDOFF: BLINDCOUNCIL ➔ CLAUDE CODE]** 🚀\n\n"
+            "🚀 **[SWITCH IMPLEMENTER HANDOFF: BLINDCOUNCIL ➔ CLAUDE CODE / CODEX]** 🚀\n\n"
             f"**Target System:** `{self.rfc.title}`\n"
-            f"**Approved Architectural Contract:** `{self.rfc.rfc_id or 'ADR-042'}.md`\n\n"
+            f"**Approved Architectural Decision:** `{self.rfc.rfc_id or 'ADR-042'}.md`\n"
+            f"**Target Workspace:** `{target_dir}`\n"
+            f"**Target Git Branch:** `git checkout -b {target_branch}`\n"
+            f"**Verification Harness:** `{verify_cmd}`\n\n"
             "Attention **@ClaudeCode** / **@CodexDeveloper**:\n"
-            "The Architecture Review Board has officially locked the decision. You are authorized to begin repository implementation.\n\n"
-            "**Approved Implementation Action Items:**\n"
-            "1. [ ] Deploy 4-node cluster with auto-scaling triggers at 75% memory threshold.\n"
-            "2. [ ] Integrate Bloom filter middleware on WebSocket heartbeat (<1ms check).\n"
-            "3. [ ] Enforce Customer-Managed KMS Key (CMK) with envelope encryption on workers.\n"
-            "4. [ ] Configure AWS PrivateLink VPC endpoints for inter-service communication.\n\n"
-            "👉 *Terminal coding agent is initialized in this workspace. Run unit tests and submit PR for final Council sign-off.*"
+            "The Architecture Review Board has officially locked consensus. You are authorized to implement the following concrete repository manifest:\n\n"
+            "**📂 Approved File Manifest & Scaffold Spec:**\n"
+            + ("\n".join(manifest_lines) if manifest_lines else "• Standard files as defined in ADR Section 6.")
+            + contracts_str + "\n\n"
+            "**⚡ Terminal Agent Launch Execution Command:**\n"
+            "```bash\n"
+            f'claude -p "Read {self.rfc.rfc_id or "ADR-042"}.md Section 6. Switch to branch \'{target_branch}\'. Implement the scaffolded files in \'{target_dir}\'. Run \'{verify_cmd}\' and do not finish until all tests pass."\n'
+            "```\n\n"
+            "👉 *Terminal coding agent is initialized. Run unit tests and submit PR for final Council sign-off.*"
         )
         await self.chair.speak(dev_room, handoff_msg)
-        await self.chair.speak(self.public_room, f"🔄 **[PIPELINE HANDOFF]** Council decisions handed off to `@ClaudeCode` in `#{dev_room}` for implementation.")
+        await self.chair.speak(self.public_room, f"🔄 **[PIPELINE HANDOFF]** Implementation manifest handed off to `@ClaudeCode` in `#{dev_room}` (`branch: {target_branch}`).")
+
 
     async def handle_human_message(self, room_name: str, author_id: str, author_name: str, content: str):
         """
@@ -304,6 +330,42 @@ class CouncilCoordinator:
             pr_md = ADRGenerator.render_github_pr_comment(doc)
             await self.chair.speak(self.public_room, f"💬 **GITHUB PR REVIEW COMMENT FORMAT:**\n\n```markdown\n{pr_md}\n```")
             return
+
+        # 2.1 Implementation Manifest & Scaffolding Shortcut
+        if any(k in content_lower for k in ["!manifest", "!scaffold", "scaffold", "manifest", "implementation spec", "coding spec", "!handoff"]):
+            from ..review.models import ADRDocument
+            doc = getattr(self.chair, "last_adr_doc", None)
+            if not doc:
+                doc = ADRDocument(
+                    adr_id=self.rfc.rfc_id or "ADR-042",
+                    title=self.rfc.title,
+                    status="UNDER REVIEW",
+                    date_str="2026-11-06",
+                    author=author_name,
+                    reviewers=[self.chair.name] + [s.name for s in self.specialists],
+                    context_summary=self.rfc.content[:300],
+                    scorecards=self.chair.scorecards,
+                    resolved_trade_offs=[],
+                    action_items=[],
+                    target_branch=f"feat/{self.rfc.rfc_id.lower() if self.rfc.rfc_id else 'adr-042'}-impl",
+                    target_directory=".",
+                    test_verification_command="pytest tests/ -v",
+                    implementation_manifest=self.chair._build_implementation_manifest(self.rfc)
+                )
+
+            manifest_lines = [f"• `[{item.action}]` **`{item.file_path}`** — *{item.purpose}* (Mandated by: {item.mandated_by})" for item in doc.implementation_manifest]
+            msg = (
+                "📂 **[IMPLEMENTATION MANIFEST & SCAFFOLDING SPEC]**\n\n"
+                f"**Target Workspace:** `{doc.target_directory}`\n"
+                f"**Target Git Branch:** `git checkout -b {doc.target_branch}`\n"
+                f"**Verification Test Command:** `{doc.test_verification_command}`\n\n"
+                "**Repository File Actions:**\n" + "\n".join(manifest_lines) + "\n\n"
+                "**Terminal Coding Launch Command:**\n"
+                f'```bash\nclaude -p "Implement ADR {doc.adr_id} files on branch \'{doc.target_branch}\'. Verify with \'{doc.test_verification_command}\' before completion."\n```'
+            )
+            await self.chair.speak(self.public_room, msg)
+            return
+
 
         # 2. Natural Summary / Digest Request
         # e.g., "summary batao", "give me a summary", "tl;dr", "!summary"

@@ -41,6 +41,14 @@ class ConflictReport:
     issues: List[ConflictIssue] = field(default_factory=list)
 
 @dataclass
+class FileManifestItem:
+    file_path: str # e.g. "src/middleware/bloom_filter.py"
+    action: str # "CREATE" or "MODIFY"
+    purpose: str # Brief functional description
+    mandated_by: str # Specialist / Domain requirement (e.g. "Aegis (Security)")
+    interface_contract: str = "" # Function/Class signature contract for coding agents
+
+@dataclass
 class ADRDocument:
     adr_id: str
     title: str
@@ -52,4 +60,9 @@ class ADRDocument:
     scorecards: Dict[str, AuditScorecard]
     resolved_trade_offs: List[Dict[str, str]]
     action_items: List[str]
+    target_branch: str = ""
+    target_directory: str = "."
+    test_verification_command: str = "pytest tests/ -v"
+    implementation_manifest: List[FileManifestItem] = field(default_factory=list)
+
 
