@@ -12,6 +12,12 @@ from pathlib import Path
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 import urllib.parse
 
+import asyncio
+from dotenv import load_dotenv
+
+# Ensure environment variables are loaded with override
+load_dotenv(override=True)
+
 # Set working directory to project root
 ROOT_DIR = Path(__file__).resolve().parent.parent
 os.chdir(ROOT_DIR)
@@ -21,11 +27,13 @@ try:
     from src.review.ingestion import IngestionEngine
     from src.switch.mock_client import MockSwitchClient
     from src.review.models import RFCProposal
+    from src.engine.dynamic_synthesizer import DynamicSynthesizer
 except ImportError:
     sys.path.insert(0, str(ROOT_DIR))
     from src.review.ingestion import IngestionEngine
     from src.switch.mock_client import MockSwitchClient
     from src.review.models import RFCProposal
+    from src.engine.dynamic_synthesizer import DynamicSynthesizer
 
 WEB_DIR = ROOT_DIR / "web"
 
@@ -103,15 +111,15 @@ class QuorumStudioHandler(SimpleHTTPRequestHandler):
         }
 
     def synthesize_custom_architecture(self, title: str, dilemma: str):
-        # Real Python Ingestion & Analysis
-        rfc = IngestionEngine.load_text(dilemma, title=title, author="Human Lead Architect")
-        return {
-            "status": "SYNTHESIZED",
-            "rfcId": rfc.id,
-            "title": rfc.title,
-            "wordCount": len(dilemma.split()),
-            "invariantsEnforced": 5
-        }
+        print(f"[Quorum Studio Server] Initiating Multi-Agent Delphi Synthesis for: '{title}' / '{dilemma[:40]}...'")
+        try:
+            syn = DynamicSynthesizer()
+            payload = asyncio.run(syn.synthesize(dilemma, title=title))
+            return payload
+        except Exception as e:
+            print(f"[Quorum Studio Server] Synthesis exception: {e}. Using resilient semantic fallback.")
+            syn = DynamicSynthesizer()
+            return syn._semantic_fallback("RFC-CUSTOM", title or "Custom Architecture", dilemma)
 
     def send_json_response(self, data: dict, status: int = 200):
         body = json.dumps(data, indent=2).encode("utf-8")

@@ -7,7 +7,7 @@ import random
 from typing import List, Dict, Optional
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv(override=True)
 
 class LLMClient:
     def __init__(
@@ -39,10 +39,10 @@ class LLMClient:
             if self.provider == "gemini":
                 # Google Gemini supports the OpenAI protocol directly
                 gemini_base = self.base_url or "https://generativelanguage.googleapis.com/v1beta/openai/"
-                self._client = AsyncOpenAI(api_key=self.api_key, base_url=gemini_base, timeout=8.0)
+                self._client = AsyncOpenAI(api_key=self.api_key, base_url=gemini_base, timeout=90.0)
             else:
                 # Standard OpenAI or FreeLLMAPI
-                self._client = AsyncOpenAI(api_key=self.api_key, base_url=self.base_url, timeout=8.0)
+                self._client = AsyncOpenAI(api_key=self.api_key, base_url=self.base_url, timeout=90.0)
         except Exception as e:
             print(f"[LLMClient] Could not initialize AsyncOpenAI: {e}. Falling back to mock generator.")
             self._client = None
@@ -88,7 +88,7 @@ class LLMClient:
                     messages=formatted_messages,
                     temperature=temperature,
                     max_tokens=max_tokens,
-                    timeout=8.0,
+                    timeout=90.0,
                 )
                 return resp.choices[0].message.content.strip()
             except Exception as e:

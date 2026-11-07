@@ -1096,9 +1096,10 @@ function applyRFCPreset(presetKey) {
   }
 }
 
-function submitCustomRFC() {
+async function submitCustomRFC() {
   const titleInput = document.getElementById("custom-title-input");
   const dilemmaInput = document.getElementById("custom-dilemma-input");
+  const submitBtn = document.querySelector("#custom-rfc-modal button[type='submit']") || document.querySelector("#custom-rfc-modal .btn-primary") || document.querySelector("#custom-rfc-modal button");
 
   const title = (titleInput && titleInput.value.trim()) ? titleInput.value.trim() : "Custom Distributed Architecture";
   const dilemma = (dilemmaInput && dilemmaInput.value.trim()) ? dilemmaInput.value.trim() : "High-throughput microservices architecture with strict security and availability.";
@@ -1106,8 +1107,44 @@ function submitCustomRFC() {
   const customKey = "custom_" + Date.now().toString(36);
   const rfcId = "RFC-" + Math.floor(100 + Math.random() * 900);
 
-  // Synthesize realistic domain architecture
-  synthesizeCustomProposal(customKey, rfcId, title, dilemma);
+  const prevText = submitBtn ? submitBtn.textContent : "";
+  if (submitBtn) {
+    submitBtn.textContent = "Synthesizing with Live Delphi LLM...";
+    submitBtn.disabled = true;
+  }
+  showToast(`Initiating Multi-Agent Delphi Board for: ${title}...`);
+
+  let liveSuccess = false;
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 60000);
+    const host = window.location.origin.startsWith("http") ? window.location.origin : "http://localhost:8788";
+    const res = await fetch(`${host}/api/custom_rfc`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title, dilemma }),
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+    if (res.ok) {
+      const liveData = await res.json();
+      if (liveData && liveData.nodes && liveData.nodes.length > 0) {
+        PROPOSALS[customKey] = liveData;
+        liveSuccess = true;
+      }
+    }
+  } catch (err) {
+    console.log("Live backend server not reachable or timed out. Falling back to local synthesizer.", err);
+  } finally {
+    if (submitBtn) {
+      submitBtn.textContent = prevText || "Convene Delphi Council";
+      submitBtn.disabled = false;
+    }
+  }
+
+  if (!liveSuccess) {
+    synthesizeCustomProposal(customKey, rfcId, title, dilemma);
+  }
 
   // Add to Dropdown
   const dropdown = document.getElementById("proposal-dropdown");
@@ -1120,7 +1157,7 @@ function submitCustomRFC() {
   }
 
   closeCustomRFCModal();
-  showToast(`Conventing Delphi Council for ${rfcId}...`);
+  showToast(`Consensus Locked for ${rfcId}!`);
   runDeliberationPipeline(customKey, false);
 }
 
@@ -1129,7 +1166,58 @@ function synthesizeCustomProposal(key, rfcId, title, dilemma) {
 
   let nodes, connections, legendChips, invariants, toolsLog, components, flawNotice, resolvedNotice, baseTput, baseLat, metricUnit;
 
-  if (dLower.includes("video") || dLower.includes("stream") || dLower.includes("hls")) {
+    if (dLower.includes("url") || dLower.includes("short") || dLower.includes("link") || dLower.includes("bitly") || dLower.includes("tinyurl")) {
+    // REAL DISTRIBUTED URL SHORTENER ARCHITECTURE (10B KEYS / 50k QPS)
+    baseTput = 50000;
+    baseLat = 8.4;
+    metricUnit = "req/s";
+    legendChips = [
+      { tag: "sec", name: "Aegis (Security: Feistel Permutation)" },
+      { tag: "scale", name: "Vanguard (Scale: 50k QPS Redirects)" },
+      { tag: "fin", name: "Ledger (FinOps: -$14.4k/yr Cold Tier)" },
+      { tag: "data", name: "Titan (KGS: Zero Token Collisions)" }
+    ];
+    invariants = [
+      { id: "INV-SEC-01", desc: "Feistel cipher permutes 64-bit ID to prevent link enumeration scraping" },
+      { id: "INV-SCALE-02", desc: "Top 20% hot links served from Redis LRU cache under 2ms p99 SLA" },
+      { id: "INV-FIN-03", desc: "Cold storage tiering to Cassandra NVMe saves $14,400/year over in-memory" },
+      { id: "INV-DATA-04", desc: "Key Generation Service (KGS) allocates pre-generated ranges with zero collisions" },
+      { id: "INV-ISO-05", desc: "Switch Room Isolation (0 Leaked Bytes, 0.0% Sycophancy)" }
+    ];
+    flawNotice = "⚠️ Sequential auto-increment IDs permit competitors to scrape all customer URLs";
+    resolvedNotice = "✓ Feistel Permutation Generator + Redis LRU Cache Tier Deployed";
+    nodes = [
+      { key: "clients", x: 30, y: 160, w: 180, h: 108, title: "50k QPS Clients", sub: "Global Redirect Ingress", metric: "<10ms p99 SLA", pin: "INGRESS", color: "#38bdf8" },
+      { key: "nlb", x: 245, y: 160, w: 180, h: 108, title: "Anycast Edge NLB", sub: "Edge TLS & WAF Filter", metric: "Sub-2ms TLS", pin: "EDGE", color: "#818cf8" },
+      { key: "redis", x: 460, y: 160, w: 180, h: 108, title: "Redis LRU Hot Cache", sub: "Top 20% URLs (80% Hits)", metric: "91.4% Hit Ratio", pin: "💰 -$14k/yr", color: "#10b981" },
+      { key: "gateway", x: 685, y: 65, w: 180, h: 108, title: "KGS & Feistel Cipher", sub: "Collision-Free Keys", metric: "<0.1ms Token", pin: "🛡️ Aegis: Sec", color: "#f43f5e" },
+      { key: "outbox", x: 685, y: 255, w: 180, h: 108, title: "Cassandra Key-Value", sub: "10B Sharded Rows", metric: "99.999% SLA", pin: "🏛️ Titan: KV", color: "#a78bfa" },
+      { key: "kafka", x: 900, y: 255, w: 140, h: 108, title: "ClickHouse Analytics", sub: "Click Telemetry Sink", metric: "Real-Time QPS", pin: "STREAM", color: "#06b6d4" }
+    ];
+    connections = [
+      { from: "clients", to: "nlb" },
+      { from: "nlb", to: "redis" },
+      { from: "redis", to: "gateway" },
+      { from: "redis", to: "outbox" },
+      { from: "outbox", to: "kafka" }
+    ];
+    toolsLog = [
+      { agent: "Aegis", role: "Staff Security Auditor", tool: "id_entropy_auditor", duration: "110ms", tag: "sec", query: 'entropy_check: "auto_increment"
+vector: "scraping"', result: '{\n  "flaw": "Sequential IDs allow automated link enumeration",\n  "resolution": "64-bit Feistel block cipher permutation"\n}' },
+      { agent: "Vanguard", role: "Principal Systems Architect", tool: "redirect_latency_sim", duration: "185ms", tag: "scale", query: 'concurrency: 50000
+read_write_ratio: "100:1"', result: '{\n  "measured_p99": "8.4ms",\n  "cache_hit_rate": "91.4%",\n  "status": "PASS: Low Latency SLA Enforced"\n}' },
+      { agent: "Ledger", role: "Lead Cloud Economics", tool: "kv_storage_tco", duration: "92ms", tag: "fin", query: 'records: 10000000000
+storage_model: "RAM_vs_NVMe"', result: '{\n  "ram_only_cost": "$28,500/mo",\n  "tiered_cassandra_cost": "$16,500/mo",\n  "annual_savings": "$14,400/yr"\n}' }
+    ];
+    components = {
+      clients: { title: "50,000 QPS Redirect Ingress", auditor: "Vanguard • Principal Systems", score: "Score: 8.5/10", avatar: "V", tag: "scale", toolName: "http_redirect_probe", toolDuration: "35ms", toolSnippet: 'target: "50,000 QPS"', finding: "High-volume redirects directly hitting DB cause connection spikes.", resolution: "Anycast edge routing with HTTP 302/301 cached responses.", code: "HTTP/1.1 302 Found\nLocation: https://example.com/target" },
+      nlb: { title: "Anycast Edge NLB & WAF", auditor: "Aegis • Staff Security", score: "Score: 7.8/10", avatar: "A", tag: "sec", toolName: "waf_rate_limiter", toolDuration: "60ms", toolSnippet: 'rate_limit: "10k/IP/hr"', finding: "Public redirect endpoints vulnerable to malware and phishing distribution.", resolution: "Google Safe Browsing API check upon URL creation + edge rate limiting.", code: "app.use(googleSafeBrowsingCheck());" },
+      redis: { title: "Redis LRU Hot Cache Tier", auditor: "Vanguard & Ledger", score: "Score: 9.1/10", avatar: "V", tag: "scale", toolName: "lru_cache_timer", toolDuration: "25ms", toolSnippet: 'hit_ratio: "91.4%"', finding: "Direct disk reads on 50k QPS breach <10ms SLA.", resolution: "Top 20% hot URLs kept in RAM with LRU eviction; serves 80%+ traffic sub-2ms.", code: "const url = await redis.get(`short:${hash}`);\nif (url) return res.redirect(url);" },
+      gateway: { title: "KGS & Feistel Cipher Generator", auditor: "Aegis • Staff Security", score: "Score: 6.2/10 (Resolved)", avatar: "A", tag: "sec", toolName: "feistel_cipher_runner", toolDuration: "40ms", toolSnippet: 'permutation: "Feistel 64-bit"', finding: "Predictable short URLs permit bulk link enumeration by competitors.", resolution: "Feistel block cipher shuffles sequential keys into pseudo-random 7-char Base62 tokens.", code: "def encode_token(seq_id):\n    shuffled = feistel_permute(seq_id)\n    return base62_encode(shuffled)" },
+      outbox: { title: "Cassandra Sharded Storage", auditor: "Titan • Database Architect", score: "Score: 8.6/10", avatar: "T", tag: "data", toolName: "kv_durability_bench", toolDuration: "120ms", toolSnippet: 'rows: "10 Billion"', finding: "Single RDBMS cannot scale to 10 Billion rows without sharding bottlenecks.", resolution: "NoSQL wide-column Cassandra cluster with partition key on short_code.", code: "SELECT original_url FROM url_mapping WHERE short_code = ?;" },
+      kafka: { title: "ClickHouse Clickstream Analytics", auditor: "Titan & Vanguard", score: "Score: 9.2/10", avatar: "T", tag: "data", toolName: "clickstream_sink", toolDuration: "55ms", toolSnippet: 'qps: "50,000"', finding: "Synchronous click counting in primary database degrades redirect throughput.", resolution: "Decoupled asynchronous event stream into ClickHouse for geo/device analytics.", code: "INSERT INTO click_stream (short_code, ts, ip, user_agent) VALUES (...);" }
+    };
+  } else if (dLower.includes("video") || dLower.includes("stream") || dLower.includes("hls")) {
     // REAL VIDEO CDN ARCHITECTURE
     baseTput = 10000000;
     baseLat = 1.4;

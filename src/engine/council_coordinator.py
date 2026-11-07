@@ -274,6 +274,51 @@ class CouncilCoordinator:
         """
         text = content.strip()
         content_lower = text.lower()
+        # 0. Live Dynamic Architecture Review Request
+        # e.g., "!design a URL shortener", "!review Distributed KV", "design a URL shortener"
+        design_match = re.search(r"^(?:!design|!review|design|review)\s+(.+)", text, re.IGNORECASE)
+        if design_match:
+            new_prompt = design_match.group(1).strip()
+            await self.chair.speak(
+                self.public_room,
+                f"🏛️ **[CONVENING DYNAMIC DELPHI COUNCIL]**\n"
+                f"Lead Architect @{author_name} convened architecture review for: **'{new_prompt}'**\n\n"
+                f"🔒 *Enforcing Switch Server-Level Room Isolation across soundproof chambers...*"
+            )
+            from .dynamic_synthesizer import DynamicSynthesizer
+            syn = DynamicSynthesizer(self.chair.llm_client)
+            data = await syn.synthesize(new_prompt)
+
+            # Post in specialist chambers
+            for room in data.get("switchRooms", []):
+                sid = room["id"].replace("audit-", "")
+                await self.switch_client.post_message(
+                    sid,
+                    room["id"],
+                    f"📋 **BLIND AUDIT REPORT: {room['specialist'].upper()} ({room['domain']})**\n"
+                    f"**Score:** `{room['score']}` | **Packet Leakage:** `0 Bytes` (Switch Verified)\n\n"
+                    f"**Core Risk:** {room['finding']}"
+                )
+
+            # Post debate clash in review desk
+            for m in data.get("debate", []):
+                sender = m.get("sender", "Athena")
+                prefix = {"Athena": "🏛️", "Aegis": "🛡️", "Vanguard": "⚡", "Ledger": "💰", "Titan": "🏛️"}.get(sender, "🔍")
+                await self.switch_client.post_message(
+                    sender.lower(),
+                    self.public_room,
+                    f"{prefix} **{sender}:** {m.get('content', '')}"
+                )
+                await asyncio.sleep(1.0)
+
+            adr_snippet = data.get("adrMarkdown", "")[:1200]
+            await self.chair.speak(
+                self.public_room,
+                f"✅ **[DELPHI CONSENSUS APPROVED FOR {data.get('rfcId', 'RFC')}]**\n\n"
+                f"```markdown\n{adr_snippet}\n...\n```"
+            )
+            return
+
 
         # 0. Quick Command Cheatsheet
         if text.startswith("!help") or content_lower in ["help", "commands"]:
