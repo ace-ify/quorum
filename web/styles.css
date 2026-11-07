@@ -3470,3 +3470,59 @@ body.workbench-app {
   border-color: #22d3ee !important;
   box-shadow: 0 0 10px rgba(6, 182, 212, 0.3) !important;
 }
+
+/* ==========================================================================
+   HEADER STATUS BADGE (Replaces the duplicate deliberation-hud bar)
+   ========================================================================== */
+.header-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 34px;
+  padding: 0 12px;
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  border-radius: 6px;
+  font-size: 11px;
+  color: #34d399;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.header-status-badge.running {
+  background: rgba(6, 182, 212, 0.1);
+  border-color: rgba(6, 182, 212, 0.35);
+  color: #38bdf8;
+}
+
+.header-status-badge .status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 8px #10b981;
+}
+
+.header-status-badge.running .status-dot {
+  background: #06b6d4;
+  box-shadow: 0 0 10px #06b6d4;
+  animation: pulse-dot 1s infinite;
+}
+
+.header-status-badge .status-divider {
+  color: rgba(255, 255, 255, 0.2);
+}
+
+.header-status-badge .status-item {
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-family: var(--font-mono);
+  font-size: 10px;
+}
+
+/* Subtle glow pulse when top tab is active during pipeline */
+.view-nav-btn.pipeline-active {
+  box-shadow: 0 0 12px rgba(6, 182, 212, 0.6) !important;
+  border-color: #38bdf8 !important;
+  color: #38bdf8 !important;
+}

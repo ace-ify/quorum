@@ -501,15 +501,33 @@ function updateHUDDeliberationState(running, stateText, narrativeText) {
   const pill = document.getElementById("hud-live-pill");
   const stateElem = document.getElementById("hud-status-state");
   const narrativeElem = document.getElementById("hud-narrative-text");
+  const canvasBadge = document.getElementById("canvas-status-badge");
 
-  if (pill) pill.className = running ? "hud-live-pill running" : "hud-live-pill";
+  if (pill) pill.className = running ? "header-status-badge running" : "header-status-badge";
   if (stateElem) stateElem.textContent = stateText;
   if (narrativeElem) narrativeElem.textContent = narrativeText;
+  if (canvasBadge) {
+    canvasBadge.innerHTML = running ? `<span class="sync-dot busy"></span> ${stateText}` : `<span class="sync-dot live"></span> Consensus Locked`;
+  }
 }
 
 function setStepState(stepNum, state) {
   const step = document.getElementById(`hud-step-${stepNum}`);
   if (step) step.className = `hud-step ${state}`;
+
+  // Reflect active pipeline stage on primary navigation tabs
+  const viewMap = { 1: "chambers", 2: "tools", 3: "floor", 4: "topology" };
+  const viewId = viewMap[stepNum];
+  if (viewId) {
+    const btn = document.querySelector(`.view-nav-btn[data-view='${viewId}']`);
+    if (btn) {
+      if (state === "active") {
+        btn.classList.add("pipeline-active");
+      } else {
+        btn.classList.remove("pipeline-active");
+      }
+    }
+  }
 }
 
 // ==========================================================================

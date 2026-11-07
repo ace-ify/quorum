@@ -47,6 +47,16 @@
           <span>+ New Architecture RFC</span>
         </button>
       </div>
+
+      <!-- Live Consensus & Telemetry Pill (Integrated into Header, Zero Duplicate Sub-Bar) -->
+      <div class="header-status-badge" id="hud-live-pill">
+        <span class="status-dot live"></span>
+        <span class="status-text" id="hud-status-state">CONSENSUS LOCKED</span>
+        <span class="status-divider">•</span>
+        <span class="status-item">4 Chambers</span>
+        <span class="status-divider">•</span>
+        <span class="status-item">0B Leak</span>
+      </div>
     </div>
 
     <!-- Center Stage Primary View Switcher -->
@@ -81,6 +91,9 @@
 
     <!-- Right Header Actions (Clean, Production-Grade, No Duplicate Pencil Buttons) -->
     <div class="header-right-actions">
+      <button class="action-btn skip-action-btn" id="hud-skip-action" onclick="skipToConsensus()" style="display:none;">
+        ⏩ Fast-Forward
+      </button>
       <!-- Live Deliberation Trigger -->
       <button class="action-btn primary-convene-btn" id="convene-btn" onclick="triggerDeliberationRun()" title="Run multi-agent Delphi deliberation">
         <span class="btn-pulse-dot"></span>
@@ -110,51 +123,6 @@
   <!-- ==========================================================================
        2. DELIBERATION PIPELINE EXECUTION HUD
        ========================================================================== -->
-  <div class="deliberation-hud" id="deliberation-hud">
-    <div class="hud-status-area">
-      <span class="hud-live-pill" id="hud-live-pill">
-        <span class="pulse-beacon"></span>
-        <span id="hud-status-state">CONSENSUS LOCKED</span>
-      </span>
-      <span class="hud-narrative-text" id="hud-narrative-text">
-        Delphi review complete: 4 Soundproof Chambers reconciled with 0 leaked bytes.
-      </span>
-    </div>
-
-    <div class="hud-stages-stepper">
-      <div class="hud-step done" id="hud-step-1" onclick="jumpToPhase(1)">
-        <span class="step-glyph">🔒</span>
-        <span class="step-label">1. Room Isolation</span>
-      </div>
-      <span class="hud-step-arrow">→</span>
-      <div class="hud-step done" id="hud-step-2" onclick="jumpToPhase(2)">
-        <span class="step-glyph">🔍</span>
-        <span class="step-label">2. Blind Audits</span>
-      </div>
-      <span class="hud-step-arrow">→</span>
-      <div class="hud-step done" id="hud-step-3" onclick="jumpToPhase(3)">
-        <span class="step-glyph">⚔️</span>
-        <span class="step-label">3. Floor Clash</span>
-      </div>
-      <span class="hud-step-arrow">→</span>
-      <div class="hud-step done" id="hud-step-4" onclick="jumpToPhase(4)">
-        <span class="step-glyph">🌐</span>
-        <span class="step-label">4. Topology Consensus</span>
-      </div>
-    </div>
-
-    <div class="hud-actions-area">
-      <button class="hud-skip-action" id="hud-skip-action" onclick="skipToConsensus()" style="display:none;">
-        ⏩ Fast-Forward
-      </button>
-      <div class="hud-telemetry-badge">
-        <span class="hud-tele-item"><span class="hud-tele-dot"></span> 0B Leak</span>
-        <span class="hud-tele-divider">•</span>
-        <span class="hud-tele-item">4 Chambers</span>
-      </div>
-    </div>
-  </div>
-
   <!-- ==========================================================================
        3. EXPANSIVE TWO-COLUMN STUDIO WORKSPACE
        ========================================================================== -->
