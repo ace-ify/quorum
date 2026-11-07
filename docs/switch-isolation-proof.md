@@ -4,7 +4,7 @@
 
 In naive multi-agent systems (AutoGPT, CrewAI, LangGraph single-thread, ChatDev), agents operate in a shared context window or single broadcast chat room. Empirical research demonstrates that when an LLM is exposed to another model's preliminary conclusions, it exhibits an **echo chamber effect** (groupthink) exceeding **94.2% agreement**, diluting critical risk identification.
 
-**BlindCouncil** leverages **Switch Core 0.31.0** to enforce **network-level physical room isolation**. Domain specialist agents evaluate RFC proposals inside isolated soundproof chambers before entering the public council floor.
+**Quorum** leverages **Switch Core 0.31.0** to enforce **network-level physical room isolation**. Domain specialist agents evaluate RFC proposals inside isolated soundproof chambers before entering the public council floor.
 
 ---
 
@@ -34,7 +34,7 @@ When agents share memory or channel feeds:
 ## 3. Switch Protocol-Level Isolation Mechanism
 
 ```
-BLINDCOUNCIL ON SWITCH ARCHITECTURE (Soundproof Chambers):
+QUORUM ON SWITCH ARCHITECTURE (Soundproof Chambers):
 ┌───────────────────────┐   ┌────────────────────────┐   ┌───────────────────────┐
 │ #audit-security       │   │ #audit-scalability     │   │ #audit-finops         │
 │ [Aegis]               │   │ [Vanguard]             │   │ [Ledger]              │
@@ -69,9 +69,9 @@ BLINDCOUNCIL ON SWITCH ARCHITECTURE (Soundproof Chambers):
 
 ## 4. Empirical Sycophancy Benchmark
 
-We evaluated BlindCouncil against an identical naive single-room multi-agent system across 50 production RFC proposals:
+We evaluated Quorum against an identical naive single-room multi-agent system across 50 production RFC proposals:
 
-| Deliberation Metric | Standard Single-Room Multi-Agent | BlindCouncil (Switch Room Isolation) | Delta / Engineering Impact |
+| Deliberation Metric | Standard Single-Room Multi-Agent | Quorum (Switch Room Isolation) | Delta / Engineering Impact |
 | :--- | :--- | :--- | :--- |
 | **Sycophancy / Echo Rate** | 94.2% initial agreement | **0.0% initial anchor bias** | Total elimination of groupthink |
 | **Critical Vulnerabilities Caught** | 22% (dismissed as edge cases) | **100% caught and blocked** | Caught 15m unrevoked token exploit |

@@ -125,7 +125,7 @@ class ADRGenerator:
         else:
             lines.append("*No files specified in scaffolding manifest.*\n")
 
-        lines.append("\n*Generated collaboratively by BlindCouncil on Switch AI.*")
+        lines.append("\n*Generated collaboratively by Quorum on Switch AI.*")
         return "\n".join(lines)
 
     @staticmethod
@@ -179,7 +179,7 @@ class ADRGenerator:
         )
 
         lines = [
-            f"## 🏛️ BlindCouncil Architecture Review Report",
+            f"## 🏛️ Quorum Architecture Review Report",
             f"**Decision Verdict:** {verdict_badge} | **ADR ID:** `{doc.adr_id}`",
             "",
             "> 🔒 *This review was conducted using server-enforced blind isolation to eliminate LLM sycophancy and groupthink.*",
@@ -251,7 +251,7 @@ class ADRGenerator:
             "</details>",
             "",
             "---",
-            f"*Reviewed by BlindCouncil on Switch AI • Decision recorded in [`{doc.adr_id}.md`](./{doc.adr_id}.md)*"
+            f"*Reviewed by Quorum on Switch AI • Decision recorded in [`{doc.adr_id}.md`](./{doc.adr_id}.md)*"
         ])
 
         return "\n".join(lines)

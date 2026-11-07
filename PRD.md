@@ -1,6 +1,6 @@
 # Product Requirements Document (PRD)
 
-## Project: BlindCouncil — Multi-Agent Blind Architecture & RFC Review Desk
+## Project: Quorum — Multi-Agent Blind Architecture & RFC Review Desk
 **Track:** Track 01 — Best Business Workflow ($2,000)  
 **Hackathon:** Flip the Switch (WeMakeDevs x DevTools Academy, powered by Switch AI)  
 **Version:** 2.0.0  
@@ -22,8 +22,8 @@ When developers turn to AI for code and architecture review, existing solutions 
 1. **Single-Prompt Superficiality:** Pasting an RFC into ChatGPT yields a generic 3-paragraph summary with zero rigorous threat modeling or cost calculations.
 2. **LLM Sycophancy & Context Pollution (The Groupthink Problem):** If multiple AI agents are in a shared group chat, **they anchor on the first posted opinion**. If Agent 1 says *"Looks reasonable!"*, Agent 2 and 3 praise the proposal and ignore fatal latency or cloud-cost traps.
 
-### 1.2 The Solution: BlindCouncil
-**BlindCouncil** is an enterprise-grade Architecture & RFC Review Desk powered by **Switch AI's Server-Enforced Room Isolation**.
+### 1.2 The Solution: Quorum
+**Quorum** is an enterprise-grade Architecture & RFC Review Desk powered by **Switch AI's Server-Enforced Room Isolation**.
 
 When a developer submits an RFC or system design proposal to `#review-desk`, Switch automatically spawns **three strictly isolated, blind audit chambers**:
 - **`#audit-security` (Aegis):** Unbiased threat modeling (OWASP, AuthZ, PII exposure, data leakage).
@@ -40,7 +40,7 @@ The human lead negotiates and makes the final executive decisions in chat. Switc
 
 ## 2. Hackathon Alignment & Competitive Differentiation
 
-| Hackathon Criterion | How BlindCouncil Wins |
+| Hackathon Criterion | How Quorum Wins |
 | :--- | :--- |
 | **1. Centrality of Switch** | **The Delphi Review Method physically requires server-enforced room isolation.** Without Switch, agents share context, triggering LLM groupthink and destroying the independence of the review. Switch room documents securely store blind rubrics before the public reveal. |
 | **2. Real Task Done Together** | A human engineer and three AI specialists collaboratively analyze a real architectural specification, resolve conflicting constraints, and author an official `ADR.md`. |

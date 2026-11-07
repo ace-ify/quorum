@@ -3,70 +3,98 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BlindCouncil Studio | Architecture Review & Governance Workbench</title>
+  <title>Quorum Studio | Autonomous Architecture Review Board</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏛️</text></svg>">
   <link rel="stylesheet" href="styles.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body class="workbench-app">
 
-  <!-- 1. Top Studio Application Header -->
+  <!-- ==========================================================================
+       1. TOP STUDIO NAVBAR
+       ========================================================================== -->
   <header class="studio-header">
     <div class="header-brand">
-      <div class="brand-symbol">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <rect x="3" y="3" width="18" height="18" rx="3"></rect>
-          <path d="M3 9h18"></path>
-          <path d="M9 21V9"></path>
+      <div class="brand-symbol-box">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+          <path d="M2 17l10 5 10-5"></path>
+          <path d="M2 12l10 5 10-5"></path>
         </svg>
       </div>
-      <div class="brand-titles">
-        <span class="brand-title">BlindCouncil</span>
-        <span class="brand-tagline">Architecture Review Workbench</span>
+      <div class="brand-meta">
+        <span class="brand-title">Quorum</span>
+        <span class="brand-tagline">Autonomous Architecture Review Board</span>
       </div>
-      <span class="brand-pill">Enterprise v2.4</span>
+      <span class="brand-pill">Switch 0.31.0 Verified</span>
     </div>
 
-    <!-- Center Stage Controls -->
+    <!-- Center Stage Delphi Protocol Stepper -->
     <div class="header-center-controls">
-      <div class="stepper-bar">
-        <button class="step-btn active" data-phase="1" onclick="jumpToPhase(1)">
+      <nav class="stepper-bar" aria-label="Review Progress">
+        <button class="step-btn" data-phase="1" onclick="jumpToPhase(1)">
           <span class="step-num">1</span>
-          <span class="step-label">Blind Audits</span>
+          <span class="step-label">Isolated Audits</span>
         </button>
-        <div class="step-arrow">&rarr;</div>
+        <span class="step-arrow">&rsaquo;</span>
         <button class="step-btn" data-phase="2" onclick="jumpToPhase(2)">
           <span class="step-num">2</span>
           <span class="step-label">Tension Matrix</span>
         </button>
-        <div class="step-arrow">&rarr;</div>
-        <button class="step-btn" data-phase="3" onclick="jumpToPhase(3)">
+        <span class="step-arrow">&rsaquo;</span>
+        <button class="step-btn active" data-phase="3" onclick="jumpToPhase(3)">
           <span class="step-num">3</span>
           <span class="step-label">Resolved Topology</span>
         </button>
-        <div class="step-arrow">&rarr;</div>
+        <span class="step-arrow">&rsaquo;</span>
         <button class="step-btn" data-phase="4" onclick="jumpToPhase(4)">
           <span class="step-num">4</span>
-          <span class="step-label">Claude Code Handoff</span>
+          <span class="step-label">Terminal Handoff</span>
         </button>
-      </div>
+      </nav>
     </div>
 
     <!-- Right Header Actions -->
     <div class="header-actions">
       <button class="action-btn play-btn" id="play-btn" onclick="togglePlayDeliberation()">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
           <polygon points="5 3 19 12 5 21 5 3"></polygon>
         </svg>
-        <span id="play-btn-text">Play Review</span>
+        <span id="play-btn-text">Auto-Play</span>
       </button>
-      <button class="action-btn secondary-btn" onclick="exportADR()">Export ADR</button>
-      <button class="action-btn primary-btn" onclick="copyHandoffCommand()">Copy CLI Command</button>
+      <button class="action-btn secondary-btn" onclick="copyPRComment()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="16" y1="13" x2="8" y2="13"></line>
+          <line x1="16" y1="17" x2="8" y2="17"></line>
+          <polyline points="10 9 9 9 8 9"></polyline>
+        </svg>
+        Copy PR Sticky
+      </button>
+      <button class="action-btn secondary-btn" onclick="exportADR()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+        Export ADR
+      </button>
+      <button class="action-btn primary-btn" onclick="copyHandoffCommand()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="4 17 10 11 4 5"></polyline>
+          <line x1="12" y1="19" x2="20" y2="19"></line>
+        </svg>
+        Copy CLI
+      </button>
     </div>
   </header>
 
-  <!-- 2. Three-Column Main Studio Workspace (Fixed 100vh Shell) -->
+  <!-- ==========================================================================
+       2. MAIN 3-COLUMN STUDIO WORKSPACE
+       ========================================================================== -->
   <div class="studio-body">
 
     <!-- LEFT RAIL: Proposals & Council Specialists (280px) -->
@@ -75,22 +103,20 @@
       <!-- Target Proposal Section -->
       <div class="rail-section">
         <div class="rail-header">ACTIVE ARCHITECTURE REVIEW</div>
-        <div class="proposal-picker">
-          <select id="proposal-dropdown" class="rail-select" onchange="switchProposal(this.value)">
-            <option value="rfc042">RFC-042: WebSocket Cluster (100k Conns)</option>
-            <option value="rfc019">RFC-019: URL Shortener (10B Keys)</option>
-            <option value="rfc088">RFC-088: Multi-Region Payment Saga</option>
-          </select>
-        </div>
+        <select id="proposal-dropdown" class="rail-select" onchange="switchProposal(this.value)">
+          <option value="rfc042">RFC-042: WebSocket Messaging Fabric</option>
+          <option value="rfc019">RFC-019: Distributed URL Shortener</option>
+          <option value="rfc088">RFC-088: Multi-Region Payment Saga</option>
+        </select>
         <div class="proposal-summary-card">
-          <div class="summary-headline" id="prop-headline">100,000 WebSocket Messaging Cluster</div>
+          <div class="summary-headline" id="prop-headline">100,000 WebSocket Messaging Fabric</div>
           <div class="summary-meta-line">
             <span class="meta-badge approved">Approved with Conditions</span>
-            <span class="meta-target">100k Sockets</span>
+            <span class="meta-target" id="prop-target">100k Sockets</span>
           </div>
           <div class="sync-line">
             <span class="sync-dot live"></span>
-            <span>Discord: <code>#review-desk</code></span>
+            <span>Switch Protocol: <code>#review-desk</code></span>
           </div>
         </div>
       </div>
@@ -102,287 +128,303 @@
           <span class="badge-mini">4 Chambers</span>
         </div>
         <div class="specialists-list" id="specialists-list">
-          <!-- Dynamically populated -->
+          <!-- Dynamically populated via app.js -->
         </div>
       </div>
 
       <!-- Formal Invariant Verification Box -->
-      <div class="rail-section invariant-status-box">
+      <div class="rail-section">
         <div class="rail-header">INVARIANT ASSERTIONS</div>
         <div class="invariant-items" id="invariant-items">
-          <div class="inv-item ok">
-            <span class="inv-dot"></span>
-            <span class="inv-name">INV-SEC-01: Revocation &lt;1ms</span>
-          </div>
-          <div class="inv-item ok">
-            <span class="inv-dot"></span>
-            <span class="inv-name">INV-SCALE-02: Zero-DB Reconnect</span>
-          </div>
-          <div class="inv-item ok">
-            <span class="inv-dot"></span>
-            <span class="inv-name">INV-FIN-03: Compute -$25.2k/yr</span>
-          </div>
-          <div class="inv-item ok">
-            <span class="inv-dot"></span>
-            <span class="inv-name">INV-DATA-04: Outbox CDC Atomicity</span>
-          </div>
+          <!-- Dynamically populated via app.js -->
         </div>
       </div>
 
     </aside>
 
-    <!-- CENTER WORKSPACE: Visual Architecture Stage & Dock (Flex 1) -->
+    <!-- CENTER WORKSPACE: Visual Architecture Stage (Flex 1) -->
     <main class="center-stage">
       
-      <!-- Stage Stageboard Bar -->
+      <!-- Stageboard Sub-Navbar -->
       <div class="stage-top-bar">
         <div class="stage-breadcrumbs">
           <span class="stage-tag" id="stage-phase-tag">PHASE 3 OF 4</span>
           <h2 class="stage-title" id="stage-phase-title">Synthesized Architecture Topology (Vector Verification)</h2>
         </div>
         <div class="stage-view-toggles">
-          <button class="stage-toggle-btn active" data-view="topology" onclick="setCenterView('topology')">Visual Canvas</button>
-          <button class="stage-toggle-btn" data-view="tools" onclick="setCenterView('tools')">Agent Tool Calls & Traces</button>
+          <button class="stage-toggle-btn active" data-view="topology" onclick="setCenterView('topology')">Canvas</button>
+          <button class="stage-toggle-btn" data-view="floor" onclick="setCenterView('floor')">Council Floor</button>
+          <button class="stage-toggle-btn" data-view="chambers" onclick="setCenterView('chambers')">Soundproof Chambers</button>
+          <button class="stage-toggle-btn" data-view="tools" id="tool-traces-btn" onclick="setCenterView('tools')">Tool Traces</button>
           <button class="stage-toggle-btn" data-view="matrix" onclick="setCenterView('matrix')">Tension Matrix</button>
-          <button class="stage-toggle-btn" data-view="adr" onclick="setCenterView('adr')">ADR Preview</button>
+          <button class="stage-toggle-btn" data-view="adr" onclick="setCenterView('adr')">ADR & Handoff</button>
         </div>
       </div>
 
-      <!-- Canvas / Stage Viewport -->
+      <!-- Canvas Viewport -->
       <div class="stage-canvas-area" id="stage-canvas-area">
         
-        <!-- View A: Interactive System Topology Graph -->
+        <!-- View 1: Interactive System Architecture Canvas -->
         <div class="canvas-view active" id="view-topology">
           <div class="topology-canvas-wrapper">
-            <div class="diagram-artboard">
-              <!-- Visual Node Map -->
-              <div class="visual-node-graph">
-                
-                <div class="graph-tier" id="tier-clients">
-                  <div class="arch-node" onclick="selectNode('clients')">
-                    <div class="node-icon">📱</div>
-                    <div class="node-label">100k Sockets</div>
-                    <div class="node-sub">Clients Tier</div>
-                  </div>
-                </div>
-
-                <div class="graph-arrow">&rarr;</div>
-
-                <div class="graph-tier" id="tier-lb">
-                  <div class="arch-node" onclick="selectNode('nlb')">
-                    <div class="node-icon">⚖️</div>
-                    <div class="node-label">AWS L4 NLB</div>
-                    <div class="node-sub">TLS Termination</div>
-                  </div>
-                </div>
-
-                <div class="graph-arrow">&rarr;</div>
-
-                <div class="graph-tier" id="tier-gateway">
-                  <div class="arch-node active" onclick="selectNode('gateway')">
-                    <div class="node-pin flag-sec">SEC</div>
-                    <div class="node-icon">🛡️</div>
-                    <div class="node-label">Ingress Gateway</div>
-                    <div class="node-sub">Bloom Revocation</div>
-                  </div>
-                </div>
-
-                <div class="graph-arrow">&rarr;</div>
-
-                <div class="graph-tier" id="tier-cluster">
-                  <div class="arch-node" onclick="selectNode('redis')">
-                    <div class="node-pin flag-fin">-$25.2k</div>
-                    <div class="node-icon">⚡</div>
-                    <div class="node-label">4-Node Cluster</div>
-                    <div class="node-sub">75% Autoscale</div>
-                  </div>
-                </div>
-
-                <div class="graph-arrow">&rarr;</div>
-
-                <div class="graph-tier" id="tier-storage">
-                  <div class="arch-node" onclick="selectNode('outbox')">
-                    <div class="node-pin flag-data">CDC</div>
-                    <div class="node-icon">🏛️</div>
-                    <div class="node-label">Postgres Outbox</div>
-                    <div class="node-sub">Debezium ➔ Kafka</div>
-                  </div>
-                </div>
-
+            <div class="canvas-flow-header">
+              <div class="flow-title-group">
+                <h3>Resolved Ingress & State Topology</h3>
+                <p>Interactive service nodes — click any component to inspect specialist mandates and scaffolded contracts</p>
               </div>
+              <span class="canvas-live-badge">
+                <span class="sync-dot live"></span>
+                Consensus Reached
+              </span>
+            </div>
 
-              <!-- High-Res Synthesized Topology Embed -->
-              <div class="rendered-diagram-box">
-                <img src="diagram_rfc042_resolved.png" alt="Synthesized System Topology" class="diagram-img-interactive" id="topology-img">
-              </div>
+            <!-- Interactive Tier Row (Dynamically populated via app.js) -->
+            <div class="visual-node-graph" id="visual-node-graph-container">
+              <!-- Dynamically populated -->
+            </div>
+
+            <!-- Visual High-Res Architecture Render -->
+            <div class="diagram-canvas-card">
+              <img src="diagram_rfc042_resolved.svg" alt="Synthesized System Topology" id="topology-img">
             </div>
           </div>
         </div>
 
-        <!-- View B: Agent Tool Calls & Research Traces -->
-        <div class="canvas-view" id="view-tools">
-          <div class="tools-stream-wrap" id="tools-stream-container">
-            <!-- Dynamically populated with live tool calls -->
+        <!-- View 2: Council Floor (#review-desk Clash & Steering) -->
+        <div class="canvas-view" id="view-floor">
+          <div class="floor-wrapper">
+            <div class="floor-header-bar">
+              <div class="floor-title-group">
+                <div class="floor-channel-name">#review-desk</div>
+                <div class="floor-desc">Public Council Deliberation Floor • Switch Server-Enforced Room • Human Architect Steered</div>
+              </div>
+              <span class="channel-status-pill">
+                <span class="sync-dot live"></span>
+                Deliberation Active
+              </span>
+            </div>
+
+            <div class="floor-chat-stream" id="floor-messages-container">
+              <!-- Dynamically populated via app.js -->
+            </div>
+
+            <div class="floor-typing-indicator" id="floor-typing-bar">
+              <span class="typing-dot"></span>
+              <span class="typing-dot"></span>
+              <span class="typing-dot"></span>
+              <span class="typing-text" id="typing-status-text">Athena is synthesizing conflict resolution...</span>
+            </div>
+
+            <div class="floor-input-bar">
+              <div class="quick-pills-row">
+                <button class="quick-pill" onclick="insertFloorPrompt('!summary')">!summary</button>
+                <button class="quick-pill" onclick="insertFloorPrompt('!diagram')">!diagram</button>
+                <button class="quick-pill" onclick="insertFloorPrompt('approve')">approve</button>
+                <button class="quick-pill" onclick="insertFloorPrompt('veto')">veto</button>
+              </div>
+              <form class="floor-form" onsubmit="handleFloorSubmit(event)">
+                <input type="text" id="floor-user-input" class="floor-input" placeholder="Directive to Council (e.g. 'approve', '!summary', 'Adopt Redis Bloom filter')..." autocomplete="off">
+                <button type="submit" class="floor-send-btn">Send Directive</button>
+              </form>
+            </div>
           </div>
         </div>
 
-        <!-- View C: Tension Matrix & Conflict Radar -->
+        <!-- View 3: Soundproof Isolation Chambers (The Switch Superpower Proof) -->
+        <div class="canvas-view" id="view-chambers">
+          <div class="chambers-wrapper">
+            <!-- Telemetry Header -->
+            <div class="telemetry-bar">
+              <div class="tele-stat">
+                <span class="tele-val text-success" id="tele-leakage">0 Bytes</span>
+                <span class="tele-label">Cross-Chamber Leakage</span>
+              </div>
+              <div class="tele-divider"></div>
+              <div class="tele-stat">
+                <span class="tele-val" id="tele-chambers">4 Active</span>
+                <span class="tele-label">Soundproof Chambers</span>
+              </div>
+              <div class="tele-divider"></div>
+              <div class="tele-stat">
+                <span class="tele-val text-brand">0.0% Anchor Bias</span>
+                <span class="tele-label">Sycophancy Echo Rate</span>
+              </div>
+              <div class="tele-divider"></div>
+              <div class="tele-stat">
+                <span class="tele-val text-purple">Switch Core 0.31.0</span>
+                <span class="tele-label">Server-Enforced ACLs</span>
+              </div>
+            </div>
+
+            <!-- Chamber Cards Grid -->
+            <div class="chambers-grid" id="chambers-grid-container">
+              <!-- Dynamically populated via app.js -->
+            </div>
+          </div>
+        </div>
+
+        <!-- View 4: Live Tool Calls & Execution Traces -->
+        <div class="canvas-view" id="view-tools">
+          <div class="tools-stream-wrap" id="tools-stream-container">
+            <!-- Dynamically populated via app.js -->
+          </div>
+        </div>
+
+        <!-- View 5: Tension & Conflict Matrix -->
         <div class="canvas-view" id="view-matrix">
           <div class="matrix-card-wrap">
             <table class="studio-table">
               <thead>
                 <tr>
-                  <th>Tension Vector</th>
-                  <th>Chamber Clash</th>
-                  <th>Consensus Synthesis</th>
-                  <th>Enforced Invariant</th>
+                  <th style="width: 25%;">Tension Vector</th>
+                  <th style="width: 35%;">Chamber Clash</th>
+                  <th style="width: 40%;">Consensus Synthesis & Invariant</th>
                 </tr>
               </thead>
               <tbody id="studio-matrix-rows">
-                <!-- Dynamically populated -->
+                <!-- Dynamically populated via app.js -->
               </tbody>
             </table>
           </div>
         </div>
 
-        <!-- View C: ADR Preview -->
+        <!-- View 6: ADR & Autonomous Implementer Handoff -->
         <div class="canvas-view" id="view-adr">
-          <div class="adr-preview-wrap">
-            <div class="adr-sheet" id="adr-sheet-content">
-              <!-- Dynamically populated -->
+          <div class="handoff-layout">
+            
+            <!-- Left Panel: Michael Nygard ADR Sheet -->
+            <div class="adr-sheet-card">
+              <div class="card-header-line">
+                <span class="card-kicker">MICHAEL NYGARD STANDARD</span>
+                <span class="badge-mini approved">Consensus Locked</span>
+              </div>
+              <div class="adr-sheet" id="adr-sheet-content">
+                <!-- Dynamically populated via app.js -->
+              </div>
             </div>
+
+            <!-- Right Panel: Scaffolding Manifest & CLI Launch Command -->
+            <div class="handoff-manifest-card">
+              <div class="card-header-line">
+                <span class="card-kicker">AUTONOMOUS IMPLEMENTER BRIDGE</span>
+                <button class="badge-action-btn" onclick="copyHandoffCommand()">Copy CLI</button>
+              </div>
+
+              <div class="manifest-meta-box">
+                <div class="meta-row">
+                  <span class="meta-label">Target Git Branch:</span>
+                  <code class="meta-val" id="target-branch-display">feat/adr-042-impl</code>
+                </div>
+                <div class="meta-row">
+                  <span class="meta-label">Verification Command:</span>
+                  <code class="meta-val" id="verification-cmd-display">pytest tests/ -v</code>
+                </div>
+              </div>
+
+              <div class="section-title-mini">SECTION 6 SCAFFOLDING FILE MANIFEST</div>
+              <div class="manifest-table-box" id="manifest-table-container">
+                <!-- Dynamically populated via app.js -->
+              </div>
+
+              <div class="terminal-command-box">
+                <div class="term-bar">
+                  <span class="term-title">Terminal Launch Command (Claude Code / Codex)</span>
+                  <button class="term-copy-btn" onclick="copyHandoffCommand()">Copy</button>
+                </div>
+                <pre class="term-code" id="term-launch-display"></pre>
+              </div>
+
+              <!-- GitHub PR Sticky Comment Preview -->
+              <div class="pr-sticky-preview-box">
+                <div class="term-bar">
+                  <span class="term-title">GitHub PR Sticky Review Comment</span>
+                  <button class="term-copy-btn" onclick="copyPRComment()">Copy PR Markdown</button>
+                </div>
+                <div class="pr-preview-scroll" id="pr-preview-content">
+                  <!-- Dynamically populated via app.js -->
+                </div>
+              </div>
+
+            </div>
+
           </div>
         </div>
 
       </div>
-
-      <!-- Bottom Implementation Dock (Interactive Tabs) -->
-      <div class="bottom-dock">
-        <div class="dock-tabs">
-          <button class="dock-tab active" data-dock="scaffold" onclick="switchDockTab('scaffold')">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-              <polyline points="14 2 14 8 20 8"></polyline>
-            </svg>
-            Section 6 File Manifest (3 Files)
-          </button>
-          <button class="dock-tab" data-dock="terminal" onclick="switchDockTab('terminal')">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="4 17 10 11 4 5"></polyline>
-              <line x1="12" y1="19" x2="20" y2="19"></line>
-            </svg>
-            Claude Code CLI Coordinates
-          </button>
-          <button class="dock-tab" data-dock="tests" onclick="switchDockTab('tests')">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-              <polyline points="22 4 12 14.01 9 11.01"></polyline>
-            </svg>
-            Verification Suite (5/5 Passed)
-          </button>
-        </div>
-
-        <div class="dock-content">
-          <!-- Dock Tab 1: Scaffold Files List -->
-          <div class="dock-panel active" id="dock-scaffold">
-            <div class="scaffold-grid" id="scaffold-grid">
-              <!-- Dynamically populated -->
-            </div>
-          </div>
-
-          <!-- Dock Tab 2: Terminal Command -->
-          <div class="dock-panel" id="dock-terminal">
-            <div class="terminal-bar-row">
-              <div class="term-line">
-                <span class="term-lbl">Target Git Branch:</span>
-                <code class="term-txt" id="term-branch">git checkout -b feat/adr-042-impl</code>
-              </div>
-              <div class="term-line">
-                <span class="term-lbl">Verification Harness:</span>
-                <code class="term-txt" id="term-test">pytest tests/ -v</code>
-              </div>
-              <div class="term-cmd-wrap">
-                <pre class="term-cmd-block" id="term-cli-cmd">claude -p "Read ADR-042.md Section 6. Switch to branch 'feat/adr-042-impl'. Implement the scaffolded files in '.'. Run 'pytest tests/ -v' and do not finish until all tests pass."</pre>
-                <button class="copy-pill-btn" onclick="copyHandoffCommand()">Copy Launch Command</button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Dock Tab 3: Verification Suite -->
-          <div class="dock-panel" id="dock-tests">
-            <div class="test-results-row">
-              <span class="test-badge-ok">5/5 TESTS PASSED in 0.012s</span>
-              <span class="test-sub">Verified: Room Isolation, Invariant Asserts, Conflict Synthesis, Manifest Generation</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
     </main>
 
-    <!-- RIGHT DRAWER: Component & Audit Inspector (340px) -->
-    <aside class="inspector-drawer">
-      <div class="drawer-header">
-        <div class="drawer-tag" id="insp-tag">COMPONENT SPECIFICATION</div>
-        <h3 class="drawer-title" id="insp-title">Ingress Gateway & Bloom Filter</h3>
+    <!-- RIGHT INSPECTOR: Contextual Detail Panel (300px) -->
+    <aside class="inspector-rail">
+      <div class="inspector-header">
+        <div class="inspector-title-row">
+          <span class="inspector-tag">COMPONENT SPECIFICATION</span>
+          <h3 class="inspector-title" id="insp-title">Ingress Gateway & Bloom Filter</h3>
+        </div>
       </div>
 
-      <div class="drawer-body">
+      <div class="inspector-body">
         
-        <!-- Inspector Card 1: Enforcing Authority -->
-        <div class="insp-card">
-          <div class="insp-card-label">CHAMBER AUDITOR SIGN-OFF</div>
-          <div class="insp-auditor-row">
-            <div class="auditor-avatar" id="insp-auditor-avatar">A</div>
-            <div>
-              <div class="auditor-name" id="insp-auditor-name">Aegis &bull; Security</div>
-              <div class="auditor-score" id="insp-auditor-score">Score: 4.5/10 (Initial Block Resolved)</div>
+        <!-- Auditor Sign-Off -->
+        <div class="inspector-card">
+          <div class="card-label">CHAMBER AUDITOR SIGN-OFF</div>
+          <div class="auditor-badge-line">
+            <div class="auditor-name-wrap">
+              <div class="spec-avatar sec" id="insp-avatar">A</div>
+              <span id="insp-auditor">Aegis • Staff Security</span>
             </div>
+            <span class="spec-score-pill sec" id="insp-score">Score: 4.5/10</span>
           </div>
         </div>
 
-        <!-- Inspector Card 2: Risk & Resolution -->
-        <div class="insp-card">
-          <div class="insp-card-label">IDENTIFIED VULNERABILITY</div>
-          <div class="insp-finding" id="insp-finding">
-            In-band heartbeat token validation permits a 15-minute window of unauthorized socket frames after account ban. Active CVE risk under SOC2.
-          </div>
-          <div class="insp-card-label" style="margin-top:10px;">MANDATED RESOLUTION</div>
-          <div class="insp-resolution" id="insp-resolution">
+        <!-- Vulnerability / Tension -->
+        <div class="inspector-card">
+          <div class="card-label">IDENTIFIED VULNERABILITY / BOTTLENECK</div>
+          <p class="finding-desc" id="insp-finding">
+            In-band heartbeat token validation permits a 15-minute window of unauthorized socket frames after account ban.
+          </p>
+        </div>
+
+        <!-- Mandated Resolution -->
+        <div class="inspector-card">
+          <div class="card-label">MANDATED RESOLUTION</div>
+          <div class="resolution-box" id="insp-resolution">
             Sub-ms Redis Bloom filter bitset deployed at gateway edge. Revoked tokens checked in RAM with zero DB load.
           </div>
         </div>
 
-        <!-- Inspector Card 3: Active Tool Call Trace -->
-        <div class="insp-card">
-          <div class="insp-card-label">ACTIVE TOOL CALL TRACE</div>
-          <div class="tool-trace-block">
-            <div class="tool-trace-header">
-              <span class="tool-tag" id="insp-tool-name">cve_database_search</span>
-              <span class="tool-duration" id="insp-tool-duration">140ms</span>
-            </div>
-            <pre class="tool-trace-body"><code id="insp-tool-snippet">query: "WebSocket in-band heartbeat session hijacking"
-result: "CVE-2023-4580 (CVSS 8.1 High)"</code></pre>
+        <!-- Live Tool Trace -->
+        <div class="inspector-card">
+          <div class="card-label">EVALUATION TOOL CALL</div>
+          <div class="auditor-badge-line" style="margin-bottom: 6px;">
+            <code style="font-family: var(--font-mono); font-size: 11px; color: var(--text-primary);" id="insp-tool-name">cve_database_search</code>
+            <span class="badge-mini" id="insp-tool-duration">142ms</span>
           </div>
+          <pre class="trace-code" id="insp-tool-snippet" style="font-size: 10px; max-height: 100px;">query: "WebSocket heartbeat session hijacking"
+result: "CVE-2023-4580 (CVSS 8.1 High)"</pre>
         </div>
 
-        <!-- Inspector Card 4: Code Contract Snippet -->
-        <div class="insp-card">
-          <div class="insp-card-label">SCAFFOLDED INTERFACE CONTRACT</div>
-          <div class="code-box">
-            <pre><code id="insp-code-snippet"># src/middleware/bloom_revocation.py
-async def verify_socket_session(socket_id: str, token_id: str) -> bool:
-    """Checks sub-ms RAM bitset for revoked tokens without DB hits."""
-    if await redis_bloom.exists("revoked_tokens", token_id):
-        await terminate_connection(socket_id, reason="Revoked")
-        return False
-    return True</code></pre>
+        <!-- Scaffolded Contract -->
+        <div class="inspector-code-card">
+          <div class="code-header-bar">
+            <span class="code-filename">Contract Specification</span>
+            <button class="code-copy-btn" onclick="copyInspectorCode()">Copy</button>
           </div>
+          <pre class="code-body" id="insp-code">async def check_revocation(token_jti: str) -> bool:
+    # O(1) in-memory Redis Bloom filter check
+    return await redis_bloom.exists("revoked_tokens", token_jti)</pre>
         </div>
 
       </div>
     </aside>
 
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="studio-toast" id="studio-toast">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2.5">
+      <polyline points="20 6 9 17 4 12"></polyline>
+    </svg>
+    <span id="toast-message">Copied to clipboard!</span>
   </div>
 
   <script src="app.js"></script>

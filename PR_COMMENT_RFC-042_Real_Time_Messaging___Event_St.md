@@ -1,4 +1,4 @@
-## 🏛️ BlindCouncil Architecture Review Report
+## 🏛️ Quorum Architecture Review Report
 **Decision Verdict:** 🟡 **APPROVED WITH CONDITIONS** | **ADR ID:** `RFC-042`
 
 > 🔒 *This review was conducted using server-enforced blind isolation to eliminate LLM sycophancy and groupthink.*
@@ -79,4 +79,4 @@
 </details>
 
 ---
-*Reviewed by BlindCouncil on Switch AI • Decision recorded in [`RFC-042.md`](./RFC-042.md)*
+*Reviewed by Quorum on Switch AI • Decision recorded in [`RFC-042.md`](./RFC-042.md)*

@@ -1,6 +1,6 @@
 # RFC-089: RFC-089: Zero-Downtime Migration from PostgreSQL to DynamoDB for Global Order Ledger
 
-**Status:** `APPROVED WITH CONDITIONS`  
+**Status:** `REJECTED`  
 **Date:** 2026-11-06  
 **Author / Lead:** LeadArchitect  
 **Council Reviewers:** Athena, Aegis, Vanguard, Ledger, Titan  
@@ -11,9 +11,9 @@
 
 | Dimension | Specialist | Score (1-10) | Verdict |
 | :--- | :--- | :---: | :--- |
-| **Security & Threat Modeling** | Aegis | 7/10 | ⚠️ CONDITIONAL |
-| **Scalability, Latency & Resilience** | Vanguard | 9/10 | ✅ APPROVED |
-| **FinOps, Cloud Cost & Infrastructure ROI** | Ledger | 6/10 | ⚠️ CONDITIONAL |
+| **Security & Threat Modeling** | Aegis | 6/10 | ⚠️ CONDITIONAL |
+| **Scalability, Latency & Resilience** | Vanguard | 7/10 | ⚠️ CONDITIONAL |
+| **FinOps, Cloud Cost & Infrastructure ROI** | Ledger | 5/10 | ❌ CONDITIONAL |
 | **Data Consistency, Indexing & Storage Engines** | Titan | 7/10 | ⚠️ CONDITIONAL |
 
 ---
@@ -36,69 +36,74 @@ Our existing PostgreSQL database cluster (hosted on AWS RDS Aurora ...
 ## 3. Independent Specialist Findings
 
 ### 🔍 Aegis — Security & Threat Modeling
-**Score:** 7/10 — **Verdict:** `CONDITIONAL`
-
-**Critical Risks Identified:**
-- ⚠️ In-band WebSocket token refresh creates a session hijacking window if a socket is kept alive indefinitely without revocation checks.
-- ⚠️ Default AWS KMS key allows any IAM role with basic KMS access to decrypt message buffers.
-
-**Key Recommendations:**
-- 💡 Implement Redis token revocation blacklist check on heartbeat.
-- 💡 Adopt customer-managed KMS key (CMK) with strict key policy and envelope encryption.
-
-### 🔍 Vanguard — Scalability, Latency & Resilience
-**Score:** 9/10 — **Verdict:** `APPROVED`
-
-**Critical Risks Identified:**
-- ⚠️ Single Redis cluster partition could cause broadcast drops across orphaned EKS pods.
-
-**Key Recommendations:**
-- 💡 Enforce Redis Sentinel / Multi-AZ cluster topology with automatic failover.
-- 💡 Add client-side backoff and reconnect jitter to prevent thundering herd on gateway restarts.
-
-### 🔍 Ledger — FinOps, Cloud Cost & Infrastructure ROI
 **Score:** 6/10 — **Verdict:** `CONDITIONAL`
 
 **Critical Risks Identified:**
-- ⚠️ 12-node dedicated Redis Enterprise cluster is heavily over-provisioned for initial phase ($3,500/mo waste).
-- ⚠️ Egress traffic fees across multi-AZ EKS pods without VPC endpoints could add unexpected $1,800/mo.
+- ⚠️ Cross-region Global Table replication transmits customer billing address and payment tokens without client-side envelope encryption (violates PCI-DSS 3.4 & GDPR).
+- ⚠️ Debezium CDC streaming Lambda execution role lacks IAM least-privilege scoping across RDS WAL and DynamoDB target.
 
 **Key Recommendations:**
-- 💡 Downsize initial Redis cluster to 4-node cluster with auto-sharding triggers, saving $2,100/mo ($25,200/yr).
-- 💡 Route all internal inter-service traffic via AWS PrivateLink VPC endpoints to eliminate egress charges.
+- 💡 Implement AWS KMS customer-managed envelope encryption before writing billing attributes into DynamoDB.
+- 💡 Scope Debezium Lambda IAM policies strictly to specific table ARN with session tagging.
+
+### 🔍 Vanguard — Scalability, Latency & Resilience
+**Score:** 7/10 — **Verdict:** `CONDITIONAL`
+
+**Critical Risks Identified:**
+- ⚠️ Hot partition bottleneck: Using ORG#<tenant_id> as Partition Key will throttle mega-tenants (>1,000 WCU/sec per partition limit in DynamoDB).
+- ⚠️ Synchronous dual-read comparison will double checkout API latency during peak flash sales.
+
+**Key Recommendations:**
+- 💡 Add partition salting: ORG#<tenant_id>#<hash_modulo> to distribute mega-tenant write load across multiple physical partitions.
+- 💡 Execute dual-read shadow comparison strictly asynchronously in background SQS/Kinesis workers.
+
+### 🔍 Ledger — FinOps, Cloud Cost & Infrastructure ROI
+**Score:** 5/10 — **Verdict:** `CONDITIONAL`
+
+**Critical Risks Identified:**
+- ⚠️ On-Demand capacity mode with 50,000 writes/sec peak across 3 Global Table regions causes severe cost runaway: 150,000 replicated WCUs will exceed $42,000/month.
+- ⚠️ Global Table cross-region replication data transfer fees on 2 Billion records during initial CDC backfill.
+
+**Key Recommendations:**
+- 💡 Switch to Provisioned Capacity with DynamoDB Auto Scaling (70% target utilization) and purchase Reserved Capacity, saving $28,000/month.
+- 💡 Perform historical data backfill via AWS S3 Export/Import rather than live CDC to cut cross-region network transfer costs by 65%.
 
 ### 🔍 Titan — Data Consistency, Indexing & Storage Engines
 **Score:** 7/10 — **Verdict:** `CONDITIONAL`
 
 **Critical Risks Identified:**
-- ⚠️ Dual-write race condition: Writing to Redis Stream and Aurora without an Outbox pattern risks ghost messages during worker crashes.
-- ⚠️ Missing composite index on (channel_id, created_at DESC) will degrade message history fetch times as table exceeds 50M rows.
+- ⚠️ Out-of-order writes during CDC backfill: network latency or Debezium retries can overwrite newer DynamoDB records with stale Postgres data.
+- ⚠️ DynamoDB lacks relational constraints, risking orphaned line items if composite item collection writes fail midway.
 
 **Key Recommendations:**
-- 💡 Adopt Transactional Outbox pattern or Kafka Debezium CDC for zero-loss Redis-to-Aurora replication.
-- 💡 Enforce declarative BRIN or composite B-tree partitioning on message timestamp columns.
+- 💡 Enforce Optimistic Concurrency Control using a monotonically increasing 'version' attribute with DynamoDB ConditionExpression.
+- 💡 Use TransactWriteItems for atomic multi-item order + order_items collection updates.
 
 ---
 
 ## 4. Key Architectural Trade-Offs & Human Decisions
 
-### ⚖️ Redis Cluster Sizing (Cost vs Scale)
-**Tension:** 12-node cluster ($3,500/mo) vs 4-node cluster ($1,400/mo)
-**Executive Resolution:** Adopted 4-node cluster with auto-scaling triggers at 75% memory, saving $25,200 annually while maintaining p99 < 15ms.
+### ⚖️ DynamoDB Capacity Strategy (FinOps vs Peak Resilience)
+**Tension:** On-Demand capacity ($42k/mo) vs Provisioned Auto-Scaling ($14k/mo)
+**Executive Resolution:** Adopted Provisioned Capacity with DynamoDB Auto Scaling (70% target utilization) and pre-warmed headroom, saving $28,000 monthly.
 
-### ⚖️ Token Revocation Check (Security vs Latency)
-**Tension:** Central DB lookup on heartbeat causes latency spikes vs unverified in-band token renewal
-**Executive Resolution:** Implemented Redis Bloom filter for <1ms revocation checks without database load.
+### ⚖️ Partition Hot-Spotting Mitigation (Scalability vs Access Simplicity)
+**Tension:** Mega-tenant throttles on ORG#<tenant_id> vs single-table query simplicity
+**Executive Resolution:** Implemented conditional partition salting for enterprise tenants exceeding 500 RPS.
+
+### ⚖️ Zero-Downtime Data Parity (Data Integrity vs Latency)
+**Tension:** Synchronous dual-read verification spikes checkout latency vs risk of data divergence
+**Executive Resolution:** Enforced asynchronous background parity reconciler via Debezium CDC with zero latency impact on user checkouts.
 
 ---
 
 ## 5. Action Items & Pre-Deployment Checklist
 
-- [ ] Deploy 4-node cluster with auto-scaling triggers at 75% memory threshold.
-- [ ] Integrate Bloom filter middleware for WebSocket heartbeat revocation check (<1ms latency).
-- [ ] Enforce Customer-Managed KMS Key (CMK) with envelope encryption.
-- [ ] Adopt Crypto-Shredding per user to satisfy GDPR Article 17 Right to Erasure in event logs.
-- [ ] Configure AWS PrivateLink VPC endpoints for inter-service traffic to eliminate egress fees.
+- [ ] Deploy Terraform module for DynamoDB Global Table across us-east-1, eu-west-1, and ap-southeast-1 with Provisioned Auto-Scaling.
+- [ ] Implement UserSessionRepository and Single-Table Order model with composite PK/SK design.
+- [ ] Implement DualWriteSyncer middleware with version-based conditional writes to prevent out-of-order CDC updates.
+- [ ] Run shadow read reconciliation test suite across 100,000 sample order transactions.
+- [ ] Enable Point-in-Time Recovery (PITR) and customer-managed KMS CMK across all 3 AWS regions.
 
 ---
 
@@ -157,4 +162,4 @@ claude -p "Implement ADR RFC-089 according to Section 6 Implementation Manifest.
 ```
 
 
-*Generated collaboratively by BlindCouncil on Switch AI.*
+*Generated collaboratively by Quorum on Switch AI.*

@@ -1,6 +1,6 @@
-# BlindCouncil 2.0 System Architecture & Technical Specification
+# Quorum 2.0 System Architecture & Technical Specification
 
-**Project:** BlindCouncil — Multi-Agent Blind Architecture Review Desk  
+**Project:** Quorum — Multi-Agent Blind Architecture Review Desk  
 **Hackathon Track:** Track 01: Best Business Workflow ($2,000 Prize)  
 **Target Environment:** Switch Core 0.31.0, Discord API / Gateway Webhooks, Terminal Coding Agents (Claude Code / Codex)  
 **Specification Version:** 2.0.0 (Production Enterprise Standard)
@@ -12,9 +12,9 @@
 ```mermaid
 flowchart TD
     subgraph UI ["User & Delivery Surfaces"]
-        Studio["BlindCouncil Studio (web/index.html)"]
+        Studio["Quorum Studio (web/index.html)"]
         Discord["Discord Engineering Review Desk"]
-        CLI["BlindCouncil CLI (python src/main.py)"]
+        CLI["Quorum CLI (python src/main.py)"]
     end
 
     subgraph Switch ["Switch Core 0.31.0 (Isolation Gateway)"]
@@ -71,7 +71,7 @@ flowchart TD
 
 ## 2. Key Architectural Invariants
 
-BlindCouncil enforces five core operational invariants (defined formally in [docs/invariants.md](file:///c:/ace/products/bb/docs/invariants.md)):
+Quorum enforces five core operational invariants (defined formally in [docs/invariants.md](docs/invariants.md)):
 1. **INV-SEC-01 (Security Invariant):** Sub-millisecond token revocation verification ($\tau_{\text{revocation}} < 1\text{ms}$) via Redis Bloom filter at ingress edge.
 2. **INV-SCALE-02 (Scalability Invariant):** Zero synchronous relational database lookups during 100k connection reconnection bursts ($p99 < 18\text{ms}$).
 3. **INV-FIN-03 (FinOps Invariant):** Infrastructure compute right-sizing with autoscaling triggers, saving $25,200 annually.
@@ -82,7 +82,7 @@ BlindCouncil enforces five core operational invariants (defined formally in [doc
 
 ## 3. Autonomous Implementation Bridge
 
-Upon human approval (`approve`), BlindCouncil generates the Section 6 implementation manifest and triggers autonomous terminal coding agents (Claude Code / Codex):
+Upon human approval (`approve`), Quorum generates the Section 6 implementation manifest and triggers autonomous terminal coding agents (Claude Code / Codex):
 ```bash
 claude -p "Read ADR-042.md Section 6. Switch to branch 'feat/adr-042-impl'. Implement the scaffolded files in '.'. Run 'pytest tests/ -v' and do not finish until all tests pass."
 ```

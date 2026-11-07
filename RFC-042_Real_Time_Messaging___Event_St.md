@@ -182,4 +182,4 @@ claude -p "Implement ADR RFC-042 according to Section 6 Implementation Manifest.
 ```
 
 
-*Generated collaboratively by BlindCouncil on Switch AI.*
+*Generated collaboratively by Quorum on Switch AI.*

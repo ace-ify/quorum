@@ -1,5 +1,5 @@
-## 🏛️ BlindCouncil Architecture Review Report
-**Decision Verdict:** 🟡 **APPROVED WITH CONDITIONS** | **ADR ID:** `RFC-089`
+## 🏛️ Quorum Architecture Review Report
+**Decision Verdict:** 🔴 **REJECTED** | **ADR ID:** `RFC-089`
 
 > 🔒 *This review was conducted using server-enforced blind isolation to eliminate LLM sycophancy and groupthink.*
 
@@ -7,23 +7,24 @@
 
 | Dimension | Specialist | Score | Verdict |
 | :--- | :--- | :---: | :--- |
-| Security & Threat Modeling | **Aegis** | `7/10` | ⚠️ CONDITIONAL |
-| Scalability, Latency & Resilience | **Vanguard** | `9/10` | ✅ APPROVED |
-| FinOps, Cloud Cost & Infrastructure ROI | **Ledger** | `6/10` | ⚠️ CONDITIONAL |
+| Security & Threat Modeling | **Aegis** | `6/10` | ⚠️ CONDITIONAL |
+| Scalability, Latency & Resilience | **Vanguard** | `7/10` | ⚠️ CONDITIONAL |
+| FinOps, Cloud Cost & Infrastructure ROI | **Ledger** | `5/10` | ❌ CONDITIONAL |
 | Data Consistency, Indexing & Storage Engines | **Titan** | `7/10` | ⚠️ CONDITIONAL |
 
 ### ⚖️ Architectural Trade-Offs & Human Resolutions
 
-- **Redis Cluster Sizing (Cost vs Scale):** Adopted 4-node cluster with auto-scaling triggers at 75% memory, saving $25,200 annually while maintaining p99 < 15ms.
-- **Token Revocation Check (Security vs Latency):** Implemented Redis Bloom filter for <1ms revocation checks without database load.
+- **DynamoDB Capacity Strategy (FinOps vs Peak Resilience):** Adopted Provisioned Capacity with DynamoDB Auto Scaling (70% target utilization) and pre-warmed headroom, saving $28,000 monthly.
+- **Partition Hot-Spotting Mitigation (Scalability vs Access Simplicity):** Implemented conditional partition salting for enterprise tenants exceeding 500 RPS.
+- **Zero-Downtime Data Parity (Data Integrity vs Latency):** Enforced asynchronous background parity reconciler via Debezium CDC with zero latency impact on user checkouts.
 
 ### 📋 Blocking Pre-Merge Checklist
 
-- [ ] Deploy 4-node cluster with auto-scaling triggers at 75% memory threshold.
-- [ ] Integrate Bloom filter middleware for WebSocket heartbeat revocation check (<1ms latency).
-- [ ] Enforce Customer-Managed KMS Key (CMK) with envelope encryption.
-- [ ] Adopt Crypto-Shredding per user to satisfy GDPR Article 17 Right to Erasure in event logs.
-- [ ] Configure AWS PrivateLink VPC endpoints for inter-service traffic to eliminate egress fees.
+- [ ] Deploy Terraform module for DynamoDB Global Table across us-east-1, eu-west-1, and ap-southeast-1 with Provisioned Auto-Scaling.
+- [ ] Implement UserSessionRepository and Single-Table Order model with composite PK/SK design.
+- [ ] Implement DualWriteSyncer middleware with version-based conditional writes to prevent out-of-order CDC updates.
+- [ ] Run shadow read reconciliation test suite across 100,000 sample order transactions.
+- [ ] Enable Point-in-Time Recovery (PITR) and customer-managed KMS CMK across all 3 AWS regions.
 
 ### 🚀 Implementer Handoff & Scaffolding Manifest
 - **Target Branch:** `feat/rfc-089-zero_downtime_migration_from_p`
@@ -37,46 +38,47 @@
 <details>
 <summary>🔍 <b>Click to expand full specialist findings & raw blind analysis</b></summary>
 
-#### Aegis (Security & Threat Modeling) — `7/10`
+#### Aegis (Security & Threat Modeling) — `6/10`
 **Critical Risks:**
-- ⚠️ In-band WebSocket token refresh creates a session hijacking window if a socket is kept alive indefinitely without revocation checks.
-- ⚠️ Default AWS KMS key allows any IAM role with basic KMS access to decrypt message buffers.
+- ⚠️ Cross-region Global Table replication transmits customer billing address and payment tokens without client-side envelope encryption (violates PCI-DSS 3.4 & GDPR).
+- ⚠️ Debezium CDC streaming Lambda execution role lacks IAM least-privilege scoping across RDS WAL and DynamoDB target.
 **Recommendations:**
-- 💡 Implement Redis token revocation blacklist check on heartbeat.
-- 💡 Adopt customer-managed KMS key (CMK) with strict key policy and envelope encryption.
+- 💡 Implement AWS KMS customer-managed envelope encryption before writing billing attributes into DynamoDB.
+- 💡 Scope Debezium Lambda IAM policies strictly to specific table ARN with session tagging.
 
-*Analysis Summary:* The architecture correctly terminates TLS and utilizes KMS, but the in-band token refresh mechanism bypasses centralized IAM revocation checks. If a user's credential is compromised, their WebSocket connection can persist indefinitely.
+*Analysis Summary:* Replicating sensitive billing attributes across 3 global regions without field-level client-side KMS envelope encryption exposes unencrypted cardholder data if regional replica IAM policies drift.
 
-#### Vanguard (Scalability, Latency & Resilience) — `9/10`
+#### Vanguard (Scalability, Latency & Resilience) — `7/10`
 **Critical Risks:**
-- ⚠️ Single Redis cluster partition could cause broadcast drops across orphaned EKS pods.
+- ⚠️ Hot partition bottleneck: Using ORG#<tenant_id> as Partition Key will throttle mega-tenants (>1,000 WCU/sec per partition limit in DynamoDB).
+- ⚠️ Synchronous dual-read comparison will double checkout API latency during peak flash sales.
 **Recommendations:**
-- 💡 Enforce Redis Sentinel / Multi-AZ cluster topology with automatic failover.
-- 💡 Add client-side backoff and reconnect jitter to prevent thundering herd on gateway restarts.
+- 💡 Add partition salting: ORG#<tenant_id>#<hash_modulo> to distribute mega-tenant write load across multiple physical partitions.
+- 💡 Execute dual-read shadow comparison strictly asynchronously in background SQS/Kinesis workers.
 
-*Analysis Summary:* The distributed fanout topology is solid. Redis Streams for 24-hour buffering with async DB batching guarantees p99 latency < 15ms. The only critical consideration is preventing reconnect thundering herds.
+*Analysis Summary:* A single enterprise tenant processing 10,000 orders/sec during Black Friday will instantly saturate DynamoDB's 1,000 WCU partition limit on ORG#<tenant_id>, causing severe connection timeouts.
 
-#### Ledger (FinOps, Cloud Cost & Infrastructure ROI) — `6/10`
+#### Ledger (FinOps, Cloud Cost & Infrastructure ROI) — `5/10`
 **Critical Risks:**
-- ⚠️ 12-node dedicated Redis Enterprise cluster is heavily over-provisioned for initial phase ($3,500/mo waste).
-- ⚠️ Egress traffic fees across multi-AZ EKS pods without VPC endpoints could add unexpected $1,800/mo.
+- ⚠️ On-Demand capacity mode with 50,000 writes/sec peak across 3 Global Table regions causes severe cost runaway: 150,000 replicated WCUs will exceed $42,000/month.
+- ⚠️ Global Table cross-region replication data transfer fees on 2 Billion records during initial CDC backfill.
 **Recommendations:**
-- 💡 Downsize initial Redis cluster to 4-node cluster with auto-sharding triggers, saving $2,100/mo ($25,200/yr).
-- 💡 Route all internal inter-service traffic via AWS PrivateLink VPC endpoints to eliminate egress charges.
+- 💡 Switch to Provisioned Capacity with DynamoDB Auto Scaling (70% target utilization) and purchase Reserved Capacity, saving $28,000/month.
+- 💡 Perform historical data backfill via AWS S3 Export/Import rather than live CDC to cut cross-region network transfer costs by 65%.
 
-*Analysis Summary:* The $8,200/month projected spend carries significant over-provisioning waste. Starting with 12 Redis shards for 100k connections is unnecessary overkill; a 4-node cluster can comfortably handle 30k msgs/sec at 40% of the cost.
+*Analysis Summary:* On-demand billing at 50,000 writes/sec across 3 regions costs $1.25 per million writes = over $38,000/mo in write units alone. Provisioned auto-scaling caps this at $10,500/mo, saving $28,000 monthly.
 
 #### Titan (Data Consistency, Indexing & Storage Engines) — `7/10`
 **Critical Risks:**
-- ⚠️ Dual-write race condition: Writing to Redis Stream and Aurora without an Outbox pattern risks ghost messages during worker crashes.
-- ⚠️ Missing composite index on (channel_id, created_at DESC) will degrade message history fetch times as table exceeds 50M rows.
+- ⚠️ Out-of-order writes during CDC backfill: network latency or Debezium retries can overwrite newer DynamoDB records with stale Postgres data.
+- ⚠️ DynamoDB lacks relational constraints, risking orphaned line items if composite item collection writes fail midway.
 **Recommendations:**
-- 💡 Adopt Transactional Outbox pattern or Kafka Debezium CDC for zero-loss Redis-to-Aurora replication.
-- 💡 Enforce declarative BRIN or composite B-tree partitioning on message timestamp columns.
+- 💡 Enforce Optimistic Concurrency Control using a monotonically increasing 'version' attribute with DynamoDB ConditionExpression.
+- 💡 Use TransactWriteItems for atomic multi-item order + order_items collection updates.
 
-*Analysis Summary:* The primary write path is well decoupled by Redis Streams, but asynchronous worker retries lack idempotency keys, risking duplicate message rows in Aurora during network blips.
+*Analysis Summary:* Without conditional version checking on DynamoDB writes, asynchronous CDC stream retries will result in silent data corruption where older updates overwrite newer orders during network blips.
 
 </details>
 
 ---
-*Reviewed by BlindCouncil on Switch AI • Decision recorded in [`RFC-089.md`](./RFC-089.md)*
+*Reviewed by Quorum on Switch AI • Decision recorded in [`RFC-089.md`](./RFC-089.md)*

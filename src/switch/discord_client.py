@@ -92,7 +92,7 @@ class DiscordLiveClient:
                     if ch.get("type") == 0: # text channel
                         self.channel_ids[name] = cid
                         self.channel_names[cid] = name
-                    elif ch.get("type") == 4 and "blindcouncil" in name.lower():
+                    elif ch.get("type") == 4 and "quorum" in name.lower():
                         self.category_id = cid
 
     def register_character_profile(self, agent_id: str, name: str, avatar_url: str):
@@ -123,7 +123,7 @@ class DiscordLiveClient:
             if self.category_id:
                 payload["parent_id"] = self.category_id
 
-            # BlindCouncil private chambers (#audit-* and #dev-*) are strictly locked
+            # Quorum private chambers (#audit-* and #dev-*) are strictly locked
             is_private = ("audit" in clean_name or "dev" in clean_name or "blind" in clean_name or "confession" in clean_name)
             if is_private:
                 # Deny VIEW_CHANNEL (1024) to @everyone

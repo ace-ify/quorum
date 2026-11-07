@@ -57,7 +57,7 @@ SVG_CONTENT = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 680" 
   <!-- Header Section -->
   <rect x="0" y="0" width="1200" height="90" fill="#1e1f22" border-bottom="1px solid #2b2d31"/>
   <text x="40" y="42" font-size="22" font-weight="700" fill="#f8fafc">🏛️ RFC-042: RESOLVED WEBSOCKET CLUSTER ARCHITECTURE</text>
-  <text x="40" y="68" font-size="13" font-weight="500" fill="#94a3b8">BlindCouncil Multi-Agent Architectural Consensus | Michael Nygard ADR Implementation Spec</text>
+  <text x="40" y="68" font-size="13" font-weight="500" fill="#94a3b8">Quorum Multi-Agent Architectural Consensus | Michael Nygard ADR Implementation Spec</text>
 
   <!-- Council Invariant Score Badges -->
   <g transform="translate(730, 25)">

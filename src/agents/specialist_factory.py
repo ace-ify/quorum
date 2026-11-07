@@ -1,5 +1,5 @@
 """
-Specialist Factory for BlindCouncil.
+Specialist Factory for Quorum.
 Loads pre-configured specialists from catalog, spawns custom specialists dynamically,
 and auto-selects required council members based on RFC topic analysis.
 """

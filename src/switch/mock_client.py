@@ -6,7 +6,7 @@ import asyncio
 from typing import Dict, List, Set, Callable, Any, Optional
 
 class MockSwitchClient:
-    def __init__(self, workspace_id: str = "the-house"):
+    def __init__(self, workspace_id: str = "quorum-eng"):
         self.workspace_id = workspace_id
         # room_id -> Set of agent_ids/user_ids
         self.rooms: Dict[str, Set[str]] = {}
@@ -16,6 +16,17 @@ class MockSwitchClient:
         self.documents: Dict[str, Dict[str, Any]] = {}
         # Message audit log for isolation proof
         self.delivered_events: Dict[str, List[dict]] = {} # agent_id -> list of events received
+
+    @property
+    def network_packets_leaked(self) -> int:
+        """Counts total cross-chamber packet leakage across all registered rooms."""
+        count = 0
+        for agent_id, events in self.delivered_events.items():
+            for evt in events:
+                rid = evt.get("room_id")
+                if rid and agent_id not in self.rooms.get(rid, set()):
+                    count += 1
+        return count
 
     async def create_room(self, room_id: str, initial_members: List[str], topic: str = "") -> dict:
         """

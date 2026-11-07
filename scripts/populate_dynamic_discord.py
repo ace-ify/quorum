@@ -94,7 +94,7 @@ def main():
     
     print("=== 1. CONVENING REVIEW DESK ===")
     post("review-desk", "Athena [Council Chair]", "athena",
-        "🏛️ **[BLINDCOUNCIL REVIEW DESK CONVENED: RFC-042]**\n\n"
+        "🏛️ **[QUORUM REVIEW DESK CONVENED: RFC-042]**\n\n"
         "**Target Architecture Proposal:** `RFC-042: Real-Time Messaging Fabric & Ingress Event Streaming`\n"
         "**Target Workload:** 100,000 Concurrent WebSocket Connections (peak 25k msg/sec)\n"
         "**Lead Architect:** `@izigriss [Lead Architect]`\n"
@@ -349,7 +349,7 @@ def main():
     )
 
     post("dev-implementation", "Athena [Council Chair]", "athena",
-        "🚀 **[SWITCH IMPLEMENTER HANDOFF: BLINDCOUNCIL ➔ CLAUDE CODE / CODEX]**\n\n"
+        "🚀 **[SWITCH IMPLEMENTER HANDOFF: QUORUM ➔ CLAUDE CODE / CODEX]**\n\n"
         "**Target System:** `RFC-042: Scalable Real-Time WebSocket Messaging Cluster`\n"
         "**Approved Architectural Decision:** `ADR-042.md`\n"
         "**Target Git Branch:** `git checkout -b feat/adr-042-impl`\n"

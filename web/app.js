@@ -1,21 +1,53 @@
 /**
- * BlindCouncil Studio — Production Architecture Workbench Logic
- * Displays interactive visual topology, live agent tool calls, tension matrix, and code scaffolding.
+ * Quorum Studio — Autonomous Architecture Review Board
+ * Complete interactive workbench logic for visual topology, live agent tool traces,
+ * soundproof isolation chambers, council floor debate, tension matrix, and code scaffolding.
  */
 
 const PROPOSALS = {
   rfc042: {
     id: "RFC-042",
     headline: "100,000 WebSocket Messaging Fabric",
+    targetScale: "100k Sockets (peak 25k msg/s)",
     targetBranch: "feat/adr-042-impl",
     verificationCmd: "pytest tests/ -v",
     claudeCmd: `claude -p "Read ADR-042.md Section 6. Switch to branch 'feat/adr-042-impl'. Implement the scaffolded files in '.'. Run 'pytest tests/ -v' and do not finish until all tests pass."`,
-    diagramImg: "diagram_rfc042_resolved.png",
+    diagramImg: "diagram_rfc042_resolved.svg",
     specialists: [
-      { key: "sec", name: "Aegis", domain: "Threat Modeling & Auth", score: "4.5/10", tag: "sec", role: "Staff Security Auditor" },
-      { key: "scale", name: "Vanguard", domain: "Concurrency & p99 Latency", score: "6.8/10", tag: "scale", role: "Principal Systems Architect" },
-      { key: "fin", name: "Ledger", domain: "Cloud Economics & ROI", score: "6.0/10", tag: "fin", role: "Lead Cloud Economics" },
-      { key: "data", name: "Titan", domain: "State Consistency & ACID", score: "7.2/10", tag: "data", role: "Data Reliability Architect" }
+      { key: "sec", name: "Aegis", domain: "Threat Modeling & Auth", score: "4.5/10", tag: "sec", role: "Staff Security Auditor", avatar: "A" },
+      { key: "scale", name: "Vanguard", domain: "Concurrency & p99 Latency", score: "6.8/10", tag: "scale", role: "Principal Systems Architect", avatar: "V" },
+      { key: "fin", name: "Ledger", domain: "Cloud Economics & ROI", score: "6.0/10", tag: "fin", role: "Lead Cloud Economics", avatar: "L" },
+      { key: "data", name: "Titan", domain: "State Consistency & ACID", score: "7.2/10", tag: "data", role: "Data Reliability Architect", avatar: "T" }
+    ],
+    invariants: [
+      { id: "INV-SEC-01", desc: "Revocation <1ms (Edge Bloom bitset)" },
+      { id: "INV-SCALE-02", desc: "Zero-DB Reconnect (100k Sockets)" },
+      { id: "INV-FIN-03", desc: "Compute -$25.2k/yr (4-Node Autoscale)" },
+      { id: "INV-DATA-04", desc: "Outbox CDC Atomicity (Debezium -> Kafka)" },
+      { id: "INV-ISO-05", desc: "Switch Room Isolation (0 Leaked Bytes)" }
+    ],
+    nodes: [
+      { key: "clients", label: "100k Sockets", sub: "Clients Tier", metric: "Sub-20ms p99", iconType: "clients" },
+      { key: "nlb", label: "AWS L4 NLB", sub: "TLS Termination", metric: "Zero-Inspection", iconType: "nlb" },
+      { key: "gateway", pin: "SEC", pinClass: "flag-sec", label: "Ingress Gateway", sub: "Bloom Revocation", metric: "<0.2ms RAM Lookup", iconType: "gateway" },
+      { key: "redis", pin: "-$25.2k", pinClass: "flag-fin", label: "4-Node Cluster", sub: "75% Autoscale", metric: "$16.8k/yr vs $42k", iconType: "redis" },
+      { key: "outbox", pin: "CDC", pinClass: "flag-data", label: "Postgres Outbox", sub: "Debezium -> Kafka", metric: "Zero Msg Loss", iconType: "outbox" }
+    ],
+    chambers: [
+      { id: "audit-security", specialist: "Aegis", domain: "Security & Threat Modeling", score: "4.5/10", tag: "sec", token: "sw_sec_live_9921b", acl: "['athena', 'aegis']", leak: "0 Bytes", finding: "In-band heartbeat token refresh creates a 15-minute hijacking window without revocation checks. Mandates sub-ms Redis Bloom filter." },
+      { id: "audit-scalability", specialist: "Vanguard", domain: "Concurrency & p99 Latency", score: "6.8/10", tag: "scale", token: "sw_scale_live_4412a", acl: "['athena', 'vanguard']", leak: "0 Bytes", finding: "Synchronous DB queries on 100k reconnections crashes Postgres pool in 11.8s. Mandates zero-DB RAM lookups." },
+      { id: "audit-finops", specialist: "Ledger", domain: "Cloud Economics & ROI", score: "6.0/10", tag: "fin", token: "sw_fin_live_8834c", acl: "['athena', 'ledger']", leak: "0 Bytes", finding: "12 dedicated Redis shards burns $42k/yr on 16% off-peak load. Mandates 4-node autoscale cluster, saving $25,200/yr." },
+      { id: "audit-database", specialist: "Titan", domain: "Data Consistency & Storage", score: "7.2/10", tag: "data", token: "sw_data_live_1120f", acl: "['athena', 'titan']", leak: "0 Bytes", finding: "Dual-writing to Redis Streams and Aurora without Outbox causes 1.84% message loss on crashes. Mandates Debezium CDC." }
+    ],
+    debateMessages: [
+      { sender: "Athena", role: "Council Chair", tag: "chair", content: "Convening Quorum for RFC-042: Scalable Real-Time WebSocket Messaging Cluster. All 4 specialist chambers have completed blind assessments with zero context leakage." },
+      { sender: "Aegis", role: "Staff Security Auditor", tag: "sec", content: "I am placing a formal BLOCK on RFC-042. The proposed in-band token refresh leaves an unverified 15-minute window where a revoked user credential can continue pumping frames across open sockets. This fails SOC2 Article 4. We cannot merge until token revocation is enforced synchronously on heartbeat." },
+      { sender: "Vanguard", role: "Principal Systems Architect", tag: "scale", content: "@Aegis If you force a synchronous database query on every heartbeat across 100,000 concurrent sockets, you will crash the Postgres connection pool within 12 seconds of a pod rollout. The p99 latency will spike past 140ms. Any security enforcement must happen in-memory at the ingress edge." },
+      { sender: "Ledger", role: "Lead Cloud Economics", tag: "fin", content: "And who approved 12 dedicated Redis Enterprise nodes for initial launch? Off-peak traffic is 20k connections. You are burning $3,500/month ($42,000/yr) on idle compute. Downsize to 4 nodes with memory autoscaling at 75% load. That recoups $25,200 annually!" },
+      { sender: "Titan", role: "Data Reliability Architect", tag: "data", content: "Regarding persistence: dual-writing directly to Redis Pub/Sub and Postgres causes message loss if a worker node crashes between writes. We must enforce the Transactional Outbox Pattern with Debezium CDC into Kafka." },
+      { sender: "Athena", role: "Council Chair", tag: "chair", content: "Synthesizing resolution: Vanguard's latency requirement and Aegis's revocation requirement converge on a Redis Bloom Filter bitset at the edge (<0.2ms, zero DB load). Ledger's 4-node autoscale cluster accepted. Titan's Transactional Outbox accepted. Human Lead, how do you steer?" },
+      { sender: "Lead Architect", role: "Human Engineer", tag: "human", content: "!summary, !diagram, approve" },
+      { sender: "Athena", role: "Council Chair", tag: "chair", content: "✅ COUNCIL CONSENSUS APPROVED BY LEAD ARCHITECT. Autonomous handoff delivered to @ClaudeCode in #dev-implementation." }
     ],
     toolsLog: [
       {
@@ -84,12 +116,19 @@ const PROPOSALS = {
         invariant: "INV-DATA-04: At-least-once linearizable delivery"
       }
     ],
+    manifestItems: [
+      { action: "CREATE", path: "src/middleware/bloom_revocation.py", mandatedBy: "Aegis & Vanguard", purpose: "Redis Bloom filter sub-0.2ms token revocation middleware" },
+      { action: "CREATE", path: "src/cluster/config.yaml", mandatedBy: "Ledger", purpose: "4-node cluster autoscaling spec saving $25,200/year" },
+      { action: "CREATE", path: "src/db/outbox_producer.py", mandatedBy: "Titan", purpose: "Transactional Outbox pattern producer for zero message loss" },
+      { action: "CREATE", path: "tests/test_messaging_cluster.py", mandatedBy: "Athena", purpose: "Verifies sub-1ms Bloom filter latency and payload integrity" }
+    ],
     components: {
       clients: {
         title: "100k Sockets Clients Tier",
-        auditor: "Vanguard • Scale",
+        auditor: "Vanguard • Principal Systems",
         score: "Score: 6.8/10",
         avatar: "V",
+        tag: "scale",
         toolName: "queue_concurrency_sim",
         toolDuration: "215ms",
         toolSnippet: 'connections: 100000\nstatus: "ConnectionPoolExhaustedException at t=11.8s"',
@@ -101,9 +140,10 @@ jittered_delay = reconnect_delay * (0.5 + random.random())`
       },
       nlb: {
         title: "AWS L4 Network Load Balancer",
-        auditor: "Vanguard • Scale",
+        auditor: "Vanguard • Principal Systems",
         score: "Score: 9.0/10",
         avatar: "V",
+        tag: "scale",
         toolName: "tls_passthrough_eval",
         toolDuration: "64ms",
         toolSnippet: 'mode: "TCP_PASS_THROUGH"\nlatency_overhead: "<0.05ms"',
@@ -117,9 +157,10 @@ Properties:
       },
       gateway: {
         title: "Ingress Gateway & Bloom Filter",
-        auditor: "Aegis • Security",
+        auditor: "Aegis • Staff Security",
         score: "Score: 4.5/10 (Resolved)",
         avatar: "A",
+        tag: "sec",
         toolName: "cve_database_search",
         toolDuration: "142ms",
         toolSnippet: 'query: "WebSocket heartbeat session hijacking"\nresult: "CVE-2023-4580 (CVSS 8.1 High)"',
@@ -135,9 +176,10 @@ async def verify_socket_session(socket_id: str, token_id: str) -> bool:
       },
       redis: {
         title: "4-Node MemoryDB Autoscaling Cluster",
-        auditor: "Ledger • FinOps",
+        auditor: "Ledger • Lead FinOps",
         score: "Score: 6.0/10 (Resolved)",
         avatar: "L",
+        tag: "fin",
         toolName: "aws_pricing_calculator",
         toolDuration: "98ms",
         toolSnippet: '12_nodes: "$42,048/yr (16.4% utilization)"\n4_nodes_autoscale: "$16,848/yr (Saves $25,200/yr)"',
@@ -153,9 +195,10 @@ async def verify_socket_session(socket_id: str, token_id: str) -> bool:
       },
       outbox: {
         title: "Postgres Outbox & Debezium CDC",
-        auditor: "Titan • State Reliability",
+        auditor: "Titan • Data Reliability",
         score: "Score: 7.2/10 (Resolved)",
         avatar: "T",
+        tag: "data",
         toolName: "distributed_fault_injection",
         toolDuration: "310ms",
         toolSnippet: 'fault: "worker_sigkill_mid_write"\npacket_loss: "1.84% (Dual-write violation)"',
@@ -169,11 +212,6 @@ async def emit_chat_event(session, event_payload: dict):
     await session.commit()`
       }
     },
-    manifest: [
-      { action: "CREATE", path: "src/middleware/bloom_revocation.py", purpose: "Redis Bloom filter revocation middleware (Mandated by Aegis & Vanguard)" },
-      { action: "CREATE", path: "src/cluster/config.yaml", purpose: "4-node cluster autoscaling spec saving $25,200/year (Mandated by Ledger)" },
-      { action: "CREATE", path: "src/db/outbox_producer.py", purpose: "Transactional Outbox pattern event producer (Mandated by Titan)" }
-    ],
     adrMarkdown: `# ADR-042: Real-Time Messaging Fabric & Ingress Event Streaming
 
 **Status:** APPROVED WITH CONDITIONS  
@@ -199,22 +237,72 @@ Legacy HTTP long-polling architecture is failing under scale (450ms p99 latency)
 - \`src/middleware/bloom_revocation.py\`
 - \`src/cluster/config.yaml\`
 - \`src/db/outbox_producer.py\`
+- \`tests/test_messaging_cluster.py\`
 
-*Generated by BlindCouncil.*`
+*Generated by Quorum on Switch AI.*`,
+    prStickyComment: `## 🏛️ Quorum Architecture Review Report: RFC-042
+
+| Specialist | Domain | Score | Status |
+| :--- | :--- | :---: | :--- |
+| **Aegis** | Security & Threat Modeling | 4.5/10 | ⚠️ BLOCK (Resolved) |
+| **Vanguard** | Scalability & Latency | 6.8/10 | ✅ APPROVED |
+| **Ledger** | FinOps & Cloud Economics | 6.0/10 | 💰 -$25,200/yr |
+| **Titan** | Data Consistency & ACID | 7.2/10 | ✅ APPROVED |
+
+### ⚡ Key Architectural Reconciliations
+- **Edge Revocation:** Redis Bloom filter bitset deployed (<0.2ms RAM lookup).
+- **Compute Savings:** Right-sized from 12 to 4 nodes with 75% memory autoscale.
+- **Delivery Guarantee:** Outbox CDC stream prevents split-brain dual write.
+
+<details><summary><b>📂 Section 6 Implementer Manifest (Claude Code)</b></summary>
+
+\`\`\`bash
+claude -p "Read ADR-042.md Section 6. Switch to branch 'feat/adr-042-impl'. Implement scaffolded files. Run 'pytest tests/ -v'."
+\`\`\`
+</details>`
   },
 
   rfc019: {
     id: "RFC-019",
     headline: "Global Scalable URL Shortener (10B Keys)",
+    targetScale: "10B Keys (50k QPS)",
     targetBranch: "feat/adr-019-impl",
     verificationCmd: "pytest tests/ -v",
     claudeCmd: `claude -p "Read ADR-019.md Section 6. Switch to branch 'feat/adr-019-impl'. Implement Base62 collision-free ID generator with Redis cluster cache and Cassandra persistent tier. Run 'pytest tests/ -v'."`,
-    diagramImg: "diagram_rfc042_resolved.png",
+    diagramImg: "diagram_rfc042_resolved.svg",
     specialists: [
-      { key: "sec", name: "Aegis", domain: "Abuse & Link Scraping", score: "5.2/10", tag: "sec", role: "Staff Security Auditor" },
-      { key: "scale", name: "Vanguard", domain: "50k QPS Key Generation", score: "7.0/10", tag: "scale", role: "Principal Systems Architect" },
-      { key: "fin", name: "Ledger", domain: "Telemetry Tiering ROI", score: "6.5/10", tag: "fin", role: "Lead Cloud Economics" },
-      { key: "data", name: "Titan", domain: "Cross-Region Pinning", score: "8.1/10", tag: "data", role: "Data Reliability Architect" }
+      { key: "sec", name: "Aegis", domain: "Abuse & Link Scraping", score: "5.2/10", tag: "sec", role: "Staff Security Auditor", avatar: "A" },
+      { key: "scale", name: "Vanguard", domain: "50k QPS Key Generation", score: "7.0/10", tag: "scale", role: "Principal Systems Architect", avatar: "V" },
+      { key: "fin", name: "Ledger", domain: "Telemetry Tiering ROI", score: "6.5/10", tag: "fin", role: "Lead Cloud Economics", avatar: "L" },
+      { key: "data", name: "Titan", domain: "Cross-Region Pinning", score: "8.1/10", tag: "data", role: "Data Reliability Architect", avatar: "T" }
+    ],
+    invariants: [
+      { id: "INV-SCALE-01", desc: "Zero central DB lock on key minting" },
+      { id: "INV-SEC-02", desc: "Anti-Enumeration Shuffled Base62" },
+      { id: "INV-FIN-03", desc: "Decouple ClickHouse Sinks (-$14k/yr)" },
+      { id: "INV-DATA-04", desc: "Cassandra Read Latency <5ms" },
+      { id: "INV-ISO-05", desc: "Switch Room Isolation (0 Leaked Bytes)" }
+    ],
+    nodes: [
+      { key: "clients", label: "50k QPS", sub: "Global Clients", metric: "<1.8ms Edge", iconType: "clients" },
+      { key: "nlb", label: "Anycast DNS", sub: "Latency Routing", metric: "<12ms Handshake", iconType: "nlb" },
+      { key: "gateway", pin: "SEC", pinClass: "flag-sec", label: "Distributed KGS", sub: "Shuffled Base62", metric: "Zero Enumeration", iconType: "gateway" },
+      { key: "redis", pin: "LRU", pinClass: "flag-scale", label: "Hot Cache Tier", sub: "84% Hit Ratio", metric: "32GB RAM Bound", iconType: "redis" },
+      { key: "outbox", pin: "-$14k", pinClass: "flag-fin", label: "ClickHouse Sink", sub: "90-Day Telemetry", metric: "14:1 Compression", iconType: "outbox" }
+    ],
+    chambers: [
+      { id: "audit-security", specialist: "Aegis", domain: "Abuse & Link Scraping", score: "5.2/10", tag: "sec", token: "sw_sec_019_71a", acl: "['athena', 'aegis']", leak: "0 Bytes", finding: "Sequential auto-increment IDs permit automated enumeration scraping. Mandates cryptographically shuffled Base62 token space." },
+      { id: "audit-scalability", specialist: "Vanguard", domain: "50k QPS Key Generation", score: "7.0/10", tag: "scale", token: "sw_scale_019_22b", acl: "['athena', 'vanguard']", leak: "0 Bytes", finding: "Relational row-lock contention on central sequences limits minting to 6,200 RPS. Mandates range pre-allocation in 1M chunks." },
+      { id: "audit-finops", specialist: "Ledger", domain: "Telemetry Tiering ROI", score: "6.5/10", tag: "fin", token: "sw_fin_019_99c", acl: "['athena', 'ledger']", leak: "0 Bytes", finding: "Storing 365-day click telemetry in primary OLTP database burns IOPS. Mandates ClickHouse tiering, saving $14,000/year." },
+      { id: "audit-database", specialist: "Titan", domain: "Cross-Region Pinning", score: "8.1/10", tag: "data", token: "sw_data_019_44d", acl: "['athena', 'titan']", leak: "0 Bytes", finding: "Multi-region Cassandra ring provides linear scale for 10B keys with predictable sub-5ms read latencies." }
+    ],
+    debateMessages: [
+      { sender: "Athena", role: "Council Chair", tag: "chair", content: "Convening Quorum for RFC-019: Global Scalable URL Shortener (10B Keys). Specialists have concluded soundproof chamber assessments." },
+      { sender: "Vanguard", role: "Principal Systems Architect", tag: "scale", content: "A central SQL auto-increment sequence caps out at 6,200 QPS due to lock contention. We must decouple key generation with pre-allocated 1M ranges." },
+      { sender: "Aegis", role: "Staff Security Auditor", tag: "sec", content: "If you pre-allocate sequential numbers, bots will enumerate all shortlinks in minutes. We must shuffle the token space cryptographically." },
+      { sender: "Ledger", role: "Lead Cloud Economics", tag: "fin", content: "And don't write click telemetry to Cassandra. Tier it to ClickHouse with a 90-day TTL to save $14,000 annually in storage." },
+      { sender: "Titan", role: "Data Reliability Architect", tag: "data", content: "Agreed. Cassandra for O(1) redirects + ClickHouse for analytics achieves high write throughput without row lock contention." },
+      { sender: "Athena", role: "Council Chair", tag: "chair", content: "Consensus locked: Pre-allocated shuffled Base62 KGS + ClickHouse analytics tiering adopted." }
     ],
     toolsLog: [
       {
@@ -247,15 +335,21 @@ Legacy HTTP long-polling architecture is failing under scale (450ms p99 latency)
         vector: "Analytics Retention vs Primary DB Cost",
         clash: "Product Team (365-day click telemetry) vs Ledger (Relational IOPS budget breach).",
         resolution: "Tier telemetry to ClickHouse with 90-day retention, saving $14,000/year.",
-        invariant: "INV-FIN-02: Analytics storage decoupled from OLTP database"
+        invariant: "INV-FIN-03: Analytics storage decoupled from OLTP database"
       }
+    ],
+    manifestItems: [
+      { action: "CREATE", path: "src/kgs/token_generator.py", mandatedBy: "Vanguard & Aegis", purpose: "Pre-allocated shuffled Base62 key generator service" },
+      { action: "CREATE", path: "src/db/clickhouse_sink.py", mandatedBy: "Ledger", purpose: "Telemetry ingestion pipeline saving $14,000/yr" },
+      { action: "CREATE", path: "tests/test_shortener.py", mandatedBy: "Athena", purpose: "End-to-end encoding, SSRF guard, and cache tests" }
     ],
     components: {
       clients: {
         title: "Global HTTP Redirect Clients",
-        auditor: "Vanguard • Scale",
+        auditor: "Vanguard • Principal Systems",
         score: "Score: 7.0/10",
         avatar: "V",
+        tag: "scale",
         toolName: "edge_latency_benchmark",
         toolDuration: "82ms",
         toolSnippet: 'qps: 50000\nmeasured_latency: "1.8ms at Cloudflare edge"',
@@ -267,22 +361,23 @@ Legacy HTTP long-polling architecture is failing under scale (450ms p99 latency)
       },
       nlb: {
         title: "Anycast Edge Gateway",
-        auditor: "Vanguard • Scale",
+        auditor: "Vanguard • Principal Systems",
         score: "Score: 8.5/10",
         avatar: "V",
+        tag: "scale",
         toolName: "dns_anycast_eval",
         toolDuration: "55ms",
         toolSnippet: 'routing: "LatencyBased"\nhandshake_overhead: "<12ms"',
         finding: "Edge DNS routing clients to nearest regional data center.",
         resolution: "Latency-based routing reduces handshake to <15ms.",
-        code: `RoutingPolicy: LatencyBased
-TTL: 60`
+        code: `RoutingPolicy: LatencyBased\nTTL: 60`
       },
       gateway: {
         title: "Distributed Key Generation Service (KGS)",
-        auditor: "Aegis • Security",
+        auditor: "Aegis • Staff Security",
         score: "Score: 5.2/10 (Resolved)",
         avatar: "A",
+        tag: "sec",
         toolName: "entropy_enumeration_test",
         toolDuration: "120ms",
         toolSnippet: 'sequence: "shuffled_base62"\nharvesting_resistance: "100%"',
@@ -293,9 +388,10 @@ TTL: 60`
       },
       redis: {
         title: "Redis LRU Hot Cache Tier",
-        auditor: "Ledger • FinOps",
+        auditor: "Ledger • Lead FinOps",
         score: "Score: 6.5/10 (Resolved)",
         avatar: "L",
+        tag: "fin",
         toolName: "cache_hit_ratio_sim",
         toolDuration: "90ms",
         toolSnippet: 'hit_ratio: "84.2%"\nmemory_bound: "32GB"',
@@ -305,9 +401,10 @@ TTL: 60`
       },
       outbox: {
         title: "Cassandra + ClickHouse Sinks",
-        auditor: "Titan • State Reliability",
+        auditor: "Titan • Data Reliability",
         score: "Score: 8.1/10",
         avatar: "T",
+        tag: "data",
         toolName: "clickhouse_compression_calc",
         toolDuration: "115ms",
         toolSnippet: 'compression_ratio: "14:1"\nannual_savings: "$14,000/yr"',
@@ -316,11 +413,6 @@ TTL: 60`
         code: `ALTER TABLE click_events MODIFY TTL click_time + INTERVAL 90 DAY;`
       }
     },
-    manifest: [
-      { action: "CREATE", path: "src/kgs/range_allocator.py", purpose: "Base62 distributed key generation range coordinator" },
-      { action: "CREATE", path: "src/cache/lru_tier.py", purpose: "Redis hot-tier cache with 80/20 memory eviction policy" },
-      { action: "CREATE", path: "src/security/safe_browsing.py", purpose: "Asynchronous anti-malware and link reputation validator" }
-    ],
     adrMarkdown: `# ADR-019: Global Scalable URL Shortener Architecture (10B Keys)
 
 **Status:** APPROVED WITH CONDITIONS  
@@ -339,28 +431,65 @@ Design a global URL shortener supporting 10B links with 50,000 QPS and sub-10ms 
 1. **Decoupled Key Generator:** Pre-allocated randomized Base62 ranges generated by standalone KGS.
 2. **Storage Decoupling:** Primary redirects served from Cassandra + Redis LRU; telemetry tiered to ClickHouse (-$14,000/yr).
 
----
+*Generated by Quorum on Switch AI.*`,
+    prStickyComment: `## 🏛️ Quorum Architecture Review Report: RFC-019
 
-## 3. Scaffolding Manifest
-- \`src/kgs/range_allocator.py\`
-- \`src/cache/lru_tier.py\`
-- \`src/security/safe_browsing.py\`
+| Specialist | Domain | Score | Status |
+| :--- | :--- | :---: | :--- |
+| **Aegis** | Abuse & Link Scraping | 5.2/10 | 🔒 Shuffled Base62 |
+| **Vanguard** | 50k QPS Key Generation | 7.0/10 | ✅ Pre-allocated KGS |
+| **Ledger** | Telemetry Tiering ROI | 6.5/10 | 💰 -$14,000/yr ClickHouse |
+| **Titan** | Cross-Region Cassandra | 8.1/10 | ✅ Sub-5ms Reads |
 
-*Generated by BlindCouncil.*`
+<details><summary><b>📂 Section 6 Implementer Manifest (Claude Code)</b></summary>
+
+\`\`\`bash
+claude -p "Read ADR-019.md Section 6. Switch to branch 'feat/adr-019-impl'. Implement scaffolded files. Run 'pytest tests/ -v'."
+\`\`\`
+</details>`
   },
 
   rfc088: {
     id: "RFC-088",
     headline: "Multi-Region Payment Processing Service",
+    targetScale: "50k RPS ($50M/day Volume)",
     targetBranch: "feat/adr-088-impl",
     verificationCmd: "pytest tests/ -v",
     claudeCmd: `claude -p "Read ADR-088.md Section 6. Switch to branch 'feat/adr-088-impl'. Implement idempotency key middleware with DynamoDB TTL and distributed two-phase saga coordinator. Run 'pytest tests/ -v'."`,
-    diagramImg: "diagram_rfc042_resolved.png",
+    diagramImg: "diagram_rfc042_resolved.svg",
     specialists: [
-      { key: "sec", name: "Aegis", domain: "PCI-DSS Level 1 Auth", score: "3.8/10", tag: "sec", role: "Staff Security Auditor" },
-      { key: "scale", name: "Vanguard", domain: "Active-Active Idempotency", score: "6.2/10", tag: "scale", role: "Principal Systems Architect" },
-      { key: "fin", name: "Ledger", domain: "Interchange Cost Routing", score: "5.8/10", tag: "fin", role: "Lead Cloud Economics" },
-      { key: "data", name: "Titan", domain: "Saga Compensations", score: "6.5/10", tag: "data", role: "Data Reliability Architect" }
+      { key: "sec", name: "Aegis", domain: "PCI-DSS Level 1 Auth", score: "3.8/10", tag: "sec", role: "Staff Security Auditor", avatar: "A" },
+      { key: "scale", name: "Vanguard", domain: "Active-Active Idempotency", score: "6.2/10", tag: "scale", role: "Principal Systems Architect", avatar: "V" },
+      { key: "fin", name: "Ledger", domain: "Interchange Cost Routing", score: "5.8/10", tag: "fin", role: "Lead Cloud Economics", avatar: "L" },
+      { key: "data", name: "Titan", domain: "Saga Compensations", score: "6.5/10", tag: "data", role: "Data Reliability Architect", avatar: "T" }
+    ],
+    invariants: [
+      { id: "INV-SEC-01", desc: "Zero PAN in app memory (HSM Perimeter)" },
+      { id: "INV-SCALE-02", desc: "Regional Idempotency Leases <20ms" },
+      { id: "INV-FIN-03", desc: "Least-Cost Routing (-$38,000/yr)" },
+      { id: "INV-DATA-04", desc: "2PC Saga Compensations 100% Atomic" },
+      { id: "INV-ISO-05", desc: "Switch Room Isolation (0 Leaked Bytes)" }
+    ],
+    nodes: [
+      { key: "clients", label: "Checkout Apps", sub: "Web / Mobile", metric: "<14ms Handshake", iconType: "clients" },
+      { key: "nlb", pin: "PCI-1", pinClass: "flag-sec", label: "HSM Tokenizer", sub: "Edge Vault", metric: "Zero PAN Ingest", iconType: "nlb" },
+      { key: "gateway", pin: "TTL", pinClass: "flag-scale", label: "Idempotency Coord", sub: "DynamoDB Leases", metric: "18ms Regional", iconType: "gateway" },
+      { key: "redis", pin: "-$38k", pinClass: "flag-fin", label: "Smart Router", sub: "Least-Cost BIN", metric: "1.9% vs 2.9%", iconType: "redis" },
+      { key: "outbox", pin: "2PC", pinClass: "flag-data", label: "Saga Engine", sub: "Two-Phase Commit", metric: "Zero Orphan Holds", iconType: "outbox" }
+    ],
+    chambers: [
+      { id: "audit-security", specialist: "Aegis", domain: "PCI-DSS Level 1 Auth", score: "3.8/10", tag: "sec", token: "sw_sec_088_99a", acl: "['athena', 'aegis']", leak: "0 Bytes", finding: "Raw PAN exposure in debug log aggregators violates PCI-DSS 3.4. Mandates perimeter edge tokenization in HSM." },
+      { id: "audit-scalability", specialist: "Vanguard", domain: "Active-Active Idempotency", score: "6.2/10", tag: "scale", token: "sw_scale_088_55b", acl: "['athena', 'vanguard']", leak: "0 Bytes", finding: "Cross-region two-phase pessimistic locks spike checkout latency to 820ms. Mandates regional conditional write leases in DynamoDB." },
+      { id: "audit-finops", specialist: "Ledger", domain: "Interchange Cost Routing", score: "5.8/10", tag: "fin", token: "sw_fin_088_12c", acl: "['athena', 'ledger']", leak: "0 Bytes", finding: "Static flat-rate gateway interchange incurs $38,000/yr overpayment. Mandates dynamic least-cost BIN router." },
+      { id: "audit-database", specialist: "Titan", domain: "Saga Compensations", score: "6.5/10", tag: "data", token: "sw_data_088_77d", acl: "['athena', 'titan']", leak: "0 Bytes", finding: "Non-atomic webhook retries cause double credit. Mandates two-phase saga coordinator with unique transaction constraints." }
+    ],
+    debateMessages: [
+      { sender: "Athena", role: "Council Chair", tag: "chair", content: "Convening Quorum for RFC-088: Multi-Region Payment Processing Service. Soundproof chambers locked." },
+      { sender: "Aegis", role: "Staff Security Auditor", tag: "sec", content: "CRITICAL BLOCK: Unmasked card numbers found in log aggregators. We cannot touch production until hardware tokenization is deployed at perimeter edge." },
+      { sender: "Vanguard", role: "Principal Systems Architect", tag: "scale", content: "Agreed on tokenization. And do NOT use cross-region pessimistic locks—820ms checkout latency causes 18% cart abandonment. Use regional idempotency leases." },
+      { sender: "Ledger", role: "Lead Cloud Economics", tag: "fin", content: "Implement dynamic interchange routing. Routing domestic debit cards to local rails saves $38,000/year over flat stripe pricing." },
+      { sender: "Titan", role: "Data Reliability Architect", tag: "data", content: "We mandate strict two-phase saga state machines to guarantee automated compensations if payment gateway times out." },
+      { sender: "Athena", role: "Council Chair", tag: "chair", content: "Consensus reached: Edge HSM tokenization + Regional DynamoDB leases + Smart BIN routing approved." }
     ],
     toolsLog: [
       {
@@ -387,21 +516,28 @@ Design a global URL shortener supporting 10B links with 50,000 QPS and sub-10ms 
         vector: "PCI-DSS Compliance vs Debug Visibility",
         clash: "Engineering Ops (Full raw payload logging) vs Aegis (PCI-DSS Level 1 violation).",
         resolution: "Perimeter tokenization in HSM vault; debug logs only contain opaque token IDs.",
-        invariant: "INV-SEC-02: Zero raw cardholder PAN exposure in application memory"
+        invariant: "INV-SEC-01: Zero raw cardholder PAN exposure in application memory"
       },
       {
         vector: "Cross-Region Locking vs Checkout Speed",
         clash: "Titan (Global locks to prevent double-charging) vs Vanguard (800ms cross-region latency).",
         resolution: "Regional idempotency leases with conditional writes in DynamoDB global tables.",
-        invariant: "INV-SCALE-03: Sub-50ms checkout authorization latency"
+        invariant: "INV-SCALE-02: Sub-50ms checkout authorization latency"
       }
+    ],
+    manifestItems: [
+      { action: "CREATE", path: "src/security/hsm_tokenizer.py", mandatedBy: "Aegis", purpose: "Perimeter hardware tokenization vault preventing PAN logging" },
+      { action: "CREATE", path: "src/idempotency/dynamo_lease.py", mandatedBy: "Vanguard", purpose: "Regional conditional write idempotency coordinator" },
+      { action: "CREATE", path: "src/routing/interchange_router.py", mandatedBy: "Ledger", purpose: "Least-cost payment routing engine saving $38,000/yr" },
+      { action: "CREATE", path: "tests/test_payment_saga.py", mandatedBy: "Titan", purpose: "Saga compensation verification under simulated network partitions" }
     ],
     components: {
       clients: {
         title: "Checkout Client Apps (Web / iOS)",
-        auditor: "Vanguard • Scale",
+        auditor: "Vanguard • Principal Systems",
         score: "Score: 6.2/10",
         avatar: "V",
+        tag: "scale",
         toolName: "regional_handshake_timer",
         toolDuration: "45ms",
         toolSnippet: 'client_edge: "Cloudflare Anycast"\nlatency: "14ms"',
@@ -411,9 +547,10 @@ Design a global URL shortener supporting 10B links with 50,000 QPS and sub-10ms 
       },
       nlb: {
         title: "Perimeter Tokenization Vault (HSM)",
-        auditor: "Aegis • Security",
+        auditor: "Aegis • Staff Security",
         score: "Score: 3.8/10 (Resolved)",
         avatar: "A",
+        tag: "sec",
         toolName: "pci_dss_log_scanner",
         toolDuration: "135ms",
         toolSnippet: 'matches: "1,420 unmasked PAN in logs"\nremediation: "Edge tokenization in HSM"',
@@ -424,9 +561,10 @@ Design a global URL shortener supporting 10B links with 50,000 QPS and sub-10ms 
       },
       gateway: {
         title: "Regional Idempotency Coordinator",
-        auditor: "Vanguard • Scale",
+        auditor: "Vanguard • Principal Systems",
         score: "Score: 6.2/10 (Resolved)",
         avatar: "V",
+        tag: "scale",
         toolName: "cross_region_lock_evaluator",
         toolDuration: "240ms",
         toolSnippet: '2pc_latency: "820ms"\ndynamodb_lease: "18ms"',
@@ -438,9 +576,10 @@ Design a global URL shortener supporting 10B links with 50,000 QPS and sub-10ms 
       },
       redis: {
         title: "Smart Interchange Router",
-        auditor: "Ledger • FinOps",
+        auditor: "Ledger • Lead FinOps",
         score: "Score: 5.8/10 (Resolved)",
         avatar: "L",
+        tag: "fin",
         toolName: "interchange_optimization_matrix",
         toolDuration: "88ms",
         toolSnippet: 'static_markup: "2.9% + 30c"\nleast_cost_routing: "-$38,000/yr"',
@@ -451,9 +590,10 @@ Design a global URL shortener supporting 10B links with 50,000 QPS and sub-10ms 
       },
       outbox: {
         title: "Two-Phase Saga State Machine",
-        auditor: "Titan • State Reliability",
+        auditor: "Titan • Data Reliability",
         score: "Score: 6.5/10 (Resolved)",
         avatar: "T",
+        tag: "data",
         toolName: "saga_compensation_harness",
         toolDuration: "190ms",
         toolSnippet: 'compensations_verified: "100%"\nzero_orphan_holds: true',
@@ -465,11 +605,6 @@ Design a global URL shortener supporting 10B links with 50,000 QPS and sub-10ms 
     await capture_payment()`
       }
     },
-    manifest: [
-      { action: "CREATE", path: "src/payment/idempotency_guard.py", purpose: "Distributed idempotency filter with DynamoDB conditional write" },
-      { action: "CREATE", path: "src/saga/payment_coordinator.py", purpose: "Two-phase saga state machine with automatic compensations" },
-      { action: "CREATE", path: "src/routing/smart_interchange.py", purpose: "Least-cost payment gateway router saving $38,000/year" }
-    ],
     adrMarkdown: `# ADR-088: Multi-Region Payment Processing Service
 
 **Status:** APPROVED WITH CONDITIONS  
@@ -488,14 +623,22 @@ Active-active multi-region payment gateway with automated multi-bank failover an
 1. **Perimeter Tokenization:** Zero cardholder PAN stored in application logs or microservice memory.
 2. **Dynamic Smart Routing:** Least-cost interchange fees dynamically routed, saving $38,000 annually.
 
----
+*Generated by Quorum on Switch AI.*`,
+    prStickyComment: `## 🏛️ Quorum Architecture Review Report: RFC-088
 
-## 3. Scaffolding Manifest
-- \`src/payment/idempotency_guard.py\`
-- \`src/saga/payment_coordinator.py\`
-- \`src/routing/smart_interchange.py\`
+| Specialist | Domain | Score | Status |
+| :--- | :--- | :---: | :--- |
+| **Aegis** | PCI-DSS Level 1 Auth | 3.8/10 | 🛡️ HSM Tokenizer |
+| **Vanguard** | Regional Idempotency | 6.2/10 | ⚡ Sub-20ms DynamoDB |
+| **Ledger** | Interchange Cost Routing | 5.8/10 | 💰 -$38,000/yr Routing |
+| **Titan** | Saga Compensations | 6.5/10 | ✅ Two-Phase Commit |
 
-*Generated by BlindCouncil.*`
+<details><summary><b>📂 Section 6 Implementer Manifest (Claude Code)</b></summary>
+
+\`\`\`bash
+claude -p "Read ADR-088.md Section 6. Switch to branch 'feat/adr-088-impl'. Implement scaffolded files. Run 'pytest tests/ -v'."
+\`\`\`
+</details>`
   }
 };
 
@@ -504,134 +647,279 @@ let currentPhase = 3;
 let isPlaying = false;
 let playInterval = null;
 
+// Helper: Node Icons (SVG)
+function getNodeIconSvg(iconType) {
+  if (iconType === "clients") {
+    return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>`;
+  } else if (iconType === "nlb") {
+    return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M16 12l-4-4-4 4"></path><path d="M12 16V8"></path></svg>`;
+  } else if (iconType === "gateway") {
+    return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>`;
+  } else if (iconType === "redis") {
+    return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>`;
+  } else {
+    return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path></svg>`;
+  }
+}
+
 // 1. Proposal Switcher
 function switchProposal(key) {
   if (!PROPOSALS[key]) return;
   currentProposalKey = key;
   const p = PROPOSALS[key];
 
+  // Headline & Target
   document.getElementById("prop-headline").textContent = p.headline;
+  const targetElem = document.getElementById("prop-target");
+  if (targetElem) targetElem.textContent = p.targetScale;
 
-  // Specialists List
-  const spList = document.getElementById("specialists-list");
-  spList.innerHTML = p.specialists.map(sp => `
-    <div class="specialist-row ${sp.key === 'sec' ? 'active' : ''}" onclick="selectSpecialist('${sp.key}')" id="sp-row-${sp.key}">
-      <div class="sp-top">
-        <span class="sp-name">${sp.name}</span>
-        <span class="sp-score ${sp.tag}">${sp.score}</span>
+  // Invariant Assertions List (Left Rail)
+  const invElem = document.getElementById("invariant-items");
+  if (invElem && p.invariants) {
+    invElem.innerHTML = p.invariants.map(inv => `
+      <div class="inv-item">
+        <span class="inv-dot"></span>
+        <span class="inv-name"><strong>${inv.id}:</strong> ${inv.desc}</span>
       </div>
-      <div class="sp-domain">${sp.domain}</div>
-    </div>
-  `).join("");
+    `).join("");
+  }
+
+  // Specialists List (Left Rail)
+  const spList = document.getElementById("specialists-list");
+  if (spList) {
+    spList.innerHTML = p.specialists.map(sp => `
+      <div class="specialist-card ${sp.key === 'sec' ? 'active' : ''}" onclick="selectSpecialist('${sp.key}')" id="sp-card-${sp.key}">
+        <div class="spec-avatar-row">
+          <div class="spec-avatar ${sp.tag}">${sp.avatar}</div>
+          <div class="spec-info">
+            <span class="spec-name">${sp.name}</span>
+            <span class="spec-domain">${sp.domain}</span>
+          </div>
+        </div>
+        <span class="spec-score-pill ${sp.tag}">${sp.score}</span>
+      </div>
+    `).join("");
+  }
+
+  // Visual Node Graph (Center Stage Canvas)
+  const nodeGraph = document.getElementById("visual-node-graph-container");
+  if (nodeGraph && p.nodes) {
+    nodeGraph.innerHTML = p.nodes.map(n => `
+      <div class="arch-node ${n.key === 'gateway' ? 'active' : ''}" id="node-${n.key}" onclick="selectNode('${n.key}')">
+        ${n.pin ? `<div class="node-pin ${n.pinClass || 'flag-sec'}">${n.pin}</div>` : ''}
+        <div class="node-icon-box">
+          ${getNodeIconSvg(n.iconType)}
+        </div>
+        <div class="node-label">${n.label}</div>
+        <div class="node-sub">${n.sub}</div>
+        <div class="node-metric">${n.metric}</div>
+      </div>
+    `).join("");
+  }
 
   // Live Tools Stream
   const toolsContainer = document.getElementById("tools-stream-container");
+  const toolBtn = document.getElementById("tool-traces-btn");
+  if (toolBtn && p.toolsLog) {
+    toolBtn.textContent = `Tool Traces (${p.toolsLog.length})`;
+  }
   if (toolsContainer && p.toolsLog) {
     toolsContainer.innerHTML = p.toolsLog.map(t => `
-      <div class="tool-log-card">
-        <div class="tool-log-header">
-          <div class="tool-agent-badge">
-            <span class="sp-score ${t.tag}">${t.agent}</span>
-            <span>${t.role}</span>
+      <div class="tool-trace-card">
+        <div class="tool-trace-header">
+          <div class="tool-author-info">
+            <span class="tool-author-pill ${t.tag}">${t.agent}</span>
+            <span class="tool-title">${t.tool}</span>
           </div>
-          <div style="display:flex; align-items:center; gap:8px;">
-            <span class="tool-tag">${t.tool}</span>
-            <span class="tool-duration">${t.duration}</span>
-          </div>
+          <span class="tool-duration-badge">${t.duration}</span>
         </div>
-        <div class="tool-call-body">
-          <div class="tool-call-box">
-            <span style="color:#64748b;">// Tool Arguments</span><br>
-            ${t.query.replace(/\n/g, '<br>')}
+        <div class="tool-trace-body">
+          <div class="trace-block">
+            <span class="trace-label">Invocation Arguments</span>
+            <pre class="trace-code">${t.query}</pre>
           </div>
-          <div class="tool-result-box">
-            <span style="color:#64748b;">// Tool Output Payload</span><br>
-            <pre style="margin:0; font-family:var(--font-mono); font-size:11px;">${t.result}</pre>
+          <div class="trace-block">
+            <span class="trace-label">Chamber Output Payload</span>
+            <pre class="trace-code">${t.result}</pre>
           </div>
         </div>
       </div>
     `).join("");
   }
 
-  // Matrix Table
-  const matrixTbody = document.getElementById("studio-matrix-rows");
-  matrixTbody.innerHTML = p.matrix.map(m => `
-    <tr>
-      <td><strong>${m.vector}</strong></td>
-      <td>${m.clash}</td>
-      <td>${m.resolution}</td>
-      <td><code>${m.invariant}</code></td>
-    </tr>
-  `).join("");
-
-  // ADR Sheet
-  document.getElementById("adr-sheet-content").innerHTML = renderMarkdown(p.adrMarkdown);
-
-  // Dock Scaffolding
-  const scaffoldGrid = document.getElementById("scaffold-grid");
-  scaffoldGrid.innerHTML = p.manifest.map(m => `
-    <div class="scaffold-card">
-      <div class="scaffold-card-top">
-        <span class="action-pill">${m.action}</span>
-        <code>${m.path}</code>
+  // Soundproof Chambers (Isolation Monitor)
+  const chambersGrid = document.getElementById("chambers-grid-container");
+  if (chambersGrid && p.chambers) {
+    chambersGrid.innerHTML = p.chambers.map(ch => `
+      <div class="chamber-card">
+        <div class="chamber-header-row">
+          <div class="chamber-badge-title">
+            <span class="spec-avatar ${ch.tag}" style="width:22px; height:22px; font-size:10px;">${ch.specialist[0]}</span>
+            <span>#${ch.id}</span>
+          </div>
+          <span class="chamber-isolation-pill">🔒 100% BLIND</span>
+        </div>
+        <div class="chamber-meta-line">
+          <span><strong>Agent:</strong> ${ch.specialist} (${ch.domain})</span>
+          <span class="chamber-code-token">token: ${ch.token}</span>
+        </div>
+        <div class="chamber-finding-box">
+          <strong>Independent Finding:</strong> ${ch.finding}
+        </div>
+        <div class="chamber-footer-row">
+          <span style="font-family:var(--font-mono); font-size:9.5px; color:var(--text-muted);">ACL: <code>${ch.acl}</code></span>
+          <span style="font-family:var(--font-mono); font-size:10px; font-weight:700; color:#059669;">Leakage: ${ch.leak}</span>
+        </div>
       </div>
-      <p>${m.purpose}</p>
-    </div>
-  `).join("");
+    `).join("");
+  }
 
-  // Dock Terminal
-  document.getElementById("term-branch").textContent = `git checkout -b ${p.targetBranch}`;
-  document.getElementById("term-test").textContent = p.verificationCmd;
-  document.getElementById("term-cli-cmd").textContent = p.claudeCmd;
+  // Council Floor Deliberation Stream
+  renderFloorMessages(p.debateMessages);
+
+  // Tension Matrix Table
+  const matrixTbody = document.getElementById("studio-matrix-rows");
+  if (matrixTbody && p.matrix) {
+    matrixTbody.innerHTML = p.matrix.map(m => `
+      <tr>
+        <td><span class="vector-badge">${m.vector}</span></td>
+        <td><span style="color:var(--text-secondary);">${m.clash}</span></td>
+        <td>
+          <span style="color:var(--text-primary); font-weight:500;">${m.resolution}</span><br>
+          <span class="invariant-pill">${m.invariant}</span>
+        </td>
+      </tr>
+    `).join("");
+  }
+
+  // ADR Sheet Content
+  const adrSheet = document.getElementById("adr-sheet-content");
+  if (adrSheet && p.adrMarkdown) {
+    adrSheet.innerHTML = renderMarkdown(p.adrMarkdown);
+  }
+
+  // Manifest Table
+  const manifestContainer = document.getElementById("manifest-table-container");
+  if (manifestContainer && p.manifestItems) {
+    manifestContainer.innerHTML = p.manifestItems.map(item => `
+      <div class="manifest-row">
+        <span class="action-pill ${item.action.toLowerCase()}">${item.action}</span>
+        <div>
+          <div class="manifest-path">${item.path}</div>
+          <div style="font-size:9.5px; color:var(--text-muted);">${item.purpose} <span style="color:var(--brand-primary); font-weight:600;">(${item.mandatedBy})</span></div>
+        </div>
+      </div>
+    `).join("");
+  }
+
+  // Terminal & PR Sticky Elements
+  const branchElem = document.getElementById("target-branch-display");
+  if (branchElem) branchElem.textContent = p.targetBranch;
+
+  const verifyElem = document.getElementById("verification-cmd-display");
+  if (verifyElem) verifyElem.textContent = p.verificationCmd;
+
+  const termLaunch = document.getElementById("term-launch-display");
+  if (termLaunch) termLaunch.textContent = p.claudeCmd;
+
+  const prPreview = document.getElementById("pr-preview-content");
+  if (prPreview && p.prStickyComment) prPreview.textContent = p.prStickyComment;
 
   // Select Default Node (Gateway)
   selectNode("gateway");
 }
 
-// 2. Select Node on Interactive Graph
+// 2. Render Floor Messages
+function renderFloorMessages(messages) {
+  const container = document.getElementById("floor-messages-container");
+  if (!container || !messages) return;
+
+  container.innerHTML = messages.map(m => {
+    const isHuman = m.tag === "human";
+    const avatarLetter = isHuman ? "H" : (m.sender === "Athena" ? "A" : m.sender[0]);
+    return `
+      <div class="chat-msg-row ${m.tag}">
+        <div class="chat-avatar ${m.tag}">${avatarLetter}</div>
+        <div class="chat-body-wrap">
+          <div class="chat-meta-line">
+            <span class="chat-author-name">${m.sender}</span>
+            <span class="chat-author-role">&bull; ${m.role}</span>
+          </div>
+          <div class="chat-bubble">${m.content}</div>
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  container.scrollTop = container.scrollHeight;
+}
+
+// 3. Select Node on Interactive Canvas
 function selectNode(nodeKey) {
   const p = PROPOSALS[currentProposalKey];
   const comp = p.components[nodeKey];
   if (!comp) return;
 
-  // Highlight active node in graph
+  // Highlight active node card
   document.querySelectorAll(".arch-node").forEach(node => {
     node.classList.remove("active");
   });
-  const activeNode = document.querySelector(`.arch-node[onclick="selectNode('${nodeKey}')"]`);
+  const activeNode = document.getElementById(`node-${nodeKey}`);
   if (activeNode) activeNode.classList.add("active");
 
-  // Update Right Inspector Drawer
-  document.getElementById("insp-title").textContent = comp.title;
-  document.getElementById("insp-auditor-avatar").textContent = comp.avatar;
-  document.getElementById("insp-auditor-name").textContent = comp.auditor;
-  document.getElementById("insp-auditor-score").textContent = comp.score;
-  document.getElementById("insp-finding").textContent = comp.finding;
-  document.getElementById("insp-resolution").textContent = comp.resolution;
-  document.getElementById("insp-code-snippet").textContent = comp.code;
+  // Update Right Inspector Panel
+  const inspTitle = document.getElementById("insp-title");
+  if (inspTitle) inspTitle.textContent = comp.title;
+  
+  const avatarElem = document.getElementById("insp-avatar");
+  if (avatarElem) {
+    avatarElem.textContent = comp.avatar;
+    avatarElem.className = `spec-avatar ${comp.tag || 'sec'}`;
+  }
 
-  // Update Tool Call Trace in Inspector
+  const auditorElem = document.getElementById("insp-auditor");
+  if (auditorElem) auditorElem.textContent = comp.auditor;
+  
+  const scoreElem = document.getElementById("insp-score");
+  if (scoreElem) {
+    scoreElem.textContent = comp.score;
+    scoreElem.className = `spec-score-pill ${comp.tag || 'sec'}`;
+  }
+
+  const findElem = document.getElementById("insp-finding");
+  if (findElem) findElem.textContent = comp.finding;
+
+  const resElem = document.getElementById("insp-resolution");
+  if (resElem) resElem.textContent = comp.resolution;
+
+  const codeElem = document.getElementById("insp-code");
+  if (codeElem) codeElem.textContent = comp.code;
+
   if (comp.toolName) {
-    document.getElementById("insp-tool-name").textContent = comp.toolName;
-    document.getElementById("insp-tool-duration").textContent = comp.toolDuration || "120ms";
-    document.getElementById("insp-tool-snippet").textContent = comp.toolSnippet || "";
+    const toolNameElem = document.getElementById("insp-tool-name");
+    if (toolNameElem) toolNameElem.textContent = comp.toolName;
+
+    const toolDurElem = document.getElementById("insp-tool-duration");
+    if (toolDurElem) toolDurElem.textContent = comp.toolDuration || "120ms";
+
+    const toolSnipElem = document.getElementById("insp-tool-snippet");
+    if (toolSnipElem) toolSnipElem.textContent = comp.toolSnippet || "";
   }
 }
 
-// 3. Select Specialist
+// 4. Select Specialist
 function selectSpecialist(spKey) {
-  document.querySelectorAll(".specialist-row").forEach(r => r.classList.remove("active"));
-  const row = document.getElementById(`sp-row-${spKey}`);
-  if (row) row.classList.add("active");
+  document.querySelectorAll(".specialist-card").forEach(r => r.classList.remove("active"));
+  const card = document.getElementById(`sp-card-${spKey}`);
+  if (card) card.classList.add("active");
 
-  // Map specialist to primary node
   if (spKey === "sec") selectNode("gateway");
   else if (spKey === "scale") selectNode("clients");
   else if (spKey === "fin") selectNode("redis");
   else if (spKey === "data") selectNode("outbox");
 }
 
-// 4. Stepper & Phase Jump
+// 5. Stepper & Phase Jump
 function jumpToPhase(phaseNum) {
   currentPhase = phaseNum;
   document.querySelectorAll(".step-btn").forEach(btn => {
@@ -645,45 +933,49 @@ function jumpToPhase(phaseNum) {
   const title = document.getElementById("stage-phase-title");
 
   if (phaseNum === 1) {
-    tag.textContent = "PHASE 1 OF 4";
-    title.textContent = "Isolated Blind Chamber Audits (0 Cross-Leakage Verified)";
-    setCenterView("tools");
+    if (tag) tag.textContent = "PHASE 1 OF 4";
+    if (title) title.textContent = "Isolated Blind Chamber Audits (Switch Core 0.31.0 Verified)";
+    setCenterView("chambers");
     selectSpecialist("sec");
   } else if (phaseNum === 2) {
-    tag.textContent = "PHASE 2 OF 4";
-    title.textContent = "Specialist Tension Matrix & Trade-off Deliberation";
+    if (tag) tag.textContent = "PHASE 2 OF 4";
+    if (title) title.textContent = "Specialist Tension Matrix & Trade-off Deliberation";
     setCenterView("matrix");
   } else if (phaseNum === 3) {
-    tag.textContent = "PHASE 3 OF 4";
-    title.textContent = "Synthesized Architecture Topology (Vector Verification)";
+    if (tag) tag.textContent = "PHASE 3 OF 4";
+    if (title) title.textContent = "Synthesized Architecture Topology (Vector Verification)";
     setCenterView("topology");
     selectNode("gateway");
   } else if (phaseNum === 4) {
-    tag.textContent = "PHASE 4 OF 4";
-    title.textContent = "Autonomous Implementer Handoff (Claude Code / Codex)";
+    if (tag) tag.textContent = "PHASE 4 OF 4";
+    if (title) title.textContent = "Autonomous Implementer Handoff (Claude Code / Codex Bridge)";
     setCenterView("adr");
-    switchDockTab("terminal");
   }
 }
 
-// 5. Play / Pause Deliberation Animation
+// 6. Play / Pause Deliberation Animation
 function togglePlayDeliberation() {
+  const btn = document.getElementById("play-btn");
   const btnText = document.getElementById("play-btn-text");
+
   if (isPlaying) {
     clearInterval(playInterval);
     isPlaying = false;
-    btnText.textContent = "Play Review";
+    if (btn) btn.classList.remove("playing");
+    if (btnText) btnText.textContent = "Auto-Play";
   } else {
     isPlaying = true;
-    btnText.textContent = "Pause Review";
+    if (btn) btn.classList.add("playing");
+    if (btnText) btnText.textContent = "Pause";
+    showToast("Auto-playing 4-phase deliberation protocol...");
     playInterval = setInterval(() => {
       let nextPhase = (currentPhase % 4) + 1;
       jumpToPhase(nextPhase);
-    }, 2800);
+    }, 3200);
   }
 }
 
-// 6. View Switcher in Stage
+// 7. View Switcher in Stage
 function setCenterView(viewId) {
   document.querySelectorAll(".stage-toggle-btn").forEach(btn => {
     btn.classList.remove("active");
@@ -695,81 +987,126 @@ function setCenterView(viewId) {
   if (target) target.classList.add("active");
 }
 
-// 7. Dock Tab Switcher
-function switchDockTab(dockId) {
-  document.querySelectorAll(".dock-tab").forEach(tab => {
-    tab.classList.remove("active");
-    if (tab.getAttribute("data-dock") === dockId) tab.classList.add("active");
-  });
-
-  document.querySelectorAll(".dock-panel").forEach(p => p.classList.remove("active"));
-  const target = document.getElementById(`dock-${dockId}`);
-  if (target) target.classList.add("active");
+// 8. Interactive Floor Prompting
+function insertFloorPrompt(cmd) {
+  const input = document.getElementById("floor-user-input");
+  if (input) {
+    input.value = cmd;
+    input.focus();
+  }
 }
 
-// 8. Clipboard & Export
+function handleFloorSubmit(event) {
+  event.preventDefault();
+  const input = document.getElementById("floor-user-input");
+  if (!input || !input.value.trim()) return;
+
+  const text = input.value.trim();
+  input.value = "";
+
+  const p = PROPOSALS[currentProposalKey];
+  p.debateMessages.push({
+    sender: "Lead Architect",
+    role: "Human Lead",
+    tag: "human",
+    content: text
+  });
+  renderFloorMessages(p.debateMessages);
+
+  // Dynamic chair reply
+  const typingBar = document.getElementById("floor-typing-bar");
+  const typingText = document.getElementById("typing-status-text");
+  if (typingBar) typingBar.style.display = "flex";
+  if (typingText) typingText.textContent = "Athena is evaluating directive...";
+
+  setTimeout(() => {
+    if (typingBar) typingBar.style.display = "none";
+    let reply = "";
+    const lower = text.toLowerCase();
+
+    if (lower.includes("approve")) {
+      reply = "✅ **DIRECTIVE ACCEPTED:** Architectural consensus locked by Lead Architect. Section 6 file scaffolding dispatched to @ClaudeCode on branch `" + p.targetBranch + "`.";
+      jumpToPhase(4);
+    } else if (lower.includes("summary")) {
+      reply = "📋 **EXECUTIVE SUMMARY:** Reconciled 3 orthogonal tensions. Redis Bloom filter deployed (<0.2ms lookup), Redis cluster right-sized saving $25.2k/yr, and Transactional Outbox enforced for zero message loss.";
+    } else if (lower.includes("diagram")) {
+      reply = "📊 **VECTOR TOPOLOGY:** Switched stageboard to high-resolution system topology canvas.";
+      setCenterView("topology");
+    } else if (lower.includes("veto")) {
+      reply = "🛑 **DIRECTIVE ACCEPTED:** Proposal returned to chamber audit phase for re-evaluation with updated constraints.";
+    } else {
+      reply = "Acknowledged directive: '" + text + "'. Incorporating steering invariants into ADR Section 4 trade-off log.";
+    }
+
+    p.debateMessages.push({
+      sender: "Athena",
+      role: "Council Chair",
+      tag: "chair",
+      content: reply
+    });
+    renderFloorMessages(p.debateMessages);
+  }, 900);
+}
+
+// 9. Clipboard Actions
 function copyHandoffCommand() {
   const cmd = PROPOSALS[currentProposalKey].claudeCmd;
   navigator.clipboard.writeText(cmd).then(() => {
-    showToast("Terminal execution command copied to clipboard.");
+    showToast("Terminal command copied: claude -p 'Read ADR...'");
   }).catch(() => {
     showToast("Command copied.");
   });
 }
 
+function copyPRComment() {
+  const p = PROPOSALS[currentProposalKey];
+  navigator.clipboard.writeText(p.prStickyComment).then(() => {
+    showToast("GitHub PR sticky comment copied to clipboard!");
+  }).catch(() => {
+    showToast("PR comment copied.");
+  });
+}
+
+function copyInspectorCode() {
+  const code = document.getElementById("insp-code").textContent;
+  navigator.clipboard.writeText(code).then(() => {
+    showToast("Contract specification copied to clipboard.");
+  }).catch(() => {
+    showToast("Code copied.");
+  });
+}
+
 function exportADR() {
-  const md = PROPOSALS[currentProposalKey].adrMarkdown;
-  const blob = new Blob([md], { type: "text/markdown;charset=utf-8" });
+  const p = PROPOSALS[currentProposalKey];
+  const blob = new Blob([p.adrMarkdown], { type: "text/markdown;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `${PROPOSALS[currentProposalKey].id}_Architecture_Decision_Record.md`;
+  a.download = `${p.id}_Architecture_Decision_Record.md`;
   a.click();
   URL.revokeObjectURL(url);
-  showToast(`Exported ${PROPOSALS[currentProposalKey].id}_Architecture_Decision_Record.md`);
+  showToast(`Exported ${p.id}_Architecture_Decision_Record.md`);
 }
 
 function showToast(text) {
-  let toast = document.getElementById("studio-toast");
-  if (!toast) {
-    toast = document.createElement("div");
-    toast.id = "studio-toast";
-    toast.style.cssText = `
-      position: fixed;
-      bottom: 24px;
-      right: 24px;
-      background: #1e2328;
-      color: #fff;
-      border-radius: 6px;
-      padding: 9px 16px;
-      font-size: 12px;
-      font-weight: 500;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-      z-index: 99999;
-      opacity: 0;
-      transform: translateY(8px);
-      transition: all 0.2s ease;
-      font-family: var(--font-sans);
-    `;
-    document.body.appendChild(toast);
-  }
-  toast.textContent = text;
-  toast.style.opacity = "1";
-  toast.style.transform = "translateY(0)";
+  const toast = document.getElementById("studio-toast");
+  const msg = document.getElementById("toast-message");
+  if (!toast || !msg) return;
+  msg.textContent = text;
+  toast.classList.add("show");
 
   setTimeout(() => {
-    toast.style.opacity = "0";
-    toast.style.transform = "translateY(8px)";
-  }, 2200);
+    toast.classList.remove("show");
+  }, 2400);
 }
 
 function renderMarkdown(md) {
   return md
-    .replace(/^# (.*$)/gim, '<h2 style="font-size:16px; margin:14px 0 6px; color:#1e2328;">$1</h2>')
-    .replace(/^## (.*$)/gim, '<h3 style="font-size:13.5px; margin:12px 0 4px; color:#0969da;">$1</h3>')
+    .replace(/^# (.*$)/gim, '<h2 style="font-size:16px; font-weight:700; margin:16px 0 8px; color:var(--text-primary);">$1</h2>')
+    .replace(/^## (.*$)/gim, '<h3 style="font-size:12.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.4px; margin:16px 0 6px; color:var(--brand-primary);">$1</h3>')
     .replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>')
-    .replace(/`(.*?)`/gim, '<code>$1</code>')
-    .replace(/^\- (.*$)/gim, '<li style="margin-left:16px; margin-bottom:2px;">$1</li>')
+    .replace(/`(.*?)`/gim, '<code style="font-family:var(--font-mono); font-size:11px; background:var(--bg-card-subtle); padding:2px 5px; border-radius:4px; border:1px solid var(--border-subtle);">$1</code>')
+    .replace(/^\- (.*$)/gim, '<li style="margin-left:16px; margin-bottom:4px; font-size:12px; color:var(--text-secondary);">$1</li>')
     .replace(/\n$/gim, '<br>');
 }
 

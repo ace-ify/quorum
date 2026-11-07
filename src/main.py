@@ -1,5 +1,5 @@
 """
-BlindCouncil: Multi-Agent Blind Architecture & RFC Review Desk
+Quorum: Multi-Agent Blind Architecture & RFC Review Desk
 Main Entrypoint supporting:
   python -m src.main --simulate    # Instant 15s terminal simulation with room isolation proof
   python -m src.main --live        # Live connection to Switch Gateway & Discord
@@ -52,7 +52,7 @@ async def run_simulation(
     use_online_llm: bool = False
 ):
     console.print(Panel.fit(
-        "[bold cyan]🏛️ BLINDCOUNCIL: MULTI-AGENT BLIND ARCHITECTURE REVIEW DESK[/bold cyan]\n"
+        "[bold cyan]🏛️ QUORUM: MULTI-AGENT BLIND ARCHITECTURE REVIEW DESK[/bold cyan]\n"
         "[italic magenta]Powered by Switch AI's Server-Enforced Room Isolation[/italic magenta]",
         border_style="cyan"
     ))
@@ -63,7 +63,7 @@ async def run_simulation(
     else:
         rfc = IngestionEngine.load_sample(sample_name or "realtime_chat")
 
-    switch_mock = MockSwitchClient(workspace_id="blindcouncil-eng")
+    switch_mock = MockSwitchClient(workspace_id="quorum-eng")
     llm = LLMClient() if use_online_llm else LLMClient(use_mock=True)
 
     # 2. Terminal printer hook
@@ -171,7 +171,7 @@ async def run_simulation(
 
     clean_title = "".join(c if c.isalnum() else "_" for c in rfc.title.split(":")[-1].strip()).strip("_")[:30]
     adr_id = rfc.rfc_id if rfc.rfc_id else "ADR-042"
-    console.print(f"\n[bold green]🎉 BlindCouncil Review complete![/bold green]")
+    console.print(f"\n[bold green]🎉 Quorum Review complete![/bold green]")
     console.print(f"📄 Architecture Decision Record: [bold cyan]{adr_id}_{clean_title}.md[/bold cyan]")
     console.print(f"💬 GitHub PR Review Comment:    [bold cyan]PR_COMMENT_{adr_id}_{clean_title}.md[/bold cyan]\n")
 
@@ -181,7 +181,7 @@ async def run_live(
     specialist_mode: str = "auto"
 ):
     console.print(Panel.fit(
-        "[bold cyan]🏛️ BLINDCOUNCIL: LIVE DISCORD REVIEW DESK[/bold cyan]\n"
+        "[bold cyan]🏛️ QUORUM: LIVE DISCORD REVIEW DESK[/bold cyan]\n"
         "[italic magenta]Multi-Agent Blind Architecture Review with Switch Discord Bot[/italic magenta]",
         border_style="cyan"
     ))
@@ -262,7 +262,7 @@ async def run_live(
     console.print(f"💬 GitHub PR Review Comment:    [bold cyan]PR_COMMENT_{adr_id}_{clean_title}.md[/bold cyan]\n")
 
 def main():
-    parser = argparse.ArgumentParser(description="BlindCouncil: Multi-Agent Blind Architecture Review Desk")
+    parser = argparse.ArgumentParser(description="Quorum: Multi-Agent Blind Architecture Review Desk")
     parser.add_argument("--simulate", action="store_true", help="Run instant zero-dependency simulation")
     parser.add_argument("--live", action="store_true", help="Connect to live Switch Gateway & Discord")
     parser.add_argument("--online", action="store_true", help="Use live LLM API calls in simulation mode")

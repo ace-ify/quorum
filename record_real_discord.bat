@@ -1,8 +1,8 @@
 @echo off
-title BlindCouncil Real Discord Recorder
+title Quorum Real Discord Recorder
 cd /d "C:\ace\products\bb"
 echo ==========================================================
-echo [BLINDCOUNCIL] RECORDING REAL DISCORD ON YOUR DESKTOP
+echo [QUORUM] RECORDING REAL DISCORD ON YOUR DESKTOP
 echo ==========================================================
 echo.
 echo Please bring your Brave / Discord window to the front and maximize it!
@@ -18,11 +18,11 @@ echo.
 
 echo.
 echo [RECORDING COMPLETE] Muxing with voiceover audio track...
-"C:\Users\ace21\AppData\Local\Microsoft\WinGet\Packages\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\ffmpeg-8.1.1-full_build\bin\ffmpeg.exe" -y -i real_discord_raw.mp4 -i demo_narration_master_v2.wav -c:v copy -c:a aac -b:a 192k -shortest blindcouncil_real_discord_demo.mp4
+"C:\Users\ace21\AppData\Local\Microsoft\WinGet\Packages\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\ffmpeg-8.1.1-full_build\bin\ffmpeg.exe" -y -i real_discord_raw.mp4 -i demo_narration_master_v2.wav -c:v copy -c:a aac -b:a 192k -shortest quorum_real_discord_demo.mp4
 
 echo.
 echo ==========================================================
-echo SUCCESS! Final Real Discord Demo: blindcouncil_real_discord_demo.mp4
+echo SUCCESS! Final Real Discord Demo: quorum_real_discord_demo.mp4
 echo ==========================================================
 pause
 

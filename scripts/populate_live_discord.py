@@ -1,5 +1,5 @@
 """
-Populates the live Discord BlindCouncil channels with the complete,
+Populates the live Discord Quorum channels with the complete,
 realistic end-to-end deliberation and interactive commands for RFC-042.
 """
 import os
@@ -59,7 +59,7 @@ def post(channel, username, avatar_key, content):
 def main():
     print("--- 1. CONVENING REVIEW DESK ---")
     post("review-desk", "Athena [Council Chair]", "athena",
-        "🏛️ **[BLINDCOUNCIL REVIEW DESK CONVENED]**\n\n"
+        "🏛️ **[QUORUM REVIEW DESK CONVENED]**\n\n"
         "**Target RFC:** `RFC-042: Scalable Real-Time WebSocket Messaging Cluster`\n"
         "**Author:** `@izigriss [Lead Architect]`\n"
         "**Chamber Isolation Protocol:** Active (Switch AI Server-Enforced Zero-Leakage)\n\n"
@@ -183,7 +183,7 @@ def main():
     )
 
     post("dev-implementation", "Athena [Council Chair]", "athena",
-        "🚀 **[SWITCH IMPLEMENTER HANDOFF: BLINDCOUNCIL ➔ CLAUDE CODE / CODEX]** 🚀\n\n"
+        "🚀 **[SWITCH IMPLEMENTER HANDOFF: QUORUM ➔ CLAUDE CODE / CODEX]** 🚀\n\n"
         "**Target System:** `RFC-042: Scalable Real-Time WebSocket Messaging Cluster`\n"
         "**Approved Architectural Decision:** `ADR-042.md`\n"
         "**Target Git Branch:** `git checkout -b feat/adr-042-impl`\n"

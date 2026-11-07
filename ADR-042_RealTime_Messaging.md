@@ -87,4 +87,4 @@ Our current HTTP long-polling infrastructure is exhausting server memory, creati
 - [ ] Enforce Customer-Managed KMS Key (CMK) with IAM boundary on Aurora DB.
 - [ ] Configure AWS PrivateLink VPC endpoints for inter-service traffic to eliminate egress fees.
 
-*Generated collaboratively by BlindCouncil on Switch AI.*
+*Generated collaboratively by Quorum on Switch AI.*

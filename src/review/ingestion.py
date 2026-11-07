@@ -1,5 +1,5 @@
 """
-Multi-Input Ingestion Engine for BlindCouncil.
+Multi-Input Ingestion Engine for Quorum.
 Supports ingesting RFCs from predefined samples, local file paths (.md, .txt, .sql),
 raw text pastes, and Discord attachments.
 """

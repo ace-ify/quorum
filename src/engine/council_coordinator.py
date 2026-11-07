@@ -1,5 +1,5 @@
 """
-BlindCouncil Coordinator: Orchestrates RFC reviews across isolated blind chambers,
+Quorum Coordinator: Orchestrates RFC reviews across isolated blind chambers,
 synthesizes conflicts, facilitates human-in-the-loop debates, and generates ADRs.
 """
 import asyncio
@@ -63,7 +63,7 @@ class CouncilCoordinator:
         await self.switch_client.create_room(
             self.public_room,
             all_participants,
-            "BlindCouncil Engineering Review Desk"
+            "Quorum Engineering Review Desk"
         )
 
         # 2. Isolated Blind Audit Chambers (Specialist + Chair ONLY)
@@ -151,7 +151,7 @@ class CouncilCoordinator:
         return await specialist.conduct_blind_audit(room_id, self.rfc)
 
     async def _run_conflict_synthesis_phase(self):
-        self.chair.detect_conflicts()
+        self.chair.detect_conflicts(self.rfc)
         if self.auto_pacing:
             await asyncio.sleep(1)
 
@@ -159,18 +159,36 @@ class CouncilCoordinator:
         # Reveal blind findings in #review-desk
         await self.chair.publish_synthesis_and_open_debate(self.public_room, self.rfc)
 
+        content_lower = (self.rfc.content + " " + self.rfc.title).lower()
+        is_dynamo = "dynamo" in content_lower or "migration" in content_lower or (self.rfc.rfc_id and "rfc-089" in self.rfc.rfc_id.lower())
+
         # Allow specialists to voice their sovereign domain perspectives in #review-desk
         for s in self.specialists:
             if s.agent_id == "security":
-                await s.speak(self.public_room, "🛡️ **Aegis:** I cannot approve this RFC without strict token revocation guarantees. In-band heartbeat refresh is an unacceptable security hole.")
+                if is_dynamo:
+                    await s.speak(self.public_room, "🛡️ **Aegis:** Cross-region Global Table replication cannot ship without customer-managed KMS envelope encryption on billing data. Replicating raw cardholder tokens violates PCI-DSS 3.4.")
+                else:
+                    await s.speak(self.public_room, "🛡️ **Aegis:** I cannot approve this RFC without strict token revocation guarantees. In-band heartbeat refresh is an unacceptable security hole.")
             elif s.agent_id == "scalability":
-                await s.speak(self.public_room, "⚡ **Vanguard:** Aegis, synchronous DB lookups on 100k WebSockets will spike p99 latency past 80ms! We should use a Redis Bloom filter instead.")
+                if is_dynamo:
+                    await s.speak(self.public_room, "⚡ **Vanguard:** Aegis is right on encryption, but Titan's synchronous dual-reads will double checkout latency! Shadow verification must be strictly asynchronous, and we must salt mega-tenant partition keys.")
+                else:
+                    await s.speak(self.public_room, "⚡ **Vanguard:** Aegis, synchronous DB lookups on 100k WebSockets will spike p99 latency past 80ms! We should use a Redis Bloom filter instead.")
             elif s.agent_id == "finops":
-                await s.speak(self.public_room, "💰 **Ledger:** Both of you are overlooking the $3,500/mo Redis cluster. 12 shards is compute waste. We can scale from 4 shards safely and save $25k/yr.")
+                if is_dynamo:
+                    await s.speak(self.public_room, "💰 **Ledger:** And who approved On-Demand billing for 50,000 writes across 3 regions? That will cost $42,000/month! Switching to Provisioned Autoscaling with 70% target saves $28,000/month!")
+                else:
+                    await s.speak(self.public_room, "💰 **Ledger:** Both of you are overlooking the $3,500/mo Redis cluster. 12 shards is compute waste. We can scale from 4 shards safely and save $25k/yr.")
             elif s.agent_id == "database":
-                await s.speak(self.public_room, "🏛️ **Titan:** Dual-write race conditions between streams and persistent storage risk ghost rows during worker crashes. We must enforce the Transactional Outbox pattern.")
+                if is_dynamo:
+                    await s.speak(self.public_room, "🏛️ **Titan:** Without conditional version checks on DynamoDB writes, CDC retries will cause out-of-order data corruption. We mandate TransactWriteItems and optimistic concurrency versioning.")
+                else:
+                    await s.speak(self.public_room, "🏛️ **Titan:** Dual-write race conditions between streams and persistent storage risk ghost rows during worker crashes. We must enforce the Transactional Outbox pattern.")
             elif s.agent_id == "compliance":
-                await s.speak(self.public_room, "⚖️ **Verity:** Un-deletable chat history in persistent queues directly violates GDPR Article 17. We must implement Crypto-Shredding with per-user KMS keys.")
+                if is_dynamo:
+                    await s.speak(self.public_room, "⚖️ **Verity:** Cross-region replication to US-East-1 requires strict data sovereignty boundaries and per-tenant cryptographic keys to satisfy GDPR Chapter V.")
+                else:
+                    await s.speak(self.public_room, "⚖️ **Verity:** Un-deletable chat history in persistent queues directly violates GDPR Article 17. We must implement Crypto-Shredding with per-user KMS keys.")
             else:
                 await s.speak(self.public_room, f"🔍 **{s.name}:** From my perspective on {s.dimension}, we must ensure critical operational boundaries and failover invariants are verified.")
             if self.auto_pacing:
@@ -228,7 +246,7 @@ class CouncilCoordinator:
             contracts_str = "\n\n" + contracts_str
 
         handoff_msg = (
-            "🚀 **[SWITCH IMPLEMENTER HANDOFF: BLINDCOUNCIL ➔ CLAUDE CODE / CODEX]** 🚀\n\n"
+            "🚀 **[SWITCH IMPLEMENTER HANDOFF: QUORUM ➔ CLAUDE CODE / CODEX]** 🚀\n\n"
             f"**Target System:** `{self.rfc.title}`\n"
             f"**Approved Architectural Decision:** `{self.rfc.rfc_id or 'ADR-042'}.md`\n"
             f"**Target Workspace:** `{target_dir}`\n"
@@ -260,7 +278,7 @@ class CouncilCoordinator:
         # 0. Quick Command Cheatsheet
         if text.startswith("!help") or content_lower in ["help", "commands"]:
             help_msg = (
-                "⚡ **BLINDCOUNCIL FAST COMMANDS & CONVERSATION GUIDE:**\n\n"
+                "⚡ **QUORUM FAST COMMANDS & CONVERSATION GUIDE:**\n\n"
                 "**Predefined Deliverable Shortcuts:**\n"
                 "• `!summary` — 3-bullet executive digest with key resolutions\n"
                 "• `!adr` — Render & export full Michael Nygard Architecture Decision Record\n"

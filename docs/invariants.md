@@ -1,6 +1,6 @@
-# BlindCouncil Operational Invariants & Formal Verification
+# Quorum Operational Invariants & Formal Verification
 
-This document defines the formal operational invariants enforced by **BlindCouncil** during architecture reviews, human-in-the-loop steering, and autonomous handoffs to terminal coding agents (Claude Code / Codex).
+This document defines the formal operational invariants enforced by **Quorum** during architecture reviews, human-in-the-loop steering, and autonomous handoffs to terminal coding agents (Claude Code / Codex).
 
 ---
 
@@ -65,7 +65,7 @@ This document defines the formal operational invariants enforced by **BlindCounc
 
 ## 3. Automated Verification Harness
 
-All 5 invariants are asserted automatically via the BlindCouncil regression suite:
+All 5 invariants are asserted automatically via the Quorum regression suite:
 ```bash
 # Execute formal invariant verification suite
 python tests/run_tests.py

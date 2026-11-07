@@ -1,6 +1,6 @@
 1
 00:00:00,000 --> 00:00:15,000
-BlindCouncil: Multi-Agent Blind Architecture Review Desk (Track 01: Best Business Workflow)
+Quorum: Multi-Agent Blind Architecture Review Desk (Track 01: Best Business Workflow)
 Powered by Switch AI — Eliminating LLM Sycophancy & Groupthink via Server-Enforced Room Isolation
 
 2

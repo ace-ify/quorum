@@ -1,5 +1,5 @@
 """
-Data models for BlindCouncil RFC Reviews and ADRs.
+Data models for Quorum RFC Reviews and ADRs.
 """
 from dataclasses import dataclass, field
 from typing import List, Dict, Optional, Any

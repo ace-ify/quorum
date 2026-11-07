@@ -1,6 +1,6 @@
-# BlindCouncil 2.0 System Architecture & Technical Specification
+# Quorum 2.0 System Architecture & Technical Specification
 
-**Project:** BlindCouncil — Multi-Agent Blind Architecture Review Desk  
+**Project:** Quorum — Multi-Agent Blind Architecture Review Desk  
 **Hackathon Track:** Track 01: Best Business Workflow ($2,000 Prize)  
 **Target Environment:** Switch Core 0.31.0, Discord API / Gateway Webhooks, Terminal Coding Agents (Claude Code / Codex)  
 **Specification Version:** 2.0.0 (Production Enterprise Standard)
@@ -12,9 +12,9 @@
 ```mermaid
 flowchart TD
     subgraph UI ["User & Delivery Surfaces"]
-        Studio["BlindCouncil Studio (web/index.html)"]
+        Studio["Quorum Studio (web/index.html)"]
         Discord["Discord Engineering Review Desk"]
-        CLI["BlindCouncil CLI (python src/main.py)"]
+        CLI["Quorum CLI (python src/main.py)"]
     end
 
     subgraph Switch ["Switch Core 0.31.0 (Isolation Gateway)"]
@@ -71,7 +71,7 @@ flowchart TD
 
 ## 2. Dual-Phase Deliberation Protocol
 
-BlindCouncil executes an architectural review in two distinct phases:
+Quorum executes an architectural review in two distinct phases:
 
 ### Phase 1: Isolated Blind Assessment (Zero-Leakage Invariant)
 1. **RFC Ingestion:** A technical proposal (e.g. `RFC-042`) is submitted via GitHub PR, Webhook, CLI, or the Studio UI.
@@ -111,7 +111,7 @@ sequenceDiagram
     participant Claude as Claude Code (Terminal Agent)
 
     Human->>Desk: Submit RFC-042 (100k WebSockets)
-    Desk->>Chair: Trigger BlindCouncil Deliberation
+    Desk->>Chair: Trigger Quorum Deliberation
     
     par Phase 1: Blind Isolated Audit
         Chair->>Switch: Dispatch RFC-042 to #audit-security

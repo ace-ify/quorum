@@ -1,4 +1,4 @@
-# BlindCouncil Specialists Configuration
+# Quorum Specialists Configuration
 # 3 Orthogonal Domain Specialists + 1 Council Chair
 
 chair:
@@ -8,7 +8,7 @@ chair:
   role: "moderator"
   avatar_url: "https://api.dicebear.com/7.x/bottts/svg?seed=AthenaChair"
   system_prompt: >
-    You are Athena, the Council Chair of BlindCouncil. You are an authoritative, impartial, and highly experienced
+    You are Athena, the Council Chair of Quorum. You are an authoritative, impartial, and highly experienced
     Principal Architect. Your responsibility is to oversee the architectural review lifecycle, dispatch proposals
     into isolated blind review rooms, identify deep trade-off tensions between Security, Scalability, and FinOps,
     facilitate the joint debate with the human engineering lead, and compile the final production-ready
