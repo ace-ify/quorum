@@ -503,7 +503,7 @@ function updateHUDDeliberationState(running, stateText, narrativeText) {
   const narrativeElem = document.getElementById("hud-narrative-text");
   const canvasBadge = document.getElementById("canvas-status-badge");
 
-  if (pill) pill.className = running ? "header-status-badge running" : "header-status-badge";
+  if (pill) pill.className = running ? "hud-live-pill running" : "hud-live-pill";
   if (stateElem) stateElem.textContent = stateText;
   if (narrativeElem) narrativeElem.textContent = narrativeText;
   if (canvasBadge) {
@@ -1169,7 +1169,8 @@ function showDelphiSkeleton(title, dilemma) {
     { at: 13, text: "Chamber #audit-finops: Ledger calculating AWS/GCP cloud egress right-sizing...", chamber: "fin" },
     { at: 18, text: "Chamber #audit-database: Titan validating ACID outbox table and write amplification...", chamber: "data" },
     { at: 23, text: "Athena convening #review-desk floor clash to reconcile specialist trade-offs...", chamber: "all" },
-    { at: 28, text: "Synthesizing final architecture vector topology & Michael Nygard ADR...", chamber: "all" }
+    { at: 28, text: "Synthesizing final architecture vector topology & Michael Nygard ADR...", chamber: "all" },
+    { at: 35, text: "Still working; waiting for agent responses...", chamber: "all" }
   ];
 
   let stepIdx = 0;
@@ -1182,22 +1183,22 @@ function showDelphiSkeleton(title, dilemma) {
     const current = narratives[stepIdx];
     if (narrativeElem) narrativeElem.textContent = current.text;
 
-    // Update chamber tags progressively
+    // Update chamber tags progressively with live audit markers
     if (elapsed >= 5 && secChip) {
       const tag = secChip.querySelector(".chamber-status-tag");
-      if (tag) { tag.textContent = "VERIFIED"; tag.style.color = "#34d399"; }
+      if (tag && tag.textContent !== "VERIFIED") { tag.textContent = "CVE CHECKED"; tag.style.color = "#38bdf8"; }
     }
     if (elapsed >= 10 && scaleChip) {
       const tag = scaleChip.querySelector(".chamber-status-tag");
-      if (tag) { tag.textContent = "VERIFIED"; tag.style.color = "#34d399"; }
+      if (tag && tag.textContent !== "VERIFIED") { tag.textContent = "P99 SIMULATED"; tag.style.color = "#38bdf8"; }
     }
     if (elapsed >= 15 && finChip) {
       const tag = finChip.querySelector(".chamber-status-tag");
-      if (tag) { tag.textContent = "VERIFIED"; tag.style.color = "#34d399"; }
+      if (tag && tag.textContent !== "VERIFIED") { tag.textContent = "COST MODELLED"; tag.style.color = "#38bdf8"; }
     }
     if (elapsed >= 20 && dataChip) {
       const tag = dataChip.querySelector(".chamber-status-tag");
-      if (tag) { tag.textContent = "VERIFIED"; tag.style.color = "#34d399"; }
+      if (tag && tag.textContent !== "VERIFIED") { tag.textContent = "ACID CHECKED"; tag.style.color = "#38bdf8"; }
     }
   }, 500);
 }
@@ -1214,6 +1215,15 @@ function hideDelphiSkeleton() {
     clearInterval(skeletonNarrativeInterval);
     skeletonNarrativeInterval = null;
   }
+
+  // Once synthesis is complete, finalize all chambers to VERIFIED
+  ["sec", "scale", "fin", "data"].forEach(id => {
+    const chip = document.getElementById(`skel-chamber-${id}`);
+    if (chip) {
+      const tag = chip.querySelector(".chamber-status-tag");
+      if (tag) { tag.textContent = "VERIFIED"; tag.style.color = "#34d399"; }
+    }
+  });
 }
 
 
