@@ -325,7 +325,7 @@ body.workbench-app {
    ========================================================================== */
 .studio-body {
   display: flex;
-  height: calc(100vh - 90px);
+  height: calc(100vh - 52px);
   overflow: hidden;
 }
 
@@ -2210,6 +2210,7 @@ body.workbench-app {
 }
 
 .brand-version-pill {
+  display: none;
   font-family: var(--font-mono);
   font-size: 9px;
   font-weight: 700;
@@ -2246,7 +2247,7 @@ body.workbench-app {
 }
 
 .header-proposal-select {
-  max-width: 175px;
+  max-width: 135px;
   text-overflow: ellipsis;
   white-space: nowrap;
   background: transparent;
@@ -2258,7 +2259,7 @@ body.workbench-app {
   outline: none;
   cursor: pointer;
   padding: 2px 4px;
-  max-width: 175px;
+  max-width: 135px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -2421,6 +2422,7 @@ body.workbench-app {
    DELIBERATION PIPELINE EXECUTION HUD
    ========================================================================== */
 .deliberation-hud {
+  display: none !important;
   height: 38px;
   background: #090d15;
   border-bottom: 1px solid var(--border-subtle);
@@ -3043,7 +3045,7 @@ body.workbench-app {
 
 .new-rfc-btn {
   height: 32px !important;
-  padding: 0 10px !important;
+  padding: 0 8px !important;
   font-size: 11.5px !important;
   font-weight: 600 !important;
   display: inline-flex !important;
@@ -3076,12 +3078,12 @@ body.workbench-app {
 
 .view-nav-btn {
   height: 32px !important;
-  padding: 0 8px !important;
-  font-size: 11px !important;
+  padding: 0 7px !important;
+  font-size: 10.5px !important;
   font-weight: 500 !important;
   display: inline-flex !important;
   align-items: center !important;
-  gap: 5px !important;
+  gap: 4px !important;
   color: var(--text-secondary) !important;
   background: transparent !important;
   border: 1px solid transparent !important;
@@ -3107,18 +3109,19 @@ body.workbench-app {
 .header-right-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+  flex-shrink: 0;
 }
 
 .action-btn {
-  height: 34px !important;
-  padding: 0 10px !important;
-  font-size: 11.5px !important;
+  height: 32px !important;
+  padding: 0 8px !important;
+  font-size: 11px !important;
   font-weight: 600 !important;
   border-radius: 6px !important;
   display: inline-flex !important;
   align-items: center !important;
-  gap: 6px !important;
+  gap: 5px !important;
   cursor: pointer !important;
   transition: all 0.18s var(--ease-out) !important;
   box-sizing: border-box !important;
@@ -3226,7 +3229,7 @@ body.workbench-app {
 
 .canvas-ctrl-btn {
   height: 32px !important;
-  padding: 0 10px !important;
+  padding: 0 8px !important;
   font-size: 11px !important;
   font-family: var(--font-sans) !important;
   font-weight: 600 !important;
@@ -3503,7 +3506,7 @@ body.workbench-app {
 .badge-action-btn {
   height: 32px !important;
   min-height: 32px !important;
-  padding: 0 10px !important;
+  padding: 0 8px !important;
   font-size: 11px !important;
   font-weight: 600 !important;
   display: inline-flex !important;
@@ -3525,7 +3528,7 @@ body.workbench-app {
 .term-copy-btn {
   height: 32px !important;
   min-height: 32px !important;
-  padding: 0 10px !important;
+  padding: 0 8px !important;
   font-size: 11px !important;
   font-weight: 600 !important;
   display: inline-flex !important;
@@ -3620,4 +3623,89 @@ body.workbench-app {
   background: rgba(6, 182, 212, 0.15);
   color: #22d3ee;
   border-color: rgba(6, 182, 212, 0.35);
+}
+
+/* Integrated Header Status Pill (Single Crisp Bar) */
+.header-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: var(--radius-full);
+  background: rgba(16, 185, 129, 0.12);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  letter-spacing: 0.4px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.header-status-badge.running {
+  background: rgba(6, 182, 212, 0.15);
+  color: #22d3ee;
+  border-color: rgba(6, 182, 212, 0.4);
+}
+
+.status-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: currentColor;
+}
+
+.status-dot.live {
+  background-color: #34d399;
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
+}
+
+.status-divider {
+  color: var(--border-strong);
+  font-size: 8px;
+}
+
+.status-item {
+  color: var(--text-muted);
+}
+
+/* Unified Nav Step Pill */
+.nav-step-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-muted);
+  line-height: 1;
+}
+
+.view-nav-btn.active .nav-step-pill {
+  background: var(--brand-primary);
+  color: #05070c;
+}
+
+.view-nav-btn.pipeline-active {
+  border-color: #22d3ee !important;
+  background: rgba(6, 182, 212, 0.18) !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 10px rgba(6, 182, 212, 0.35) !important;
+}
+
+.view-nav-btn.pipeline-active .nav-step-pill {
+  background: #22d3ee;
+  color: #05070c;
+  animation: pulse-dot 1s infinite ease-in-out;
+}
+
+.view-nav-btn.pipeline-done .nav-step-pill {
+  background: rgba(16, 185, 129, 0.2);
+  color: #34d399;
 }

@@ -503,7 +503,7 @@ function updateHUDDeliberationState(running, stateText, narrativeText) {
   const narrativeElem = document.getElementById("hud-narrative-text");
   const canvasBadge = document.getElementById("canvas-status-badge");
 
-  if (pill) pill.className = running ? "hud-live-pill running" : "hud-live-pill";
+  if (pill) pill.className = running ? "header-status-badge running" : "header-status-badge";
   if (stateElem) stateElem.textContent = stateText;
   if (narrativeElem) narrativeElem.textContent = narrativeText;
   if (canvasBadge) {
@@ -515,7 +515,7 @@ function setStepState(stepNum, state) {
   const step = document.getElementById(`hud-step-${stepNum}`);
   if (step) step.className = `hud-step ${state}`;
 
-  // Reflect active pipeline stage on primary navigation tabs
+  // Reflect active pipeline stage directly on unified navigation tabs
   const viewMap = { 1: "chambers", 2: "tools", 3: "floor", 4: "topology" };
   const viewId = viewMap[stepNum];
   if (viewId) {
@@ -523,8 +523,13 @@ function setStepState(stepNum, state) {
     if (btn) {
       if (state === "active") {
         btn.classList.add("pipeline-active");
+        btn.classList.remove("pipeline-done");
+      } else if (state === "done") {
+        btn.classList.remove("pipeline-active");
+        btn.classList.add("pipeline-done");
       } else {
         btn.classList.remove("pipeline-active");
+        btn.classList.remove("pipeline-done");
       }
     }
   }
