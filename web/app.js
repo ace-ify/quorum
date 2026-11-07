@@ -1004,7 +1004,7 @@ function renderToolTraces(toolsLog) {
   const container = document.getElementById("tools-stream-container");
   const toolBtn = document.getElementById("tool-traces-btn");
   if (toolBtn && toolsLog) {
-    toolBtn.innerHTML = `<span class="nav-icon">🔍</span> Tool Traces (${toolsLog.length})`;
+    toolBtn.innerHTML = `<span class="nav-step-pill">2</span><span>Tool Traces (${toolsLog.length})</span>`;
   }
   if (!container || !toolsLog) return;
   container.innerHTML = toolsLog.map(t => `
