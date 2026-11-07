@@ -86,8 +86,8 @@ class QuorumStudioHandler(SimpleHTTPRequestHandler):
             return
 
         if parsed.path == "/api/custom_rfc":
-            title = data.get("title", "Custom Distributed Architecture")
-            dilemma = data.get("dilemma", "High concurrency microservice architecture")
+            title = data.get("title") or ""
+            dilemma = data.get("dilemma") or data.get("prompt") or "High concurrency microservice architecture"
             response_payload = self.synthesize_custom_architecture(title, dilemma)
             self.send_json_response(response_payload)
             return

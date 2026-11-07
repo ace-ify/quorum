@@ -88,7 +88,7 @@ class DynamicSynthesizer:
                 system_prompt=system_prompt,
                 messages=[{"role": "user", "content": user_content}],
                 temperature=0.4,
-                max_tokens=1100
+                max_tokens=2500
             )
             parsed = self._extract_json(raw_response)
             if parsed and "nodes" in parsed and "specialists" in parsed:

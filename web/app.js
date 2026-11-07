@@ -1129,7 +1129,66 @@ async function submitCustomRFC() {
     if (res.ok) {
       const liveData = await res.json();
       if (liveData && liveData.nodes && liveData.nodes.length > 0) {
-        PROPOSALS[customKey] = liveData;
+        TOPOLOGY_MODELS[customKey] = {
+          viewBox: "0 0 1060 420",
+          nodes: liveData.nodes,
+          connections: liveData.connections || [
+            { from: "clients", to: "nlb" },
+            { from: "nlb", to: "redis" },
+            { from: "redis", to: "gateway" },
+            { from: "redis", to: "outbox" },
+            { from: "outbox", to: "kafka" }
+          ]
+        };
+
+        const activeId = liveData.rfcId || rfcId;
+        PROPOSALS[customKey] = {
+          id: activeId,
+          headline: liveData.headline || title,
+          subline: liveData.subline || `Synthesized architecture for "${dilemma.substring(0, 90)}..."`,
+          targetScale: liveData.targetScale || "Production Scale",
+          targetBranch: `feat/${activeId.toLowerCase()}-impl`,
+          verificationCmd: "pytest tests/ -v",
+          baseThroughput: 85000,
+          baseLatency: 3.8,
+          metricUnit: "req/s",
+          claudeCmd: `claude -p "Read ${activeId}.md Section 6. Switch to branch 'feat/${activeId.toLowerCase()}-impl'. Implement the scaffolded files in '.'. Run 'pytest tests/ -v' and do not finish until all tests pass."`,
+          legendChips: liveData.legendChips || [
+            { tag: "sec", name: "Aegis (Security and Abuse)" },
+            { tag: "scale", name: "Vanguard (Scale and Latency)" },
+            { tag: "fin", name: "Ledger (Cloud Economics)" },
+            { tag: "data", name: "Titan (Storage ACID)" }
+          ],
+          invariants: liveData.invariants || [],
+          vulnerableNodeKey: "gateway",
+          flawNotice: liveData.flawNotice || "⚠️ Architectural tension detected across specialist boundaries",
+          resolvedNotice: liveData.resolvedNotice || "✓ Invariant enforced: Reconciled security and throughput SLA",
+          chambers: liveData.switchRooms || liveData.chambers || [],
+          debateMessages: liveData.debate || liveData.debateMessages || [],
+          toolsLog: liveData.toolsLog || [],
+          matrix: liveData.matrix || [
+            { vector: "Security vs Latency SLA", clash: "Aegis vs Vanguard", resolution: liveData.resolvedNotice || "Enforce zero-trust edge fast-path", invariant: "INV-SEC-01" },
+            { vector: "Scale vs Infrastructure Cost", clash: "Vanguard vs Ledger", resolution: liveData.annualSavings || "Cloud rightsizing and autoscaling", invariant: "INV-FIN-03" }
+          ],
+          manifestItems: liveData.manifestItems || [
+            { action: "CREATE", path: `src/security/fast_filter.py`, mandatedBy: "Aegis", purpose: "Edge security verification" },
+            { action: "CREATE", path: `src/core/worker_engine.py`, mandatedBy: "Vanguard", purpose: "Asynchronous worker engine" },
+            { action: "MODIFY", path: `infra/cluster.tf`, mandatedBy: "Ledger", purpose: "Autoscaling cluster definition" }
+          ],
+          components: liveData.components || {},
+          adrMarkdown: liveData.adrMarkdown || `# ${activeId}: ${title}
+
+**Status:** APPROVED
+**Council:** Athena, Aegis, Vanguard, Ledger, Titan`,
+          prStickyComment: `## 🏛️ Quorum Review Report: ${activeId}
+
+| Specialist | Score | Verdict |
+|---|---|---|
+| **Aegis** | 6.5/10 | 🛡️ Approved |
+| **Vanguard** | 7.0/10 | ⚡ Latency Met |
+| **Ledger** | 6.0/10 | 💰 ${liveData.annualSavings || 'Cost Optimized'} |
+| **Titan** | 7.5/10 | ✅ ACID Guaranteed |`
+        };
         liveSuccess = true;
       }
     }
