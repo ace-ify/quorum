@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quorum 2.0 — Master Hackathon Presentation Slides</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #07090e;
+      --card-bg: rgba(15, 23, 42, 0.75);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --accent-cyan: #06b6d4;
+      --accent-indigo: #6366f1;
+      --accent-emerald: #10b981;
+      --accent-rose: #f43f5e;
+      --accent-amber: #f59e0b;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      overflow: hidden;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-image: 
+        radial-gradient(circle at 15% 15%, rgba(99, 102, 241, 0.15) 0%, transparent 40%),
+        radial-gradient(circle at 85% 85%, rgba(6, 182, 212, 0.12) 0%, transparent 45%),
+        radial-gradient(circle at 50% 50%, rgba(15, 23, 42, 0.8) 0%, transparent 100%),
+        linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+      background-size: 100% 100%, 100% 100%, 100% 100%, 40px 40px, 40px 40px;
+    }
+
+    /* 16:9 Presentation Stage */
+    .deck-container {
+      width: 100vw;
+      height: 56.25vw; /* 16:9 Aspect Ratio */
+      max-height: 100vh;
+      max-width: 177.78vh; /* 16:9 Aspect Ratio */
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 3rem 4.5rem;
+    }
+
+    .slide {
+      position: absolute;
+      inset: 3rem 4.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(16px) scale(0.99);
+      transition: opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1), transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .slide.active {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0) scale(1);
+    }
+
+    /* Top Meta Header */
+    .slide-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .brand-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      background: rgba(99, 102, 241, 0.12);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      padding: 0.4rem 1rem;
+      border-radius: 9999px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: #a5b4fc;
+    }
+
+    .brand-pill .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #818cf8;
+      box-shadow: 0 0 10px #818cf8;
+      animation: pulse 2s infinite;
+    }
+
+    .badges {
+      display: flex;
+      gap: 0.75rem;
+    }
+
+    .badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 0.35rem 0.85rem;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--text-muted);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .badge-track {
+      background: rgba(16, 185, 129, 0.12);
+      border-color: rgba(16, 185, 129, 0.3);
+      color: #34d399;
+    }
+
+    .badge-switch {
+      background: rgba(6, 182, 212, 0.12);
+      border-color: rgba(6, 182, 212, 0.3);
+      color: #22d3ee;
+    }
+
+    /* Title Block */
+    .title-block {
+      margin-top: 1.25rem;
+    }
+
+    .hero-title {
+      font-size: 3rem;
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+      background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 50%, #94a3b8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-title span.highlight-red {
+      background: linear-gradient(135deg, #fb7185 0%, #f43f5e 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-title span.highlight-green {
+      background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-subtitle {
+      font-size: 1.2rem;
+      color: var(--text-muted);
+      margin-top: 0.5rem;
+      font-weight: 400;
+      max-width: 90%;
+      line-height: 1.45;
+    }
+
+    /* Comparison Grid for Slide 1 */
+    .comparison-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      margin-top: 1.5rem;
+      flex-grow: 1;
+    }
+
+    .comp-card {
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 1.75rem 2rem;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
+    }
+
+    .comp-card.bad {
+      border: 1px solid rgba(244, 63, 94, 0.25);
+      background: linear-gradient(160deg, rgba(244, 63, 94, 0.04) 0%, rgba(15, 23, 42, 0.6) 100%);
+    }
+
+    .comp-card.good {
+      border: 1px solid rgba(6, 182, 212, 0.35);
+      background: linear-gradient(160deg, rgba(6, 182, 212, 0.06) 0%, rgba(15, 23, 42, 0.6) 100%);
+      box-shadow: 0 20px 50px -15px rgba(6, 182, 212, 0.15);
+    }
+
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 1.25rem;
+    }
+
+    .card-label {
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .card-label.bad { color: #fb7185; }
+    .card-label.good { color: #22d3ee; }
+
+    .card-title {
+      font-size: 1.45rem;
+      font-weight: 700;
+      color: #fff;
+      margin-top: 0.35rem;
+    }
+
+    .stat-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      font-size: 1.1rem;
+      padding: 0.3rem 0.8rem;
+      border-radius: 8px;
+    }
+
+    .stat-badge.bad {
+      background: rgba(244, 63, 94, 0.18);
+      border: 1px solid rgba(244, 63, 94, 0.4);
+      color: #fca5a5;
+    }
+
+    .stat-badge.good {
+      background: rgba(16, 185, 129, 0.18);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      color: #6ee7b7;
+    }
+
+    .flow-diagram {
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      padding: 1.2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+    }
+
+    .flow-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .flow-node {
+      padding: 0.45rem 0.85rem;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.04);
+      color: #e2e8f0;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .flow-node.highlight-red {
+      border-color: rgba(244, 63, 94, 0.5);
+      background: rgba(244, 63, 94, 0.12);
+      color: #fda4af;
+    }
+
+    .flow-node.highlight-cyan {
+      border-color: rgba(6, 182, 212, 0.5);
+      background: rgba(6, 182, 212, 0.12);
+      color: #67e8f9;
+    }
+
+    .flow-node.highlight-green {
+      border-color: rgba(16, 185, 129, 0.5);
+      background: rgba(16, 185, 129, 0.12);
+      color: #86efac;
+    }
+
+    .flow-arrow {
+      color: #64748b;
+      font-size: 1rem;
+    }
+
+    .bullet-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-top: 1rem;
+      font-size: 0.95rem;
+      color: #cbd5e1;
+    }
+
+    .bullet-list li {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .bullet-list li svg {
+      flex-shrink: 0;
+    }
+
+    /* Outro Slide 2 KPIs */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.5rem;
+      margin-top: 2rem;
+      flex-grow: 1;
+    }
+
+    .kpi-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 1.75rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      backdrop-filter: blur(16px);
+      transition: transform 0.3s ease, border-color 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .kpi-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, var(--card-accent), transparent);
+    }
+
+    .kpi-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .kpi-icon {
+      font-size: 1.8rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .kpi-metric {
+      font-size: 2.8rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1;
+      margin-bottom: 0.5rem;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .kpi-label {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #f1f5f9;
+      margin-bottom: 0.35rem;
+    }
+
+    .kpi-desc {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    /* Bottom Bar */
+    .slide-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      padding-top: 1.25rem;
+      margin-top: 1rem;
+    }
+
+    .footer-left {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    .nav-hints {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      color: #64748b;
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+
+    .key-cap {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      padding: 0.15rem 0.45rem;
+      border-radius: 4px;
+      color: #94a3b8;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.9); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="deck-container">
+    
+    <!-- SLIDE 1: THE SYCOPHANCY PROBLEM & SWITCH SUPERPOWER -->
+    <div class="slide active" id="slide-1">
+      <div>
+        <div class="slide-header">
+          <div class="brand-pill">
+            <span class="dot"></span>
+            Quorum 2.0 • Architecture Review Desk
+          </div>
+          <div class="badges">
+            <span class="badge badge-track">🏆 WeMakeDevs Track 01: Best Business Workflow ($2,000)</span>
+            <span class="badge badge-switch">⚡ Switch Core 0.31.0</span>
+          </div>
+        </div>
+
+        <div class="title-block">
+          <h1 class="hero-title">
+            The Multi-Agent <span class="highlight-red">Groupthink Dilemma</span>
+          </h1>
+          <p class="hero-subtitle">
+            Why conventional multi-agent review desks fail at architecture—and how Switch's server-enforced room isolation guarantees authentic engineering tension.
+          </p>
+        </div>
+      </div>
+
+      <div class="comparison-grid">
+        <!-- Card Left: The Failure Mode -->
+        <div class="comp-card bad">
+          <div>
+            <div class="card-top">
+              <div>
+                <span class="card-label bad">❌ Standard Multi-Agent System</span>
+                <div class="card-title">Shared Context & Anchor Bias</div>
+              </div>
+              <span class="stat-badge bad">94.2% Sycophancy</span>
+            </div>
+
+            <div class="flow-diagram">
+              <div class="flow-row">
+                <div class="flow-node highlight-red">Agent 1: Scale</div>
+                <span class="flow-arrow">➔</span>
+                <span style="color:#f87171">"Looks clean to me!"</span>
+              </div>
+              <div class="flow-row">
+                <div class="flow-node" style="opacity:0.7">Agent 2: Sec</div>
+                <span class="flow-arrow">➔</span>
+                <span style="color:#94a3b8">"Agreed with Scale, approved!"</span>
+              </div>
+              <div class="flow-row">
+                <div class="flow-node" style="opacity:0.5">Agent 3: FinOps</div>
+                <span class="flow-arrow">➔</span>
+                <span style="color:#64748b">"No objections, shipping!"</span>
+              </div>
+            </div>
+
+            <ul class="bullet-list">
+              <li>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f43f5e" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                <span><b>Anchor Bias:</b> Later agents echo the first opinion in the thread.</span>
+              </li>
+              <li>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f43f5e" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                <span><b>Critical Blindspots:</b> 15-minute token CVE & $25k cloud waste slipped.</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Card Right: Quorum on Switch Solution -->
+        <div class="comp-card good">
+          <div>
+            <div class="card-top">
+              <div>
+                <span class="card-label good">🛡️ Quorum on Switch Core 0.31.0</span>
+                <div class="card-title">Server-Enforced Soundproof Chambers</div>
+              </div>
+              <span class="stat-badge good">0.0% Anchor Bias</span>
+            </div>
+
+            <div class="flow-diagram">
+              <div class="flow-row">
+                <div class="flow-node highlight-cyan">#audit-security</div>
+                <span class="flow-arrow">⤳</span>
+                <span style="color:#22d3ee">Aegis blocks on CVE</span>
+              </div>
+              <div class="flow-row">
+                <div class="flow-node highlight-cyan">#audit-scalability</div>
+                <span class="flow-arrow">⤳</span>
+                <span style="color:#22d3ee">Vanguard warns p99 DB crash</span>
+              </div>
+              <div class="flow-row">
+                <div class="flow-node highlight-green">#review-desk</div>
+                <span class="flow-arrow">➔</span>
+                <span style="color:#86efac">Athena synthesizes Conflict Matrix</span>
+              </div>
+            </div>
+
+            <ul class="bullet-list">
+              <li>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                <span><b>Zero Packet Leakage:</b> Cryptographically partitioned room ACLs.</span>
+              </li>
+              <li>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                <span><b>Delphi Method:</b> Unbiased independent audits $\to$ Public floor clash.</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-footer">
+        <div class="footer-left">
+          <span>🔒 4 Isolated Audit Chambers</span>
+          <span>•</span>
+          <span>⚡ 5 Specialist Personas</span>
+          <span>•</span>
+          <span>🤖 Autonomous Implementer Handoff</span>
+        </div>
+        <div class="nav-hints">
+          <span>Press <span class="key-cap">→</span> or <span class="key-cap">Space</span> for Outro</span>
+          <span><span class="key-cap">F</span> Fullscreen</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 2: BUSINESS IMPACT & ROI (CLOSING SCOREBOARD) -->
+    <div class="slide" id="slide-2">
+      <div>
+        <div class="slide-header">
+          <div class="brand-pill">
+            <span class="dot" style="background:#10b981;box-shadow:0 0 10px #10b981"></span>
+            Quorum 2.0 • Executive Scoreboard
+          </div>
+          <div class="badges">
+            <span class="badge badge-track">🏆 Track 01: Best Business Workflow ($2,000 Prize)</span>
+            <span class="badge badge-switch">Switch Core 0.31.0</span>
+          </div>
+        </div>
+
+        <div class="title-block">
+          <h1 class="hero-title">
+            Architecture Review as an <span class="highlight-green">Autonomous Workflow</span>
+          </h1>
+          <p class="hero-subtitle">
+            Measurable enterprise ROI, zero cloud waste, and autonomous terminal handoff to Claude Code & Codex.
+          </p>
+        </div>
+      </div>
+
+      <div class="kpi-grid">
+        <!-- KPI 1 -->
+        <div class="kpi-card" style="--card-accent:#10b981">
+          <div>
+            <div class="kpi-icon">💰</div>
+            <div class="kpi-metric" style="color:#34d399">$25,200</div>
+            <div class="kpi-label">Annual Cloud Waste Saved</div>
+            <div class="kpi-desc">Downsized over-provisioned 12-node Redis cluster to 4 nodes with 75% memory autoscaling.</div>
+          </div>
+          <div style="font-family:'JetBrains Mono';font-size:0.75rem;color:#10b981;margin-top:1rem;">✔ FinOps Invariant Enforced</div>
+        </div>
+
+        <!-- KPI 2 -->
+        <div class="kpi-card" style="--card-accent:#06b6d4">
+          <div>
+            <div class="kpi-icon">🛡️</div>
+            <div class="kpi-metric" style="color:#22d3ee">0 CVEs</div>
+            <div class="kpi-label">Auth Vulnerabilities Slipped</div>
+            <div class="kpi-desc">Blocked 15-minute unrevoked session token window via edge Redis Bloom Filter (&lt;0.2ms latency).</div>
+          </div>
+          <div style="font-family:'JetBrains Mono';font-size:0.75rem;color:#06b6d4;margin-top:1rem;">✔ SOC2 Article 4 Compliant</div>
+        </div>
+
+        <!-- KPI 3 -->
+        <div class="kpi-card" style="--card-accent:#8b5cf6">
+          <div>
+            <div class="kpi-icon">🚀</div>
+            <div class="kpi-metric" style="color:#a78bfa">&lt;18ms</div>
+            <div class="kpi-label">p99 Latency Preserved</div>
+            <div class="kpi-desc">Zero synchronous DB hits on 100k reconnects; Transactional Outbox + Debezium CDC for event delivery.</div>
+          </div>
+          <div style="font-family:'JetBrains Mono';font-size:0.75rem;color:#a78bfa;margin-top:1rem;">✔ Scale Invariant Preserved</div>
+        </div>
+
+        <!-- KPI 4 -->
+        <div class="kpi-card" style="--card-accent:#f59e0b">
+          <div>
+            <div class="kpi-icon">🧪</div>
+            <div class="kpi-metric" style="color:#fbbf24">9/9</div>
+            <div class="kpi-label">Tests Passing in 0.049s</div>
+            <div class="kpi-desc">Zero-dependency verification across room isolation, pairwise matrices, and invariant contracts.</div>
+          </div>
+          <div style="font-family:'JetBrains Mono';font-size:0.75rem;color:#fbbf24;margin-top:1rem;">✔ Zero-Dependency Standard</div>
+        </div>
+      </div>
+
+      <div class="slide-footer">
+        <div class="footer-left">
+          <span>🏛️ Michael Nygard ADR-042</span>
+          <span>•</span>
+          <span>💬 GitHub PR Sticky Comment</span>
+          <span>•</span>
+          <span>⚡ Claude Code Terminal Handoff</span>
+        </div>
+        <div class="nav-hints">
+          <span>Press <span class="key-cap">←</span> for Intro</span>
+          <span><span class="key-cap">F</span> Fullscreen</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    let currentSlide = 1;
+    const totalSlides = 2;
+
+    function showSlide(n) {
+      document.querySelectorAll('.slide').forEach((s, idx) => {
+        if (idx + 1 === n) {
+          s.classList.add('active');
+        } else {
+          s.classList.remove('active');
+        }
+      });
+      currentSlide = n;
+    }
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown' || e.key === '2') {
+        showSlide(2);
+      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp' || e.key === '1') {
+        showSlide(1);
+      } else if (e.key.toLowerCase() === 'f') {
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen().catch(() => {});
+        } else {
+          document.exitFullscreen().catch(() => {});
+        }
+      }
+    });
+  </script>
+</body>
+</html>
