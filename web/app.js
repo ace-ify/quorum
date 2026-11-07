@@ -1,3 +1,9 @@
+// SVG text truncation helper to prevent text overflow in SVG nodes
+function truncateSvgText(text, maxLen) {
+  if (!text) return '';
+  return text.length > maxLen ? text.substring(0, maxLen - 1) + '…' : text;
+}
+
 /**
  * Quorum Studio — Autonomous Architecture Review Board
  * Direct-Manipulation Architecture Workbench with Draggable Nodes,
@@ -613,7 +619,7 @@ function renderDynamicTopologySVG(rfcKey) {
     const nodeH = n.h || 108;
 
     svgHtml += `
-      <g class="svg-node-group ${isSelected ? 'selected' : ''}" id="svg-node-${n.key}" data-node-key="${n.key}" onmousedown="onNodeMouseDown(event, '${n.key}')">
+      <g class="svg-node-group ${isSelected ? 'selected' : ''}" id="svg-node-${n.key}" data-node-key="${n.key}" onpointerdown="onNodePointerDown(event, '${n.key}')" onmousedown="onNodeMouseDown(event, '${n.key}')">
         <!-- Body Card -->
         <rect class="node-body-rect" x="${n.x}" y="${n.y}" width="${nodeW}" height="${nodeH}" rx="12"
           fill="url(#grad-node-bg)" stroke="${isSelected ? '#06b6d4' : 'rgba(255,255,255,0.12)'}" stroke-width="${isSelected ? '2.5' : '1.2'}"
@@ -632,10 +638,10 @@ function renderDynamicTopologySVG(rfcKey) {
         ` : ''}
 
         <!-- Row 2: Title -->
-        <text class="node-title-text" x="${n.x + 14}" y="${n.y + 48}" font-family="var(--font-sans)" font-size="13" font-weight="700" fill="#f8fafc">${n.title}</text>
+        <text class="node-title-text" x="${n.x + 14}" y="${n.y + 48}" font-family="var(--font-sans)" font-size="13" font-weight="700" fill="#f8fafc">${truncateSvgText(n.title, 19)}</text>
 
         <!-- Row 3: Subtitle -->
-        <text class="node-sub-text" x="${n.x + 14}" y="${n.y + 68}" font-family="var(--font-sans)" font-size="10.5" fill="#94a3b8">${n.sub}</text>
+        <text class="node-sub-text" x="${n.x + 14}" y="${n.y + 68}" font-family="var(--font-sans)" font-size="10.5" fill="#8292a8">${truncateSvgText(n.sub, 24)}</text>
 
         <!-- Row 4: Metric Pill -->
         <rect class="node-metric-box" x="${n.x + 10}" y="${n.y + 80}" width="${nodeW - 20}" height="20" rx="5" fill="rgba(0,0,0,0.5)" stroke="rgba(255,255,255,0.06)" />
@@ -663,6 +669,15 @@ function renderDynamicTopologySVG(rfcKey) {
 // ==========================================================================
 // 5. DIRECT MANIPULATION: DRAG NODES & LIVE WIRE RE-ROUTING
 // ==========================================================================
+
+function onNodePointerDown(e, nodeKey) {
+  if (!dragModeActive) return;
+  e.stopPropagation();
+  if (e.target && e.target.setPointerCapture && e.pointerId) {
+    try { e.target.setPointerCapture(e.pointerId); } catch (_) {}
+  }
+  onNodeMouseDown(e, nodeKey);
+}
 
 function onNodeMouseDown(e, nodeKey) {
   if (!dragModeActive) return;

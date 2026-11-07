@@ -20,7 +20,7 @@
   /* Typography */
   --text-primary: #f8fafc;
   --text-secondary: #94a3b8;
-  --text-muted: #64748b;
+  --text-muted: #8292a8;
   --text-inverse: #070a10;
 
   /* Accents & Specialist Tokens */
@@ -384,7 +384,7 @@ body.workbench-app {
   font-family: var(--font-sans);
   cursor: pointer;
   outline: none;
-  transition: border-color 0.15s ease;
+  transition: border-color 0.15s var(--ease-out);
   margin-bottom: 8px;
 }
 
@@ -902,7 +902,7 @@ body.workbench-app {
   border: 1px solid var(--border-subtle);
   color: var(--text-primary);
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition: all 150ms var(--ease-out);
 }
 
 .top-action-btn:hover {
@@ -953,7 +953,7 @@ body.workbench-app {
 }
 
 .node-body-rect {
-  transition: stroke 0.2s ease, stroke-width 0.2s ease;
+  transition: stroke 0.2s var(--ease-out), stroke-width 0.2s var(--ease-out);
 }
 
 /* Flow Wires & Animated Particles */
@@ -995,7 +995,7 @@ body.workbench-app {
   border-top: 1px solid var(--border-subtle);
   padding: 14px 20px;
   backdrop-filter: blur(12px);
-  transition: all 0.3s ease;
+  transition: all 0.3s var(--ease-out);
 }
 
 .inspector-header {
@@ -1623,7 +1623,7 @@ body.workbench-app {
   color: var(--text-secondary);
   padding: 2px 7px;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all 0.15s var(--ease-out);
 }
 
 .quick-pill:hover {
@@ -2171,7 +2171,7 @@ body.workbench-app {
 
   --text-primary: #f8fafc;
   --text-secondary: #94a3b8;
-  --text-muted: #64748b;
+  --text-muted: #8292a8;
   --text-inverse: #070a10;
 
   --brand-primary: #06b6d4;
@@ -2229,7 +2229,10 @@ body.workbench-app {
   background: var(--bg-card-subtle);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
-  padding: 2px 4px 2px 8px;
+  padding: 0 4px 0 8px;
+  height: 32px;
+  min-height: 32px;
+  box-sizing: border-box;
 }
 
 .picker-inner {
@@ -2248,6 +2251,8 @@ body.workbench-app {
 
 .header-proposal-select {
   max-width: 135px;
+  height: 32px;
+  min-height: 32px;
   text-overflow: ellipsis;
   white-space: nowrap;
   background: transparent;
@@ -2258,10 +2263,8 @@ body.workbench-app {
   font-weight: 600;
   outline: none;
   cursor: pointer;
-  padding: 2px 4px;
-  max-width: 135px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  padding: 0 4px;
+  box-sizing: border-box;
 }
 
 .header-proposal-select option {
@@ -2794,7 +2797,7 @@ body.workbench-app {
   font-family: var(--font-sans);
   font-size: 12px;
   outline: none;
-  transition: border-color 0.15s ease;
+  transition: border-color 0.15s var(--ease-out);
 }
 
 .modal-textarea {
@@ -2983,7 +2986,7 @@ body.workbench-app {
 
 .svg-node-group {
   cursor: grab;
-  transition: transform 0.05s ease-out;
+  transition: transform 0.05s var(--ease-out);
 }
 
 .svg-node-group.is-dragging {
@@ -3708,4 +3711,44 @@ body.workbench-app {
 .view-nav-btn.pipeline-done .nav-step-pill {
   background: rgba(16, 185, 129, 0.2);
   color: #34d399;
+}
+
+/* Responsive Header Breakpoint for Laptops (<= 1440px / 1366px) */
+@media (max-width: 1440px) {
+  .header-left {
+    gap: 6px !important;
+    min-width: 0;
+  }
+  .header-proposal-select {
+    max-width: 104px !important;
+  }
+  .header-status-badge {
+    gap: 4px !important;
+    padding: 2px 5px !important;
+    font-size: 9px !important;
+  }
+  .header-center-nav {
+    flex: 1 1 auto;
+    min-width: 0;
+    justify-content: center;
+  }
+  .studio-view-nav {
+    gap: 1px !important;
+    padding: 2px !important;
+  }
+  .view-nav-btn {
+    padding: 0 5px !important;
+    font-size: 10px !important;
+    gap: 3px !important;
+  }
+  .header-right-actions {
+    gap: 4px !important;
+  }
+  .action-btn {
+    padding: 0 6px !important;
+    font-size: 10.5px !important;
+  }
+  .inspector-toggle-btn span {
+    display: none;
+  }
 }

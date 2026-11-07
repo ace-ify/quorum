@@ -42,11 +42,21 @@ AVATARS = {
     "claude": "https://api.dicebear.com/7.x/bottts/svg?seed=ClaudeCode&backgroundColor=8b5cf6"
 }
 
+def trigger_typing(channel):
+    cid = channel_map.get(channel)
+    if cid and token:
+        try:
+            requests.post(f"https://discord.com/api/v10/channels/{cid}/typing", headers=headers, timeout=3)
+        except Exception:
+            pass
+
 def post(channel, username, avatar_key, content):
     wh = webhooks.get(channel)
     if not wh:
         print(f"No webhook for {channel}")
         return
+    trigger_typing(channel)
+    time.sleep(1.2)
     payload = {
         "username": username,
         "avatar_url": AVATARS.get(avatar_key),
@@ -54,7 +64,6 @@ def post(channel, username, avatar_key, content):
     }
     r = requests.post(wh, json=payload)
     print(f"[{channel}] {username}: status {r.status_code}")
-    time.sleep(1.0)
 
 def main():
     print("--- 1. CONVENING REVIEW DESK ---")
