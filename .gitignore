@@ -17,7 +17,13 @@ env/
 .vscode/
 .idea/
 
-# Demo Video Recordings
+# Demo Video Recordings and Audio Temp Files
 *.mp4
+*.wav
+*.txt
+.playwright-mcp/
+demo_scenes/
+demo_scenes_v2/
+test_render.*
 
 

@@ -80,3 +80,4 @@ Standard multi-agent LLM systems suffer from **sycophancy, context pollution, an
 2. **HTML Frame Renders**: 5 distinct dynamic scenes with Discord dark theme, rendered diagram image embed, and real deliverables.
 3. **Audio Master**: Clean synced narration track with segment duration metadata.
 4. **FFmpeg Compilation**: Render at 1080p 25fps, mux with AAC audio, output `blindcouncil_final_demo.mp4`.
+

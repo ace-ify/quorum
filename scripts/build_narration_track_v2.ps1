@@ -42,3 +42,4 @@ foreach ($seg in $segments) {
 
 $speak.Dispose()
 Write-Host "Voice segments v2 generated successfully."
+

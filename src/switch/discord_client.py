@@ -38,6 +38,8 @@ class DiscordLiveClient:
         self.channel_names: Dict[str, str] = {}
         # room_name -> webhook_url
         self.webhooks: Dict[str, str] = {}
+        # category_id for organizing channels
+        self.category_id: Optional[str] = None
         # agent_id -> character info
         self.agent_profiles: Dict[str, dict] = {}
         # room_id -> set of members
@@ -90,6 +92,8 @@ class DiscordLiveClient:
                     if ch.get("type") == 0: # text channel
                         self.channel_ids[name] = cid
                         self.channel_names[cid] = name
+                    elif ch.get("type") == 4 and "blindcouncil" in name.lower():
+                        self.category_id = cid
 
     def register_character_profile(self, agent_id: str, name: str, avatar_url: str):
         self.agent_profiles[agent_id] = {
@@ -116,6 +120,8 @@ class DiscordLiveClient:
                 "type": 0, # Text channel
                 "topic": topic
             }
+            if self.category_id:
+                payload["parent_id"] = self.category_id
 
             # BlindCouncil private chambers (#audit-* and #dev-*) are strictly locked
             is_private = ("audit" in clean_name or "dev" in clean_name or "blind" in clean_name or "confession" in clean_name)
@@ -265,12 +271,15 @@ class DiscordLiveClient:
                         if op == 0 and t == "MESSAGE_CREATE" and d:
                             author = d.get("author", {})
                             is_bot = author.get("bot", False)
-                            # Ignore messages posted by bots / webhooks
-                            if not is_bot:
+                            author_name = author.get("username", "Human")
+                            # Accept real human users OR simulated human lead architect messages
+                            is_human_lead = (not is_bot) or ("izigriss" in author_name.lower() or "lead architect" in author_name.lower())
+                            is_agent = any(tag in author_name.lower() for tag in ["athena", "aegis", "vanguard", "ledger", "titan", "verity", "chair", "council"])
+
+                            if is_human_lead and not is_agent and author.get("id") != self.bot_user_id:
                                 cid = d.get("channel_id")
                                 room_name = self.channel_names.get(cid, "unknown")
                                 author_id = author.get("id", "")
-                                author_name = author.get("username", "Human")
                                 content = d.get("content", "").strip()
 
                                 # Dispatch to registered handlers

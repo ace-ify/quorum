@@ -81,22 +81,28 @@ class CouncilCoordinator:
         await self.setup_rooms()
 
         # Phase 1: Intake
-        await self.advance_phase()
+        if self.current_phase == CouncilPhase.INIT:
+            await self.advance_phase()
 
         # Phase 2: Isolated Blind Audits
-        await self.advance_phase()
+        if self.current_phase == CouncilPhase.SUBMISSION:
+            await self.advance_phase()
 
         # Phase 3: Conflict Synthesis
-        await self.advance_phase()
+        if self.current_phase == CouncilPhase.BLIND_AUDIT:
+            await self.advance_phase()
 
         # Phase 4: Council Debate in #review-desk
-        await self.advance_phase()
+        if self.current_phase == CouncilPhase.CONFLICT_SYNTHESIS:
+            await self.advance_phase()
 
         # Phase 5: ADR Generation & Publication
-        await self.advance_phase()
+        if self.current_phase == CouncilPhase.COUNCIL_DEBATE:
+            await self.advance_phase()
 
         # Phase 6: Autonomous Implementer Handoff (Claude Code / Codex Bridge)
-        await self.advance_phase()
+        if self.current_phase == CouncilPhase.ADR_PUBLICATION:
+            await self.advance_phase()
 
     async def advance_phase(self) -> CouncilPhase:
         if self.current_phase == CouncilPhase.INIT:
@@ -299,6 +305,7 @@ class CouncilCoordinator:
                 self.public_room,
                 f"📝 **[COUNCIL CONSENSUS]** Lead Architect @{author_name} approved the architecture. Locking decisions and publishing ADR..."
             )
+            await self.advance_phase()
             await self.advance_phase()
             return
 

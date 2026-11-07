@@ -243,6 +243,7 @@ async def run_live(
     )
 
     # Start live Discord Gateway listener
+    discord_client.register_human_message_handler(coordinator.handle_human_message)
     discord_client.start_gateway()
     console.print("[bold green]✓ Live Discord Gateway Active: Listening for your architectural guidance![/bold green]")
     console.print(f"[bold green]✓ Review Convened for:[/bold green] [bold cyan]{rfc.title}[/bold cyan]")
