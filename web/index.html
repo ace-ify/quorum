@@ -178,18 +178,30 @@
           <!-- Dynamic Vector Topology Area -->
           <div class="dynamic-topology-workbench" id="dynamic-topology-workbench">
             <div class="topology-toolbar">
-              <div class="topology-legend-chips">
-                <span class="legend-chip sec"><span class="legend-dot"></span> Aegis (Security)</span>
-                <span class="legend-chip scale"><span class="legend-dot"></span> Vanguard (Scalability)</span>
-                <span class="legend-chip fin"><span class="legend-dot"></span> Ledger (FinOps -$25.2k)</span>
-                <span class="legend-chip data"><span class="legend-dot"></span> Titan (Data Reliability)</span>
+              <div class="topology-legend-chips" id="topology-legend-chips">
+                <!-- Dynamically populated per proposal via app.js -->
               </div>
               <div class="topology-actions-group">
+                <!-- Live Telemetry Monitor -->
+                <div class="live-telemetry-pill">
+                  <span class="live-pulse-dot"></span>
+                  <span class="tele-text" id="live-telemetry-text">100,420 msg/s • 17.8ms p99</span>
+                </div>
+                <!-- Interactive Canvas Controls -->
+                <div class="canvas-zoom-group">
+                  <button class="zoom-btn" onclick="zoomCanvas(-0.15)" title="Zoom Out">−</button>
+                  <span class="zoom-level" id="zoom-level-text">100%</span>
+                  <button class="zoom-btn" onclick="zoomCanvas(0.15)" title="Zoom In">+</button>
+                  <button class="zoom-btn reset" onclick="resetCanvasTransform()" title="Reset Canvas View">⟲</button>
+                </div>
+                <button class="top-action-btn" id="btn-toggle-drag" onclick="toggleDragMode()" title="Toggle node dragging mode">
+                  <span class="btn-icon">🖐️</span> <span id="drag-status-label">Drag: ON</span>
+                </button>
                 <button class="top-action-btn" id="btn-toggle-animation" onclick="toggleFlowAnimation()">
-                  <span class="btn-icon">⚡</span> Traffic Flow: <span id="anim-status-label">ACTIVE</span>
+                  <span class="btn-icon">⚡</span> Traffic: <span id="anim-status-label">ACTIVE</span>
                 </button>
                 <button class="top-action-btn" id="btn-export-svg" onclick="exportDynamicSVG()">
-                  <span class="btn-icon">📥</span> Export Vector SVG
+                  <span class="btn-icon">📥</span> Export SVG
                 </button>
               </div>
             </div>

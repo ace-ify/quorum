@@ -2830,3 +2830,123 @@ body.workbench-app {
 .modal-btn.primary:hover {
   background: linear-gradient(135deg, #0369a1 0%, #0891b2 100%);
 }
+
+
+/* ==========================================================================
+   INTERACTIVE CANVAS DIRECT MANIPULATION & TELEMETRY STYLES
+   ========================================================================== */
+.live-telemetry-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  border-radius: 4px;
+  padding: 3px 8px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: #34d399;
+}
+
+.live-pulse-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #10b981;
+  animation: pulse-dot 1.2s infinite ease-in-out;
+}
+
+.canvas-zoom-group {
+  display: inline-flex;
+  align-items: center;
+  background: var(--bg-card-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.zoom-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.zoom-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-primary);
+}
+
+.zoom-btn.reset {
+  font-size: 12px;
+  border-left: 1px solid var(--border-subtle);
+}
+
+.zoom-level {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  color: var(--text-muted);
+  padding: 0 4px;
+  user-select: none;
+}
+
+/* Draggable & Dynamic Node States */
+.dynamic-svg-viewport {
+  width: 100%;
+  height: 500px;
+  background: #06090e;
+  overflow: hidden;
+  position: relative;
+  cursor: grab;
+  user-select: none;
+}
+
+.dynamic-svg-viewport.is-panning {
+  cursor: grabbing;
+}
+
+.topology-svg-root {
+  width: 100%;
+  height: 100%;
+  display: block;
+  user-select: none;
+  transform-origin: 50% 50%;
+}
+
+.svg-node-group {
+  cursor: grab;
+  transition: transform 0.05s ease-out;
+}
+
+.svg-node-group.is-dragging {
+  cursor: grabbing;
+  filter: drop-shadow(0 0 16px rgba(6, 182, 212, 0.85)) !important;
+}
+
+/* Warning & Resolution Visual States */
+.svg-node-group.warning-node rect.node-body-rect {
+  stroke: #f43f5e !important;
+  stroke-width: 2.5px !important;
+  filter: drop-shadow(0 0 14px rgba(244, 63, 94, 0.75)) !important;
+  animation: warningPulse 1.2s infinite ease-in-out;
+}
+
+@keyframes warningPulse {
+  0%, 100% { stroke: #f43f5e; filter: drop-shadow(0 0 10px rgba(244, 63, 94, 0.5)); }
+  50% { stroke: #fb7185; filter: drop-shadow(0 0 20px rgba(244, 63, 94, 0.95)); }
+}
+
+.svg-node-group.resolved-node rect.node-body-rect {
+  stroke: #10b981 !important;
+  stroke-width: 2px !important;
+  filter: drop-shadow(0 0 10px rgba(16, 185, 129, 0.6)) !important;
+}
