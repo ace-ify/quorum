@@ -95,3 +95,4 @@ $$T_i = \text{Proposal} \cup \text{Memory}(\mathcal{C}_i) \quad \text{where} \qu
 $$\therefore P(\text{Score}_i \mid \text{Score}_j) = P(\text{Score}_i)$$
 
 Specialist scores are **statistically and conditionally independent**, guaranteeing that every vulnerability, scalability bottleneck, and financial risk is evaluated with zero bias.
+

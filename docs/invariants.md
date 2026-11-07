@@ -81,3 +81,4 @@ tests/test_invariants.py::test_inv_data_04_transactional_outbox PASSED    [ 80%]
 tests/test_invariants.py::test_inv_iso_05_switch_room_boundary PASSED     [100%]
 ============================== 5 passed in 0.010s ==============================
 ```
+

@@ -1,194 +1,185 @@
 /**
- * BlindCouncil Studio — Interactive Application Logic
- * Enterprise Multi-Agent Architecture Review Desk
+ * BlindCouncil Workbench — Enterprise Architecture Governance Engine
  */
 
-// Presets Database
-const PRESETS = {
+const PROPOSALS = {
   rfc042: {
-    id: "rfc042",
-    title: "RFC-042: Real-Time WebSocket Messaging Cluster (100k Conns)",
+    id: "RFC-042",
+    title: "Real-Time Messaging Fabric & Ingress Event Streaming",
+    author: "Platform Engineering Core",
+    scale: "100k Sockets",
     targetBranch: "feat/adr-042-impl",
-    testCommand: "pytest tests/ -v",
-    claudeCommand: `claude -p "Read ADR-042.md Section 6. Switch to branch 'feat/adr-042-impl'. Implement the scaffolded files in '.'. Run 'pytest tests/ -v' and do not finish until all tests pass."`,
+    verificationCmd: "pytest tests/ -v",
+    claudeCmd: `claude -p "Read ADR-042.md Section 6. Switch to branch 'feat/adr-042-impl'. Implement the scaffolded files in '.'. Run 'pytest tests/ -v' and do not finish until all tests pass."`,
     diagramImg: "diagram_rfc042_resolved.png",
-    diagramSvg: "diagram_rfc042_resolved.svg",
-    diagramCaption: "RFC-042 Synthesized Topology: AWS L4 NLB ➔ 4-Node Redis Bloom ➔ Outbox CDC ➔ Kafka",
-    invariants: {
-      sec: { title: "🛡️ Security: Sub-ms Revocation", desc: "Redis Bloom Filter bitset deployed at gateway edge. Revoked user IDs checked in <0.2ms with zero DB load." },
-      scale: { title: "⚡ Scalability: p99 Latency <18ms", desc: "Zero synchronous DB queries on 100k socket reconnects. Rolling pod rollouts rebalance cleanly without thundering herds." },
-      fin: { title: "💰 FinOps: -$25,200/Yr Saved", desc: "Right-sized from 12 nodes to 4 nodes with 75% memory autoscale. Handles 25k off-peak to 100k peak effortlessly." },
-      data: { title: "🏛️ Data: Guaranteed Delivery (CDC)", desc: "Postgres outbox_events table commits atomically with state. Debezium CDC streams to Kafka for at-least-once fanout." }
-    },
-    chambers: {
-      sec: { score: "4.5 / 10", vuln: "In-band heartbeat token validation permits 15m window of unauthorized socket frames after account ban. Active CVE risk under SOC2 Article 4.", mandate: "Sub-ms distributed revocation cache at gateway edge." },
-      scale: { score: "6.8 / 10", vuln: "Synchronous database lookups on 100k reconnects during pod rolling deployments will exhaust connection pool and crash Postgres. p99 latency >140ms.", mandate: "In-memory Redis Bloom Filter with zero database hits." },
-      fin: { score: "6.0 / 10", vuln: "12-node provisioned MemoryDB cluster costs $3,500/mo ($42,000/yr) for a 20k off-peak baseline.", mandate: "Launch 4 nodes with 75% memory autoscale. Saves $25,200/year." },
-      data: { score: "7.2 / 10", vuln: "Dual-writing directly to Redis Pub/Sub and Postgres causes message loss or ghost rows on worker crash.", mandate: "Transactional Outbox pattern with Debezium CDC for guaranteed delivery." }
-    },
+    rfcSections: `
+      <h2>1. Problem Statement & Workload Characteristics</h2>
+      <p>Our legacy HTTP long-polling architecture is exhausting EC2 memory pools, driving p99 delivery latency above 450ms, and causing database connection churn. We are proposing a dedicated WebSocket cluster to support 100,000 concurrent sockets with sub-20ms broadcast latency.</p>
+      
+      <h2>2. Proposed Ingress & Auth Specification</h2>
+      <p>Clients connect to an AWS Network Load Balancer (NLB) terminating TLS, forwarding TCP frames to an auto-scaling Envoy gateway tier. During connection upgrade, clients submit an ephemeral JWT.</p>
+      <div class="doc-callout flagged">
+        <strong>Security Flagged (Section 2.3):</strong> Sockets renew credentials using an in-band heartbeat payload every 15 minutes. No external revocation checks are performed between renewals.
+      </div>
+
+      <h2>3. Cluster Memory & Sizing Strategy</h2>
+      <p>To support high-throughput broadcast channels and 24-hour backpressure buffering, we provision 12 dedicated Redis Enterprise nodes (<code>cache.r6g.2xlarge</code>).</p>
+      <div class="doc-callout flagged">
+        <strong>FinOps Flagged (Section 3.1):</strong> Baseline traffic is 20,000 off-peak sockets. The 12-node static provisioning incurs an annual cost of $42,000 regardless of load.
+      </div>
+
+      <h2>4. Persistence & Event Stream Guarantees</h2>
+      <p>Messages written to Redis streams are simultaneously committed to Postgres via application background workers.</p>
+      <div class="doc-callout flagged">
+        <strong>State Consistency Flagged (Section 4.4):</strong> Direct dual-writing without an atomic boundary exposes the cluster to message loss during worker crashes.
+      </div>
+    `,
+    audits: [
+      {
+        domainClass: "sec",
+        domainName: "Security & Auth",
+        specialist: "Aegis",
+        role: "Staff Security Auditor",
+        score: "4.5 / 10",
+        scoreType: "blocking",
+        finding: "In-band heartbeat token validation permits a <strong>15-minute window of unauthorized socket frames</strong> after account ban. Active CVE risk under SOC2 Article 4.",
+        mandate: "Sub-ms distributed revocation cache at gateway edge before frame ingest."
+      },
+      {
+        domainClass: "scale",
+        domainName: "Distributed Scalability",
+        specialist: "Vanguard",
+        role: "Principal Systems Architect",
+        score: "6.8 / 10",
+        scoreType: "conditional",
+        finding: "Synchronous database lookups on 100k reconnects during pod rolling restarts will <strong>exhaust Postgres connection pools</strong> and crash the database. p99 latency >140ms.",
+        mandate: "In-memory Redis Bloom filter with zero database hits on reconnect."
+      },
+      {
+        domainClass: "fin",
+        domainName: "Cloud Economics & FinOps",
+        specialist: "Ledger",
+        role: "Lead Cloud Economics",
+        score: "6.0 / 10",
+        scoreType: "conditional",
+        finding: "12-node provisioned cluster incurs <strong>$3,500/month ($42,000/yr)</strong> for a 20k off-peak baseline. Over-provisioned by 200%.",
+        mandate: "Launch with 4 nodes + 75% memory autoscale. Saves $25,200/year."
+      },
+      {
+        domainClass: "data",
+        domainName: "State & Reliability",
+        specialist: "Titan",
+        role: "Data Reliability Architect",
+        score: "7.2 / 10",
+        scoreType: "conditional",
+        finding: "Dual-writing directly to Redis Pub/Sub and Postgres causes <strong>message loss or ghost rows</strong> on worker container termination.",
+        mandate: "Transactional Outbox pattern with Debezium CDC for guaranteed delivery."
+      }
+    ],
     manifest: [
       { action: "CREATE", path: "src/middleware/bloom_revocation.py", desc: "Redis Bloom filter revocation middleware (Mandated by Aegis & Vanguard)" },
       { action: "CREATE", path: "src/cluster/config.yaml", desc: "4-node cluster autoscaling spec saving $25,200/year (Mandated by Ledger)" },
       { action: "CREATE", path: "src/db/outbox_producer.py", desc: "Transactional Outbox pattern event producer (Mandated by Titan)" }
     ],
-    adrMarkdown: `# ADR-042: RFC-042 Real-Time Messaging & Event Streaming Architecture
+    adrMarkdown: `# ADR-042: Real-Time Messaging & Event Streaming Architecture
 
-**Status:** \`APPROVED WITH CONDITIONS\`  
+**Status:** APPROVED WITH CONDITIONS  
 **Date:** 2026-11-06  
-**Author / Lead:** LeadArchitect (izigriss)  
+**Author / Lead:** Platform Engineering Core  
 **Council Reviewers:** Athena (Chair), Aegis (Sec), Vanguard (Scale), Ledger (FinOps), Titan (Data)
 
 ---
 
-## 1. Executive Summary & Blind Scorecard
-- **Security (Aegis):** 4.5/10 ➔ Resolving: Redis Bloom Revocation Filter
-- **Scalability (Vanguard):** 6.8/10 ➔ Resolving: Decoupled Edge Gateway (Zero DB on Reconnect)
-- **FinOps (Ledger):** 6.0/10 ➔ Resolving: Downsize 12 nodes to 4 nodes (-$25,200/yr)
-- **Data Reliability (Titan):** 7.2/10 ➔ Resolving: Transactional Outbox Pattern + Debezium CDC
+## 1. Executive Summary & Deliberation Outcome
+- **Security (Aegis):** 4.5/10 ➔ Reconciled via Edge Redis Bloom Filter
+- **Scalability (Vanguard):** 6.8/10 ➔ Reconciled via Decoupled Ingress Gateway
+- **FinOps (Ledger):** 6.0/10 ➔ Reconciled via 4-Node Dynamic Autoscale (-$25,200/yr)
+- **Data Reliability (Titan):** 7.2/10 ➔ Reconciled via Transactional Outbox + Debezium CDC
 
 ---
 
-## 2. Key Architectural Invariants & Resolutions
-1. **Revocation Latency Invariant:** Session token revocation must execute in sub-millisecond RAM. Redis Bloom filter at ingress eliminates Postgres lookup storm.
-2. **Cluster Right-Sizing:** 4x \`cache.r6g.xlarge\` primary nodes with auto-scaling triggers at 75% memory threshold.
-3. **Guaranteed Delivery Invariant:** Zero dual-write hazard. Chat state commits to transactional outbox table before streaming to Kafka broker.
+## 2. Invariant Specifications & Reconciled Design
+1. **Revocation Latency:** Bitset lookup in RAM executes in <0.2ms, terminating banned sockets immediately.
+2. **Reconnection Storm:** 100k client reconnections execute with zero synchronous database queries.
+3. **Guaranteed Delivery:** Messages commit to \`outbox_events\` relational table within the state transaction. Debezium CDC streams to Kafka.
 
 ---
 
-## 3. Autonomous Scaffolding Manifest
+## 3. Scaffolding File Manifest
 - \`src/middleware/bloom_revocation.py\`
 - \`src/cluster/config.yaml\`
 - \`src/db/outbox_producer.py\`
 
-*Generated by BlindCouncil on Switch AI.*`,
-    messages: [
-      {
-        author: "Athena", role: "Council Chair", roleType: "bot", colorClass: "athena",
-        avatar: "https://api.dicebear.com/7.x/bottts/svg?seed=Athena&backgroundColor=b6e3f4",
-        time: "Today at 8:01 AM",
-        text: "Convening BlindCouncil for **RFC-042: Scalable Real-Time WebSocket Messaging Cluster**. All 4 specialist isolation chambers (#audit-security, #audit-scalability, #audit-finops, #audit-database) have completed independent blind assessments. Zero cross-agent context leakage detected.",
-        embed: {
-          type: "blue",
-          head: "📊 Blind Council Assessment Matrix",
-          body: `<table class="embed-table">
-            <thead><tr><th>Specialist Chamber</th><th>Score</th><th>Initial Verdict</th><th>Primary Invariant</th></tr></thead>
-            <tbody>
-              <tr><td>🛡️ Aegis (#audit-security)</td><td><strong style="color:#f87171">4.5 / 10</strong></td><td>BLOCKING</td><td>Token Revocation Window</td></tr>
-              <tr><td>⚡ Vanguard (#audit-scalability)</td><td><strong style="color:#60a5fa">6.8 / 10</strong></td><td>CONDITIONAL</td><td>100k Thundering Herd</td></tr>
-              <tr><td>💰 Ledger (#audit-finops)</td><td><strong style="color:#34d399">6.0 / 10</strong></td><td>CONDITIONAL</td><td>12-Node Over-Provisioning</td></tr>
-              <tr><td>🏛️ Titan (#audit-database)</td><td><strong style="color:#22d3ee">7.2 / 10</strong></td><td>CONDITIONAL</td><td>Dual-Write Race Conditions</td></tr>
-            </tbody>
-          </table>`
-        }
-      },
-      {
-        author: "Aegis", role: "Staff Security Auditor", roleType: "bot", colorClass: "aegis",
-        avatar: "https://api.dicebear.com/7.x/bottts/svg?seed=Aegis&backgroundColor=ffdfba",
-        time: "Today at 8:02 AM",
-        text: "I am placing a formal **BLOCK** on RFC-042 as drafted. The proposed in-band token refresh leaves an unverified 15-minute window where a revoked user credential can continue pumping frames across open sockets. This fails SOC2 Article 4. We cannot merge until token revocation is enforced synchronously on heartbeat.",
-        embed: null
-      },
-      {
-        author: "Vanguard", role: "Principal Systems Architect", roleType: "bot", colorClass: "vanguard",
-        avatar: "https://api.dicebear.com/7.x/bottts/svg?seed=Vanguard&backgroundColor=c0aede",
-        time: "Today at 8:02 AM",
-        text: "@Aegis If you force a synchronous database query on every heartbeat across 100,000 concurrent sockets, you will crash the Postgres connection pool within 12 seconds of a pod rollout. The p99 latency will spike past 140ms. Any security enforcement must happen in-memory at the ingress edge.",
-        embed: null
-      },
-      {
-        author: "Ledger", role: "Lead Cloud Economics", roleType: "bot", colorClass: "ledger",
-        avatar: "https://api.dicebear.com/7.x/bottts/svg?seed=Ledger&backgroundColor=d1d4f9",
-        time: "Today at 8:03 AM",
-        text: "And who approved 12 dedicated Redis Enterprise nodes for initial launch? Off-peak traffic is 20k connections. You are burning $3,500/month ($42,000/yr) on idle compute. Downsize to 4 nodes with memory autoscaling at 75% load. That recoups **$25,200 annually** without impacting peak.",
-        embed: null
-      },
-      {
-        author: "Titan", role: "Data & State Reliability", roleType: "bot", colorClass: "titan",
-        avatar: "https://api.dicebear.com/7.x/bottts/svg?seed=Titan&backgroundColor=ffd5dc",
-        time: "Today at 8:03 AM",
-        text: "Regarding event persistence: the proposal dual-writes to Redis Streams and Postgres. If a worker node crashes between the two writes, message state is corrupted. We must enforce the **Transactional Outbox Pattern** with Debezium CDC into Kafka for guaranteed delivery.",
-        embed: null
-      },
-      {
-        author: "Athena", role: "Council Chair", roleType: "bot", colorClass: "athena",
-        avatar: "https://api.dicebear.com/7.x/bottts/svg?seed=Athena&backgroundColor=b6e3f4",
-        time: "Today at 8:04 AM",
-        text: "Synthesizing resolution: Vanguard's latency requirement and Aegis's revocation requirement converge on a **Redis Bloom Filter** bitset at the edge (checks <0.2ms, zero DB load). Ledger's 4-node autoscale cluster accepted. Titan's Transactional Outbox accepted. Human Lead, how do you steer?",
-        embed: null
-      },
-      {
-        author: "izigriss", role: "Lead Architect", roleType: "lead", colorClass: "human",
-        avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=izigriss",
-        time: "Today at 8:04 AM",
-        text: "!summary",
-        embed: null
-      },
-      {
-        author: "Athena", role: "Council Chair", roleType: "bot", colorClass: "athena",
-        avatar: "https://api.dicebear.com/7.x/bottts/svg?seed=Athena&backgroundColor=b6e3f4",
-        time: "Today at 8:04 AM",
-        text: "**DELIBERATION SUMMARY & CONSENSUS LEDGER:**\n• Security: Redis Bloom Filter Revocation (Zero-DB lookup storm, <0.2ms latency)\n• Cluster Sizing: 4-node provisioned with 75% autoscale (-$25,200/yr cost savings)\n• Reliability: Transactional Outbox + Debezium CDC for zero lost messages\n• Status: Ready for Lead Architect sign-off (`approve`).",
-        embed: null
-      },
-      {
-        author: "izigriss", role: "Lead Architect", roleType: "lead", colorClass: "human",
-        avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=izigriss",
-        time: "Today at 8:05 AM",
-        text: "!diagram",
-        embed: {
-          type: "blue",
-          head: "📊 Visual Architecture Topology Generated",
-          body: `<p>Synthesized visual system topology successfully rendered to vector SVG and high-DPI PNG:</p>
-                 <img src="diagram_rfc042_resolved.png" style="width:100%; max-height:260px; object-fit:contain; border-radius:6px; margin-top:8px;" alt="Topology">`
-        }
-      },
-      {
-        author: "izigriss", role: "Lead Architect", roleType: "lead", colorClass: "human",
-        avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=izigriss",
-        time: "Today at 8:05 AM",
-        text: "approve",
-        embed: null
-      },
-      {
-        author: "Athena", role: "Council Chair", roleType: "bot", colorClass: "athena",
-        avatar: "https://api.dicebear.com/7.x/bottts/svg?seed=Athena&backgroundColor=b6e3f4",
-        time: "Today at 8:05 AM",
-        text: "✅ **COUNCIL CONSENSUS APPROVED BY LEAD ARCHITECT.**\nHandoff delivered to autonomous terminal coding agents.",
-        embed: {
-          type: "gold",
-          head: "🚀 [SWITCH IMPLEMENTER HANDOFF: BLINDCOUNCIL ➔ CLAUDE CODE / CODEX]",
-          body: `<p><strong>Target Branch:</strong> <code>feat/adr-042-impl</code> | <strong>Harness:</strong> <code>pytest tests/ -v</code></p>
-                 <p style="margin-top:6px;"><strong>Scaffolded Files:</strong><br>
-                 1. <code>src/middleware/bloom_revocation.py</code> (Redis Bloom filter)<br>
-                 2. <code>src/cluster/config.yaml</code> (4-node autoscale spec)<br>
-                 3. <code>src/db/outbox_producer.py</code> (Transactional Outbox producer)</p>
-                 <pre style="background:#0c1017; padding:8px; border-radius:4px; font-size:11px; margin-top:8px; color:#a78bfa;">claude -p "Read ADR-042.md Section 6. Switch to branch 'feat/adr-042-impl'. Implement the scaffolded files in '.'. Run 'pytest tests/ -v' and do not finish until all tests pass."</pre>
-                 <p style="color:#34d399; font-weight:700; margin-top:6px;">Autonomous implementation pipeline active!</p>`
-        }
-      }
-    ]
+*Generated by BlindCouncil Workbench.*`
   },
 
   rfc019: {
-    id: "rfc019",
-    title: "RFC-019: Global Scalable URL Shortener (10B Keys)",
+    id: "RFC-019",
+    title: "Global Scalable URL Shortener Architecture (10B Keys)",
+    author: "Core Infra Team",
+    scale: "10B Keys / 50k QPS",
     targetBranch: "feat/adr-019-impl",
-    testCommand: "pytest tests/test_url_shortener.py -v",
-    claudeCommand: `claude -p "Read ADR-019.md Section 6. Switch to branch 'feat/adr-019-impl'. Implement Base62 collision-free ID generator with Redis cluster cache and Cassandra persistent tier. Run 'pytest tests/ -v' and ensure all tests pass."`,
+    verificationCmd: "pytest tests/ -v",
+    claudeCmd: `claude -p "Read ADR-019.md Section 6. Switch to branch 'feat/adr-019-impl'. Implement Base62 collision-free ID generator with Redis cluster cache and Cassandra persistent tier. Run 'pytest tests/ -v'."`,
     diagramImg: "diagram_rfc042_resolved.png",
-    diagramCaption: "RFC-019 Synthesized Topology: Cloudflare Edge Worker ➔ KGS Range Service ➔ Redis LRU Cache ➔ Cassandra",
-    invariants: {
-      sec: { title: "🛡️ Security: Rate-Limiting & Anti-Phishing", desc: "Token bucket rate-limiter at Cloudflare edge with Google Safe Browsing API check before persistence." },
-      scale: { title: "⚡ Scalability: 10B Keys / 50k QPS", desc: "Base62 pre-allocated Key Generation Service (KGS) avoids coordination bottleneck and DB unique constraints." },
-      fin: { title: "💰 FinOps: -$14,000/Yr Storage Tiering", desc: "Hot links cached in Redis LRU (80/20 rule), cold URLs tiered to object-backed Cassandra storage." },
-      data: { title: "🏛️ Data: Zero Key Collisions (ACID KGS)", desc: "Zookeeper-managed ranges of 1,000,000 keys per instance guarantee mathematically disjoint IDs." }
-    },
-    chambers: {
-      sec: { score: "5.2 / 10", vuln: "Unauthenticated link expansion endpoint subject to redirection poisoning and SEO link abuse.", mandate: "Edge domain verification and reputation scoring." },
-      scale: { score: "7.0 / 10", vuln: "Database auto-increment integer ID exhausts capacity at 2B rows and creates predictable link scanning.", mandate: "Adopt 7-character Base62 distributed KGS cluster." },
-      fin: { score: "6.5 / 10", vuln: "Retaining click telemetry indefinitely in transactional database inflates storage costs by 400%.", mandate: "Stream click events to ClickHouse with 90-day cold retention." },
-      data: { score: "8.1 / 10", vuln: "Multi-region replication delay causes 404 for newly created links clicked immediately in another continent.", mandate: "Read-your-own-writes session sticky routing to origin region." }
-    },
+    rfcSections: `
+      <h2>1. Workload Scope & Key Space</h2>
+      <p>Designing a global URL shortening service capable of persisting 10 Billion distinct links with a read:write ratio of 100:1 and 50,000 query operations per second.</p>
+
+      <h2>2. Key Generation & Persistence Strategy</h2>
+      <p>Proposal utilizes standard SQL auto-increment IDs converted to Base62 strings on ingest.</p>
+      <div class="doc-callout flagged">
+        <strong>Scalability Flagged (Section 2.1):</strong> Centralized auto-increment sequence creates a lock bottleneck at 50k QPS and exposes link enumeration attack surface.
+      </div>
+
+      <h2>3. Analytics & Telemetry Retention</h2>
+      <p>Click telemetry events are written directly to the relational primary database for 365 days.</p>
+      <div class="doc-callout flagged">
+        <strong>FinOps Flagged (Section 3.4):</strong> Relational storage for raw click telemetry increases primary database footprint by 400%, adding $14,000/year in unnecessary high-IOPS storage.
+      </div>
+    `,
+    audits: [
+      {
+        domainClass: "sec",
+        domainName: "Security & Abuse",
+        specialist: "Aegis",
+        role: "Staff Security Auditor",
+        score: "5.2 / 10",
+        scoreType: "conditional",
+        finding: "Sequential Base62 IDs allow automated scraping bots to <strong>enumerate and harvest private shortened links</strong>.",
+        mandate: "Randomized pre-allocated range shuffle in distributed Key Generation Service."
+      },
+      {
+        domainClass: "scale",
+        domainName: "Distributed Scalability",
+        specialist: "Vanguard",
+        role: "Principal Systems Architect",
+        score: "7.0 / 10",
+        scoreType: "conditional",
+        finding: "Single relational sequence generator bottlenecks under <strong>50k QPS global concurrent writes</strong>.",
+        mandate: "Distributed KGS allocating 1M key chunks per node via Zookeeper leases."
+      },
+      {
+        domainClass: "fin",
+        domainName: "Cloud Economics & FinOps",
+        specialist: "Ledger",
+        role: "Lead Cloud Economics",
+        score: "6.5 / 10",
+        scoreType: "conditional",
+        finding: "Storing raw click streams in primary transactional storage incurs <strong>$14,000/year in wasted IOPS</strong>.",
+        mandate: "Tier telemetry to ClickHouse/S3 with 90-day cold retention policy."
+      },
+      {
+        domainClass: "data",
+        domainName: "State & Reliability",
+        specialist: "Titan",
+        role: "Data Reliability Architect",
+        score: "8.1 / 10",
+        scoreType: "conditional",
+        finding: "Cross-region replication lag can return <strong>404 Not Found</strong> for links clicked immediately in another continent.",
+        mandate: "Read-your-own-writes session pinning to primary origin region."
+      }
+    ],
     manifest: [
       { action: "CREATE", path: "src/kgs/range_allocator.py", desc: "Base62 distributed key generation range coordinator" },
       { action: "CREATE", path: "src/cache/lru_tier.py", desc: "Redis hot-tier cache with 80/20 memory eviction policy" },
@@ -196,18 +187,18 @@ const PRESETS = {
     ],
     adrMarkdown: `# ADR-019: Global Scalable URL Shortener Architecture (10B Keys)
 
-**Status:** \`APPROVED WITH CONDITIONS\`  
+**Status:** APPROVED WITH CONDITIONS  
 **Date:** 2026-11-06  
-**Author / Lead:** LeadArchitect (izigriss)  
+**Author / Lead:** Core Infra Team  
 **Council Reviewers:** Athena (Chair), Aegis, Vanguard, Ledger, Titan
 
 ---
 
 ## 1. Executive Summary & Blind Scorecard
-- **Security (Aegis):** 5.2/10 ➔ Resolving: Edge Token Bucket + Safe Browsing Hook
-- **Scalability (Vanguard):** 7.0/10 ➔ Resolving: Distributed Base62 KGS (Zero DB auto-increment lock)
-- **FinOps (Ledger):** 6.5/10 ➔ Resolving: ClickHouse analytics tiering (-$14,000/yr)
-- **Data (Titan):** 8.1/10 ➔ Resolving: Read-Your-Own-Writes Session Stickiness
+- Security: 5.2/10 ➔ Resolving: Randomized KGS Ranges
+- Scalability: 7.0/10 ➔ Resolving: Distributed Base62 Key Range Coordinator
+- FinOps: 6.5/10 ➔ Resolving: ClickHouse Analytics Tiering (-$14,000/yr)
+- Data: 8.1/10 ➔ Resolving: Read-Your-Own-Writes Session Pinning
 
 ---
 
@@ -216,70 +207,76 @@ const PRESETS = {
 - \`src/cache/lru_tier.py\`
 - \`src/security/safe_browsing.py\`
 
-*Generated by BlindCouncil on Switch AI.*`,
-    messages: [
-      {
-        author: "Athena", role: "Council Chair", roleType: "bot", colorClass: "athena",
-        avatar: "https://api.dicebear.com/7.x/bottts/svg?seed=Athena&backgroundColor=b6e3f4",
-        time: "Today at 9:10 AM",
-        text: "Convening BlindCouncil for **RFC-019: Global Scalable URL Shortener (10B Keys)**. 4 independent specialist chambers have submitted their blind findings.",
-        embed: {
-          type: "blue",
-          head: "📊 RFC-019 Blind Evaluation Matrix",
-          body: `<p>• Aegis: 5.2/10 (Link redirection poisoning risk)<br>• Vanguard: 7.0/10 (Auto-increment lock exhaustion)<br>• Ledger: 6.5/10 (Telemetry storage bloat)<br>• Titan: 8.1/10 (Cross-region replication 404s)</p>`
-        }
-      },
-      {
-        author: "Vanguard", role: "Principal Systems Architect", roleType: "bot", colorClass: "vanguard",
-        avatar: "https://api.dicebear.com/7.x/bottts/svg?seed=Vanguard&backgroundColor=c0aede",
-        time: "Today at 9:11 AM",
-        text: "Using auto-increment IDs in SQL will bottleneck at 50,000 QPS. We must implement a dedicated Key Generation Service (KGS) handing out pre-computed Base62 tokens.",
-        embed: null
-      },
-      {
-        author: "Aegis", role: "Staff Security Auditor", roleType: "bot", colorClass: "aegis",
-        avatar: "https://api.dicebear.com/7.x/bottts/svg?seed=Aegis&backgroundColor=ffdfba",
-        time: "Today at 9:11 AM",
-        text: "Agreed with KGS, but we must prevent link scanners from brute-forcing sequential URLs. KGS ranges must be randomly shuffled before allocation.",
-        embed: null
-      },
-      {
-        author: "izigriss", role: "Lead Architect", roleType: "lead", colorClass: "human",
-        avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=izigriss",
-        time: "Today at 9:12 AM",
-        text: "approve",
-        embed: null
-      },
-      {
-        author: "Athena", role: "Council Chair", roleType: "bot", colorClass: "athena",
-        avatar: "https://api.dicebear.com/7.x/bottts/svg?seed=Athena&backgroundColor=b6e3f4",
-        time: "Today at 9:12 AM",
-        text: "Consensus reached. Handoff generated for Claude Code on branch `feat/adr-019-impl`.",
-        embed: null
-      }
-    ]
+*Generated by BlindCouncil Workbench.*`
   },
 
   rfc088: {
-    id: "rfc088",
-    title: "RFC-088: Multi-Region Payment Processing Service",
+    id: "RFC-088",
+    title: "Multi-Region Payment Processing Service",
+    author: "Fintech Platform Team",
+    scale: "Active-Active Multi-Region",
     targetBranch: "feat/adr-088-impl",
-    testCommand: "pytest tests/test_payment_saga.py -v",
-    claudeCommand: `claude -p "Read ADR-088.md Section 6. Switch to branch 'feat/adr-088-impl'. Implement idempotency key middleware with DynamoDB TTL and distributed two-phase saga coordinator. Run 'pytest tests/ -v'."`,
+    verificationCmd: "pytest tests/ -v",
+    claudeCmd: `claude -p "Read ADR-088.md Section 6. Switch to branch 'feat/adr-088-impl'. Implement idempotency key middleware with DynamoDB TTL and distributed two-phase saga coordinator. Run 'pytest tests/ -v'."`,
     diagramImg: "diagram_rfc042_resolved.png",
-    diagramCaption: "RFC-088 Synthesized Topology: Global Anycast IP ➔ Envoy Idempotency Layer ➔ Payment Saga Coordinator ➔ Multi-Bank Gateways",
-    invariants: {
-      sec: { title: "🛡️ Security: PCI-DSS Level 1 Tokenization", desc: "Cardholder data never touches application memory; tokenized directly into vault at perimeter." },
-      scale: { title: "⚡ Scalability: Active-Active Multi-Region", desc: "Conflict-free CRDT ledger with regional idempotency locks prevents double-charging during failovers." },
-      fin: { title: "💰 FinOps: Multi-Provider Smart Routing", desc: "Dynamically routes transactions to Stripe, Adyen, or Chase based on lowest interchange fees (-$38,000/yr)." },
-      data: { title: "🏛️ Data: Distributed Saga Orchestration", desc: "Compensating transactions handle network timeouts with guaranteed zero orphan authorization holds." }
-    },
-    chambers: {
-      sec: { score: "3.8 / 10", vuln: "Raw PAN exposure in debug log aggregators violates PCI-DSS Requirement 3.4.", mandate: "Zero-knowledge logging filter and HSM envelope encryption." },
-      scale: { score: "6.2 / 10", vuln: "Cross-region latency spikes on distributed locks cause 1,200ms checkout abandonment.", mandate: "Regional idempotency lease with DynamoDB global tables." },
-      fin: { score: "5.8 / 10", vuln: "Static payment routing incurs high international interchange markup of 2.9% + 30c.", mandate: "Implement least-cost dynamic smart router saving 40 bps." },
-      data: { score: "6.5 / 10", vuln: "Non-atomic webhook processing causes double-crediting of balance on gateway retries.", mandate: "Strict database UNIQUE constraint on provider transaction ID." }
-    },
+    rfcSections: `
+      <h2>1. Architecture Scope & Payment Resilience</h2>
+      <p>Designing a high-availability active-active multi-region payment gateway with automated failover across Stripe, Adyen, and Chase.</p>
+
+      <h2>2. Logging & Audit Telemetry</h2>
+      <p>Incoming HTTP payloads are logged comprehensively to centralized Elasticsearch cluster for real-time customer support debugging.</p>
+      <div class="doc-callout flagged">
+        <strong>Security Flagged (Section 2.4):</strong> Raw payment payload ingestion logs unmasked cardholder metadata, creating a critical PCI-DSS Level 1 compliance failure.
+      </div>
+
+      <h2>3. Idempotency & Distributed Locking</h2>
+      <p>Cross-region distributed locks synchronize payment authorization across AWS us-east-1 and eu-west-1.</p>
+      <div class="doc-callout flagged">
+        <strong>Scalability Flagged (Section 3.2):</strong> Synchronous cross-region distributed lock handshakes add 800ms to checkout p99 latency.
+      </div>
+    `,
+    audits: [
+      {
+        domainClass: "sec",
+        domainName: "Security & PCI-DSS",
+        specialist: "Aegis",
+        role: "Staff Security Auditor",
+        score: "3.8 / 10",
+        scoreType: "blocking",
+        finding: "Unmasked cardholder data in debug log aggregation violates <strong>PCI-DSS Requirement 3.4</strong>. Absolute deployment blocker.",
+        mandate: "Zero-knowledge tokenization at edge perimeter before service routing."
+      },
+      {
+        domainClass: "scale",
+        domainName: "Distributed Scalability",
+        specialist: "Vanguard",
+        role: "Principal Systems Architect",
+        score: "6.2 / 10",
+        scoreType: "conditional",
+        finding: "Cross-region locking introduces <strong>800ms checkout latency spikes</strong>, increasing shopping cart abandonment.",
+        mandate: "Regional idempotency leases backed by DynamoDB global tables."
+      },
+      {
+        domainClass: "fin",
+        domainName: "Cloud Economics & FinOps",
+        specialist: "Ledger",
+        role: "Lead Cloud Economics",
+        score: "5.8 / 10",
+        scoreType: "conditional",
+        finding: "Static payment gateway routing pays <strong>2.9% + 30c flat interchange</strong> on all transactions regardless of region.",
+        mandate: "Least-cost smart router dynamically routing to lowest interchange fee (-$38,000/yr)."
+      },
+      {
+        domainClass: "data",
+        domainName: "State & Reliability",
+        specialist: "Titan",
+        role: "Data Reliability Architect",
+        score: "6.5 / 10",
+        scoreType: "conditional",
+        finding: "Non-atomic webhook retries from payment providers cause <strong>duplicate balance crediting</strong>.",
+        mandate: "Two-phase saga state machine with strict database unique constraints."
+      }
+    ],
     manifest: [
       { action: "CREATE", path: "src/payment/idempotency_guard.py", desc: "Distributed idempotency filter with DynamoDB conditional write" },
       { action: "CREATE", path: "src/saga/payment_coordinator.py", desc: "Two-phase saga state machine with automatic compensations" },
@@ -287,18 +284,18 @@ const PRESETS = {
     ],
     adrMarkdown: `# ADR-088: Multi-Region Payment Processing Service
 
-**Status:** \`APPROVED WITH CONDITIONS\`  
+**Status:** APPROVED WITH CONDITIONS  
 **Date:** 2026-11-06  
-**Author / Lead:** LeadArchitect (izigriss)  
+**Author / Lead:** Fintech Platform Team  
 **Council Reviewers:** Athena (Chair), Aegis, Vanguard, Ledger, Titan
 
 ---
 
 ## 1. Executive Summary & Blind Scorecard
-- **Security (Aegis):** 3.8/10 ➔ Resolving: Zero-Knowledge Logging Filter & HSM Tokenization
-- **Scalability (Vanguard):** 6.2/10 ➔ Resolving: DynamoDB Regional Idempotency Leases
-- **FinOps (Ledger):** 5.8/10 ➔ Resolving: Smart Interchange Routing (-$38,000/yr)
-- **Data (Titan):** 6.5/10 ➔ Resolving: Distributed Payment Saga Machine
+- Security: 3.8/10 ➔ Resolving: Edge Tokenization & Zero-Log Filter
+- Scalability: 6.2/10 ➔ Resolving: DynamoDB Regional Idempotency Leases
+- FinOps: 5.8/10 ➔ Resolving: Least-Cost Interchange Routing (-$38,000/yr)
+- Data: 6.5/10 ➔ Resolving: Distributed Payment Saga Machine
 
 ---
 
@@ -307,414 +304,236 @@ const PRESETS = {
 - \`src/saga/payment_coordinator.py\`
 - \`src/routing/smart_interchange.py\`
 
-*Generated by BlindCouncil on Switch AI.*`,
-    messages: [
-      {
-        author: "Athena", role: "Council Chair", roleType: "bot", colorClass: "athena",
-        avatar: "https://api.dicebear.com/7.x/bottts/svg?seed=Athena&backgroundColor=b6e3f4",
-        time: "Today at 10:00 AM",
-        text: "Convening BlindCouncil for **RFC-088: Multi-Region Payment Processing Service**. Zero leakage verified across chambers.",
-        embed: {
-          type: "blue",
-          head: "📊 RFC-088 Blind Assessment",
-          body: `<p>• Aegis: 3.8/10 (PCI-DSS PAN leakage in logs)<br>• Vanguard: 6.2/10 (Cross-region lock latency)<br>• Ledger: 5.8/10 (Interchange fee waste)<br>• Titan: 6.5/10 (Idempotency retry duplicates)</p>`
-        }
-      },
-      {
-        author: "Aegis", role: "Staff Security Auditor", roleType: "bot", colorClass: "aegis",
-        avatar: "https://api.dicebear.com/7.x/bottts/svg?seed=Aegis&backgroundColor=ffdfba",
-        time: "Today at 10:01 AM",
-        text: "ABSOLUTE BLOCK. Logging raw card metadata anywhere in stack violates PCI-DSS Level 1. Tokenization MUST occur at the perimeter ingress before reaching microservices.",
-        embed: null
-      },
-      {
-        author: "izigriss", role: "Lead Architect", roleType: "lead", colorClass: "human",
-        avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=izigriss",
-        time: "Today at 10:02 AM",
-        text: "approve",
-        embed: null
-      },
-      {
-        author: "Athena", role: "Council Chair", roleType: "bot", colorClass: "athena",
-        avatar: "https://api.dicebear.com/7.x/bottts/svg?seed=Athena&backgroundColor=b6e3f4",
-        time: "Today at 10:02 AM",
-        text: "Consensus locked. Perimeter tokenization and saga coordinator scaffolded for Claude Code.",
-        embed: null
-      }
-    ]
+*Generated by BlindCouncil Workbench.*`
   }
 };
 
-let currentPresetKey = "rfc042";
-let isDeliberating = false;
+let currentProposalKey = "rfc042";
 
-// 1. Tab Switching
-function switchTab(tabId) {
-  // Update nav tabs
-  const tabs = document.querySelectorAll(".nav-tab");
+// 1. Switch View Tabs
+function switchView(viewId) {
+  const tabs = document.querySelectorAll(".tab-btn");
   tabs.forEach(tab => {
     tab.classList.remove("active");
-    if (tab.getAttribute("onclick") && tab.getAttribute("onclick").includes(`'${tabId}'`)) {
+    if (tab.getAttribute("data-tab") === viewId) {
       tab.classList.add("active");
     }
   });
 
-  // Update panels
-  const panels = document.querySelectorAll(".tab-panel");
-  panels.forEach(panel => {
-    panel.classList.remove("active");
+  const views = document.querySelectorAll(".workbench-view");
+  views.forEach(view => {
+    view.classList.remove("active");
   });
 
-  const activePanel = document.getElementById(`tab-${tabId}`);
-  if (activePanel) {
-    activePanel.classList.add("active");
+  const activeView = document.getElementById(`view-${viewId}`);
+  if (activeView) {
+    activeView.classList.add("active");
   }
 }
 
-// 2. Preset Switching
-function switchPreset(key) {
-  if (!PRESETS[key]) return;
-  currentPresetKey = key;
-  const data = PRESETS[key];
+// 2. Load Proposal Data
+function loadProposal(key) {
+  if (!PROPOSALS[key]) return;
+  currentProposalKey = key;
+  const p = PROPOSALS[key];
 
-  // Update ADR Content
-  const adrElem = document.getElementById("adr-content");
-  if (adrElem) {
-    adrElem.innerHTML = renderMarkdown(data.adrMarkdown);
-  }
+  // View 1: RFC Inspector Pane
+  document.getElementById("doc-rfc-id").textContent = p.id;
+  document.getElementById("doc-rfc-title").textContent = p.title;
+  document.getElementById("rfc-rendered-body").innerHTML = p.rfcSections;
 
-  // Update Claude Command
-  const cmdElem = document.getElementById("claude-cmd-text");
-  if (cmdElem) {
-    cmdElem.textContent = data.claudeCommand;
-  }
-
-  // Update Manifest
-  const manifestContainer = document.querySelector(".manifest-list");
-  if (manifestContainer) {
-    manifestContainer.innerHTML = data.manifest.map(item => `
-      <div class="manifest-item">
-        <span class="action-tag action-${item.action.toLowerCase()}">${item.action}</span>
-        <code>${item.path}</code>
-        <p>${item.desc}</p>
-      </div>
-    `).join("");
-  }
-
-  // Update Isolation Chambers
-  const chSec = document.querySelector(".chamber-sec");
-  if (chSec) {
-    chSec.querySelector(".ch-score").textContent = data.chambers.sec.score;
-    chSec.querySelector(".ch-finding").innerHTML = `<strong>Vulnerability:</strong> ${data.chambers.sec.vuln}`;
-    chSec.querySelector(".ch-mandate").innerHTML = `<strong>Mandate:</strong> ${data.chambers.sec.mandate}`;
-  }
-  const chScale = document.querySelector(".chamber-scale");
-  if (chScale) {
-    chScale.querySelector(".ch-score").textContent = data.chambers.scale.score;
-    chScale.querySelector(".ch-finding").innerHTML = `<strong>Bottleneck:</strong> ${data.chambers.scale.vuln}`;
-    chScale.querySelector(".ch-mandate").innerHTML = `<strong>Mandate:</strong> ${data.chambers.scale.mandate}`;
-  }
-  const chFin = document.querySelector(".chamber-fin");
-  if (chFin) {
-    chFin.querySelector(".ch-score").textContent = data.chambers.fin.score;
-    chFin.querySelector(".ch-finding").innerHTML = `<strong>Compute Waste:</strong> ${data.chambers.fin.vuln}`;
-    chFin.querySelector(".ch-mandate").innerHTML = `<strong>Mandate:</strong> ${data.chambers.fin.mandate}`;
-  }
-  const chData = document.querySelector(".chamber-data");
-  if (chData) {
-    chData.querySelector(".ch-score").textContent = data.chambers.data.score;
-    chData.querySelector(".ch-finding").innerHTML = `<strong>State Inconsistency:</strong> ${data.chambers.data.vuln}`;
-    chData.querySelector(".ch-mandate").innerHTML = `<strong>Mandate:</strong> ${data.chambers.data.mandate}`;
-  }
-
-  // Update Topology Cards
-  const topoSec = document.querySelector(".topo-sec");
-  if (topoSec) {
-    topoSec.querySelector("h4").textContent = data.invariants.sec.title;
-    topoSec.querySelector("p").textContent = data.invariants.sec.desc;
-  }
-  const topoScale = document.querySelector(".topo-scale");
-  if (topoScale) {
-    topoScale.querySelector("h4").textContent = data.invariants.scale.title;
-    topoScale.querySelector("p").textContent = data.invariants.scale.desc;
-  }
-  const topoFin = document.querySelector(".topo-fin");
-  if (topoFin) {
-    topoFin.querySelector("h4").textContent = data.invariants.fin.title;
-    topoFin.querySelector("p").textContent = data.invariants.fin.desc;
-  }
-  const topoData = document.querySelector(".topo-data");
-  if (topoData) {
-    topoData.querySelector("h4").textContent = data.invariants.data.title;
-    topoData.querySelector("p").textContent = data.invariants.data.desc;
-  }
-
-  // Render chat stream
-  renderChatMessages(data.messages);
-}
-
-// 3. Render Chat Messages
-function renderChatMessages(messages) {
-  const container = document.getElementById("chat-stream");
-  if (!container) return;
-  container.innerHTML = "";
-
-  messages.forEach(msg => {
-    appendMessageCard(msg, container);
-  });
-
-  container.scrollTop = container.scrollHeight;
-}
-
-function appendMessageCard(msg, container = null) {
-  if (!container) container = document.getElementById("chat-stream");
-  if (!container) return;
-
-  const card = document.createElement("div");
-  card.className = "chat-card";
-
-  const badgeHtml = msg.roleType === "lead" 
-    ? `<span class="chat-role-badge badge-lead">LEAD ARCHITECT</span>`
-    : `<span class="chat-role-badge badge-bot">BOT</span>`;
-
-  let embedHtml = "";
-  if (msg.embed) {
-    embedHtml = `
-      <div class="chat-embed ${msg.embed.type || 'blue'}">
-        <div class="embed-head">${msg.embed.head}</div>
-        <div class="embed-body">${msg.embed.body}</div>
-      </div>
-    `;
-  }
-
-  // Parse markdown bold and inline code
-  let formattedText = msg.text
-    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-    .replace(/`(.*?)`/g, '<code>$1</code>')
-    .replace(/\n/g, '<br>');
-
-  card.innerHTML = `
-    <img src="${msg.avatar}" alt="${msg.author}" class="chat-avatar">
-    <div class="chat-body">
-      <div class="chat-meta">
-        <span class="chat-author ${msg.colorClass || ''}">${msg.author}</span>
-        ${badgeHtml}
-        <span class="chat-time">${msg.time || 'Today at ' + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
-      </div>
-      <div class="chat-text">${formattedText}</div>
-      ${embedHtml}
-    </div>
-  `;
-
-  container.appendChild(card);
-  container.scrollTop = container.scrollHeight;
-}
-
-// 4. Live Deliberation Simulation with Animated Stream
-function runLiveDeliberation() {
-  if (isDeliberating) return;
-  isDeliberating = true;
-  switchTab('floor');
-
-  const container = document.getElementById("chat-stream");
-  container.innerHTML = "";
-
-  const messages = PRESETS[currentPresetKey].messages;
-  let idx = 0;
-
-  function streamNext() {
-    if (idx >= messages.length) {
-      isDeliberating = false;
-      showToast("Deliberation complete. Autonomous handoff active!");
-      return;
-    }
-
-    const currentMsg = messages[idx];
-    
-    // Show typing indicator
-    const typingIndicator = document.createElement("div");
-    typingIndicator.id = "typing-indicator";
-    typingIndicator.className = "chat-card";
-    typingIndicator.innerHTML = `
-      <img src="${currentMsg.avatar}" class="chat-avatar" style="opacity:0.6;">
-      <div class="chat-body">
-        <div class="chat-meta">
-          <span class="chat-author ${currentMsg.colorClass}">${currentMsg.author}</span>
-          <span class="chat-time" style="font-style:italic;">is deliberating...</span>
+  // View 1: Specialist Cards
+  const cardsContainer = document.getElementById("audit-cards-list");
+  cardsContainer.innerHTML = p.audits.map(a => `
+    <div class="audit-card ${a.domainClass}">
+      <div class="card-top">
+        <div class="specialist-meta">
+          <div class="specialist-avatar ${a.domainClass}">${a.specialist.charAt(0)}</div>
+          <div>
+            <div class="specialist-name">${a.specialist}</div>
+            <div class="specialist-domain">${a.role}</div>
+          </div>
         </div>
+        <span class="score-badge ${a.scoreType}">${a.score}</span>
       </div>
-    `;
-    container.appendChild(typingIndicator);
-    container.scrollTop = container.scrollHeight;
+      <div class="card-finding">${a.finding}</div>
+      <div class="card-mandate"><span>MANDATE:</span> ${a.mandate}</div>
+    </div>
+  `).join("");
 
-    setTimeout(() => {
-      const el = document.getElementById("typing-indicator");
-      if (el) el.remove();
-      appendMessageCard(currentMsg);
-      idx++;
-      setTimeout(streamNext, 700);
-    }, 600);
+  document.getElementById("audit-count").textContent = `${p.audits.length} Findings`;
+
+  // View 4: ADR & Manifest
+  document.getElementById("adr-doc-title").textContent = `${p.id}: ${p.title}`;
+  document.getElementById("adr-markdown-content").innerHTML = renderMarkdown(p.adrMarkdown);
+  document.getElementById("target-branch-text").textContent = `git checkout -b ${p.targetBranch}`;
+  document.getElementById("verification-cmd-text").textContent = p.verificationCmd;
+  document.getElementById("cli-cmd-display").textContent = p.claudeCmd;
+
+  const manifestTable = document.getElementById("scaffold-manifest-rows");
+  manifestTable.innerHTML = p.manifest.map(m => `
+    <div class="manifest-row">
+      <div class="manifest-head">
+        <span class="action-badge action-${m.action.toLowerCase()}">${m.action}</span>
+        <span class="manifest-file">${m.path}</span>
+      </div>
+      <div class="manifest-desc">${m.desc}</div>
+    </div>
+  `).join("");
+
+  // Update Simulation Telemetry
+  updateSimulation();
+}
+
+// 3. Invariant & Trade-off Simulator Logic
+function updateSimulation() {
+  const concurrency = parseInt(document.getElementById("dial-concurrency").value, 10);
+  const revocation = document.getElementById("dial-revocation").value;
+  const cluster = document.getElementById("dial-cluster").value;
+  const persistence = document.getElementById("dial-persistence").value;
+
+  // Display Dial Value
+  document.getElementById("val-concurrency").textContent = concurrency.toLocaleString();
+
+  // 1. Calculate p99 Latency
+  let p99 = 12.0 + (concurrency / 100000) * 2.2;
+  let latencyStatus = "Within 18ms SLA Target";
+  let latencyClass = "status-good";
+
+  if (revocation === "db") {
+    p99 += 128.0 + (concurrency / 20000) * 8.5;
+    latencyStatus = "CRITICAL: Database Pool Exhaustion";
+    latencyClass = "status-bad";
+  } else if (cluster === "static2") {
+    p99 += 190.0;
+    latencyStatus = "CRITICAL: Cluster CPU Throttling";
+    latencyClass = "status-bad";
+  } else if (concurrency > 180000) {
+    p99 += 8.5;
+    latencyStatus = "High Load Warning";
+    latencyClass = "status-warn";
   }
 
-  streamNext();
-}
+  document.getElementById("metric-latency").textContent = p99.toFixed(1);
+  const statusLatEl = document.getElementById("status-latency");
+  statusLatEl.textContent = latencyStatus;
+  statusLatEl.className = `metric-status ${latencyClass}`;
 
-function resetStudio() {
-  isDeliberating = false;
-  switchPreset(currentPresetKey);
-  showToast("Studio reset to initial baseline.");
-}
+  // 2. Calculate Infrastructure Cost
+  let costNum = 16800;
+  let costStatus = "Saves $25,200/yr vs Static";
+  let costClass = "status-good";
 
-// 5. Quick Commands & Interactive Directives
-function triggerCommand(cmd) {
-  const container = document.getElementById("chat-stream");
-  const userMsg = {
-    author: "izigriss",
-    role: "Lead Architect",
-    roleType: "lead",
-    colorClass: "human",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=izigriss",
-    time: "Today at " + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
-    text: cmd,
-    embed: null
-  };
-  appendMessageCard(userMsg);
-
-  setTimeout(() => {
-    let response = null;
-    if (cmd === "!summary") {
-      response = {
-        author: "Athena", role: "Council Chair", roleType: "bot", colorClass: "athena",
-        avatar: "https://api.dicebear.com/7.x/bottts/svg?seed=Athena&backgroundColor=b6e3f4",
-        time: "Today at " + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
-        text: `**DELIBERATION SUMMARY [${currentPresetKey.toUpperCase()}]:**\n• All 4 specialist invariants resolved.\n• Consensus established with zero cross-room sycophancy.\n• Enter \`approve\` to handoff to Claude Code.`,
-        embed: null
-      };
-    } else if (cmd === "!diagram") {
-      response = {
-        author: "Athena", role: "Council Chair", roleType: "bot", colorClass: "athena",
-        avatar: "https://api.dicebear.com/7.x/bottts/svg?seed=Athena&backgroundColor=b6e3f4",
-        time: "Today at " + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
-        text: `Visual system topology for **${PRESETS[currentPresetKey].title}**:`,
-        embed: {
-          type: "blue",
-          head: "📊 Synthesized Architecture Topology",
-          body: `<img src="${PRESETS[currentPresetKey].diagramImg}" style="width:100%; max-height:260px; object-fit:contain; border-radius:6px; margin-top:8px;" alt="Topology">`
-        }
-      };
-    } else if (cmd === "!manifest") {
-      const manifestList = PRESETS[currentPresetKey].manifest.map(m => `• \`${m.action}\` \`${m.path}\` — ${m.desc}`).join("<br>");
-      response = {
-        author: "Athena", role: "Council Chair", roleType: "bot", colorClass: "athena",
-        avatar: "https://api.dicebear.com/7.x/bottts/svg?seed=Athena&backgroundColor=b6e3f4",
-        time: "Today at " + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
-        text: `**Section 6: Implementation Scaffolding Manifest:**`,
-        embed: {
-          type: "green",
-          head: "📂 Scaffolded File Inventory",
-          body: `<p>${manifestList}</p>`
-        }
-      };
-    } else if (cmd.toLowerCase() === "approve") {
-      response = {
-        author: "Athena", role: "Council Chair", roleType: "bot", colorClass: "athena",
-        avatar: "https://api.dicebear.com/7.x/bottts/svg?seed=Athena&backgroundColor=b6e3f4",
-        time: "Today at " + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
-        text: "✅ **COUNCIL CONSENSUS APPROVED BY LEAD ARCHITECT.**\nHandoff delivered to autonomous terminal coding agents.",
-        embed: {
-          type: "gold",
-          head: `🚀 [SWITCH IMPLEMENTER HANDOFF: BLINDCOUNCIL ➔ CLAUDE CODE]`,
-          body: `<p><strong>Target Branch:</strong> <code>${PRESETS[currentPresetKey].targetBranch}</code> | <strong>Harness:</strong> <code>${PRESETS[currentPresetKey].testCommand}</code></p>
-                 <pre style="background:#0c1017; padding:8px; border-radius:4px; font-size:11px; margin-top:8px; color:#a78bfa;">${PRESETS[currentPresetKey].claudeCommand}</pre>`
-        }
-      };
+  if (cluster === "static12") {
+    costNum = 42000;
+    costStatus = "FinOps Alert: 200% Over-Provisioned";
+    costClass = "status-bad";
+  } else if (cluster === "static2") {
+    costNum = 8400;
+    costStatus = "Under-Provisioned (Single Point of Failure)";
+    costClass = "status-warn";
+  } else {
+    // Dynamic autoscale
+    if (concurrency > 150000) {
+      costNum += Math.floor(((concurrency - 150000) / 10000) * 900);
+      costStatus = `Autoscaled for ${concurrency.toLocaleString()} sockets`;
     }
-    if (response) appendMessageCard(response);
-  }, 400);
-}
+  }
 
-function handleInputKey(e) {
-  if (e.key === "Enter") {
-    sendCustomMessage();
+  document.getElementById("metric-cost").textContent = `$${costNum.toLocaleString()}`;
+  const statusCostEl = document.getElementById("status-cost");
+  statusCostEl.textContent = costStatus;
+  statusCostEl.className = `metric-status ${costClass}`;
+
+  // 3. Calculate Revocation Enforcement Window
+  let secNum = "<0.2";
+  let secUnit = "ms";
+  let secStatus = "Zero Unauthorized Frames";
+  let secClass = "status-good";
+
+  if (revocation === "jwt") {
+    secNum = "15";
+    secUnit = "min";
+    secStatus = "SOC2 Violation: Session Hijacking Window";
+    secClass = "status-bad";
+  } else if (revocation === "db") {
+    secNum = "~115";
+    secUnit = "ms";
+    secStatus = "Secure but Triggers DB Latency Spikes";
+    secClass = "status-warn";
+  }
+
+  document.getElementById("metric-revocation").textContent = secNum;
+  document.querySelector("#card-sec .metric-unit").textContent = secUnit;
+  const statusSecEl = document.getElementById("status-sec");
+  statusSecEl.textContent = secStatus;
+  statusSecEl.className = `metric-status ${secClass}`;
+
+  // 4. Calculate Message Loss
+  let lossNum = "0.00%";
+  let lossStatus = "Strict At-Least-Once (CDC)";
+  let lossClass = "status-good";
+
+  if (persistence === "dualwrite") {
+    lossNum = "1.84%";
+    lossStatus = "Dual-Write Split-Brain Risk";
+    lossClass = "status-bad";
+  }
+
+  document.getElementById("metric-loss").textContent = lossNum;
+  const statusDataEl = document.getElementById("status-data");
+  statusDataEl.textContent = lossStatus;
+  statusDataEl.className = `metric-status ${lossClass}`;
+
+  // Update Summary Rationale Text
+  const summaryEl = document.getElementById("summary-text");
+  if (revocation === "bloom" && cluster === "dynamic" && persistence === "outbox") {
+    summaryEl.innerHTML = `<strong>Optimal Consensus Verified:</strong> Edge Redis Bloom filter achieves sub-0.2ms revocation without DB load. 4-node autoscale cluster recoups $25,200/year. Transactional Outbox guarantees zero lost events.`;
+  } else if (revocation === "jwt") {
+    summaryEl.innerHTML = `<strong style="color:#f87171">Security Compromise:</strong> In-band JWT refresh leaves an unrevoked 15-minute credential window. Aegis will place an absolute deployment BLOCK on this configuration.`;
+  } else if (revocation === "db") {
+    summaryEl.innerHTML = `<strong style="color:#fbbf24">Scalability Bottleneck:</strong> Querying Postgres synchronously on socket heartbeats will saturate the connection pool during pod rollouts. Vanguard mandates in-memory verification.`;
+  } else if (cluster === "static12") {
+    summaryEl.innerHTML = `<strong style="color:#f87171">FinOps Waste:</strong> 12 dedicated instances for a 20k baseline is rejected by Ledger. Downsize to 4 nodes with memory autoscaling at 75%.`;
+  } else if (persistence === "dualwrite") {
+    summaryEl.innerHTML = `<strong style="color:#f87171">Data Inconsistency:</strong> Dual-writing without an atomic boundary creates orphan records on worker failure. Titan mandates Transactional Outbox + Debezium CDC.`;
   }
 }
 
-function sendCustomMessage() {
-  const input = document.getElementById("user-msg-input");
-  const val = input.value.trim();
-  if (!val) return;
-  input.value = "";
-
-  if (["!summary", "!diagram", "!manifest", "approve"].includes(val.toLowerCase())) {
-    triggerCommand(val);
-    return;
-  }
-
-  // Generic custom steer directive
-  const userMsg = {
-    author: "izigriss",
-    role: "Lead Architect",
-    roleType: "lead",
-    colorClass: "human",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=izigriss",
-    time: "Today at " + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
-    text: val,
-    embed: null
-  };
-  appendMessageCard(userMsg);
-
-  setTimeout(() => {
-    const athenaAck = {
-      author: "Athena", role: "Council Chair", roleType: "bot", colorClass: "athena",
-      avatar: "https://api.dicebear.com/7.x/bottts/svg?seed=Athena&backgroundColor=b6e3f4",
-      time: "Today at " + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
-      text: `Directive acknowledged: *"<strong>${val}</strong>"*. Re-evaluating council consensus and adjusting implementation constraints accordingly. Type \`approve\` when ready to proceed.`,
-      embed: null
-    };
-    appendMessageCard(athenaAck);
-  }, 500);
-}
-
-// 6. Copy Functions
-function copyPRComment() {
-  const prCommentText = `## 🏛️ BlindCouncil Architecture Review Report
-**Decision Verdict:** 🟡 **APPROVED WITH CONDITIONS** | **ADR ID:** ${currentPresetKey.toUpperCase()}
-
-> 🔒 *This review was conducted using server-enforced blind isolation to eliminate LLM sycophancy and groupthink.*
-
-### 📊 Council Blind Scorecard Matrix
-- Security (Aegis): ${PRESETS[currentPresetKey].chambers.sec.score}
-- Scalability (Vanguard): ${PRESETS[currentPresetKey].chambers.scale.score}
-- FinOps (Ledger): ${PRESETS[currentPresetKey].chambers.fin.score}
-- Data (Titan): ${PRESETS[currentPresetKey].chambers.data.score}
-
-### 🚀 Implementer Handoff Command
-\`\`\`bash
-${PRESETS[currentPresetKey].claudeCommand}
-\`\`\``;
-
-  navigator.clipboard.writeText(prCommentText).then(() => {
-    showToast("GitHub PR Sticky Comment copied to clipboard!");
+// 4. Clipboard and Export Handlers
+function copyHandoffCommand() {
+  const cmd = PROPOSALS[currentProposalKey].claudeCmd;
+  navigator.clipboard.writeText(cmd).then(() => {
+    showToast("Terminal execution command copied to clipboard!");
   }).catch(() => {
     showToast("Copied to clipboard!");
   });
 }
 
-function copyClaudeCommand() {
-  const cmd = PRESETS[currentPresetKey].claudeCommand;
-  navigator.clipboard.writeText(cmd).then(() => {
-    showToast("Claude Code terminal launch command copied!");
-  }).catch(() => {
-    showToast("Terminal command copied!");
-  });
+function exportADR() {
+  const md = PROPOSALS[currentProposalKey].adrMarkdown;
+  const blob = new Blob([md], { type: "text/markdown;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${PROPOSALS[currentProposalKey].id}_Architecture_Decision_Record.md`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast(`Exported ${PROPOSALS[currentProposalKey].id}_Architecture_Decision_Record.md`);
 }
 
-// 7. Toast Notification Utility
+function resetTopologyZoom() {
+  const img = document.getElementById("topo-img");
+  img.style.transform = "scale(1)";
+  showToast("Canvas centered.");
+}
+
+// 5. Toast Notification Utility
 function showToast(text) {
-  let toast = document.getElementById("studio-toast");
+  let toast = document.getElementById("workbench-toast");
   if (!toast) {
     toast = document.createElement("div");
-    toast.id = "studio-toast";
+    toast.id = "workbench-toast";
     toast.style.cssText = `
       position: fixed;
       bottom: 24px;
@@ -723,14 +542,15 @@ function showToast(text) {
       color: #38bdf8;
       border: 1px solid #38bdf8;
       border-radius: 6px;
-      padding: 12px 20px;
-      font-size: 13px;
+      padding: 10px 18px;
+      font-size: 12px;
       font-weight: 600;
       box-shadow: 0 10px 25px rgba(0,0,0,0.5);
       z-index: 99999;
       opacity: 0;
       transform: translateY(10px);
-      transition: all 0.25s ease;
+      transition: all 0.2s ease;
+      font-family: var(--font-sans);
     `;
     document.body.appendChild(toast);
   }
@@ -741,15 +561,14 @@ function showToast(text) {
   setTimeout(() => {
     toast.style.opacity = "0";
     toast.style.transform = "translateY(10px)";
-  }, 2600);
+  }, 2400);
 }
 
-// 8. Simple Markdown Renderer
+// 6. Simple Markdown Parser for ADR Viewer
 function renderMarkdown(md) {
   return md
-    .replace(/^# (.*$)/gim, '<h2 style="font-size:16px; margin:14px 0 8px; color:#fff;">$1</h2>')
+    .replace(/^# (.*$)/gim, '<h2 style="font-size:17px; margin:14px 0 8px; color:#fff;">$1</h2>')
     .replace(/^## (.*$)/gim, '<h3 style="font-size:14px; margin:12px 0 6px; color:#93c5fd;">$1</h3>')
-    .replace(/^### (.*$)/gim, '<h4 style="font-size:13px; margin:10px 0 4px; color:#cbd5e1;">$1</h4>')
     .replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>')
     .replace(/`(.*?)`/gim, '<code>$1</code>')
     .replace(/^\- (.*$)/gim, '<li style="margin-left:18px; margin-bottom:4px;">$1</li>')
@@ -758,5 +577,5 @@ function renderMarkdown(md) {
 
 // Initialize on page load
 window.addEventListener("DOMContentLoaded", () => {
-  switchPreset("rfc042");
+  loadProposal("rfc042");
 });

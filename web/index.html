@@ -3,384 +3,365 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BlindCouncil Studio | Multi-Agent Architecture Review Desk</title>
+  <title>BlindCouncil Workbench | Architecture Review & Trade-off Governance</title>
   <link rel="stylesheet" href="styles.css">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏛️</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
 
-  <!-- Top Navigation Bar -->
-  <header class="studio-header">
-    <div class="brand">
-      <span class="brand-icon">🏛️</span>
-      <div class="brand-text">
-        <h1>BlindCouncil Studio</h1>
-        <p>Multi-Agent Blind Architecture Review Desk &bull; Flip the Switch Hackathon (Track 01)</p>
+  <!-- Top App Navigation -->
+  <header class="app-header">
+    <div class="header-left">
+      <div class="app-logo">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+          <polyline points="2 17 12 22 22 17"></polyline>
+          <polyline points="2 12 12 17 22 12"></polyline>
+        </svg>
+      </div>
+      <div class="app-title-group">
+        <span class="app-name">BlindCouncil</span>
+        <span class="app-sub">Architecture Review Workbench</span>
+      </div>
+      <span class="version-tag">v2.4</span>
+    </div>
+
+    <!-- Center System Status -->
+    <div class="header-center">
+      <div class="connection-status">
+        <span class="status-indicator live"></span>
+        <span class="status-text">Discord Bridge Connected</span>
+        <span class="status-meta">guild: blindcouncil-eng / channel: #review-desk</span>
       </div>
     </div>
 
-    <!-- Badges -->
-    <div class="header-badges">
-      <span class="badge badge-switch">🛡️ Switch Core 0.31.0 Verified</span>
-      <span class="badge badge-isolation">🔒 Zero-Leakage Room Isolation</span>
-      <span class="badge badge-track">🏆 $2,000 Best Business Workflow</span>
-    </div>
-
-    <!-- Presets & Actions -->
-    <div class="header-actions">
-      <label for="rfc-selector" class="sr-only">Select RFC Proposal</label>
-      <select id="rfc-selector" class="rfc-select" onchange="switchPreset(this.value)">
-        <option value="rfc042">RFC-042: Real-Time WebSocket Messaging Cluster (100k Conns)</option>
-        <option value="rfc019">RFC-019: Global Scalable URL Shortener (10B Keys)</option>
-        <option value="rfc088">RFC-088: Multi-Region Payment Processing Service</option>
-      </select>
-      <button class="btn btn-primary" onclick="runLiveDeliberation()">▶ Run Deliberation</button>
-      <button class="btn btn-secondary" onclick="resetStudio()">↺ Reset</button>
+    <!-- Right Actions & RFC Selector -->
+    <div class="header-right">
+      <div class="selector-wrapper">
+        <label for="rfc-select" class="control-label">Target Proposal</label>
+        <select id="rfc-select" class="header-select" onchange="loadProposal(this.value)">
+          <option value="rfc042">RFC-042: Real-Time WebSocket Messaging Cluster</option>
+          <option value="rfc019">RFC-019: Global Scalable URL Shortener (10B Keys)</option>
+          <option value="rfc088">RFC-088: Multi-Region Payment Processing Service</option>
+        </select>
+      </div>
+      <button class="btn btn-secondary" onclick="exportADR()">Export ADR.md</button>
+      <button class="btn btn-primary" onclick="copyHandoffCommand()">Copy Claude CLI</button>
     </div>
   </header>
 
-  <!-- Main Studio Workspace -->
-  <main class="studio-container">
-
-    <!-- Left Navigation Rail -->
-    <aside class="studio-nav">
-      <button class="nav-tab active" onclick="switchTab('floor')">
-        <span class="nav-icon">🏛️</span>
-        <span class="nav-label">Council Floor</span>
-        <span class="nav-sub">#review-desk</span>
+  <!-- Secondary Navigation Bar -->
+  <nav class="sub-nav">
+    <div class="nav-tabs">
+      <button class="tab-btn active" data-tab="inspector" onclick="switchView('inspector')">
+        <span class="tab-index">01</span>
+        <span class="tab-title">RFC Spec & Specialist Audits</span>
+        <span class="badge-count" id="audit-count">4 Findings</span>
       </button>
-
-      <button class="nav-tab" onclick="switchTab('isolation')">
-        <span class="nav-icon">🔒</span>
-        <span class="nav-label">Room Isolation</span>
-        <span class="nav-sub">Switch Invariants</span>
+      <button class="tab-btn" data-tab="simulator" onclick="switchView('simulator')">
+        <span class="tab-index">02</span>
+        <span class="tab-title">Trade-off & Invariant Simulator</span>
+        <span class="badge-status">Interactive</span>
       </button>
-
-      <button class="nav-tab" onclick="switchTab('topology')">
-        <span class="nav-icon">📊</span>
-        <span class="nav-label">Visual Topology</span>
-        <span class="nav-sub">Resolved System</span>
+      <button class="tab-btn" data-tab="topology" onclick="switchView('topology')">
+        <span class="tab-index">03</span>
+        <span class="tab-title">System Topology Graph</span>
+        <span class="badge-status">Vector Synthesized</span>
       </button>
-
-      <button class="nav-tab" onclick="switchTab('deliverables')">
-        <span class="nav-icon">🚀</span>
-        <span class="nav-label">ADR & Claude Code</span>
-        <span class="nav-sub">Section 6 Scaffold</span>
+      <button class="tab-btn" data-tab="handoff" onclick="switchView('handoff')">
+        <span class="tab-index">04</span>
+        <span class="tab-title">ADR & Code Scaffolding Spec</span>
+        <span class="badge-status verified">Consensus Locked</span>
       </button>
+    </div>
 
-      <!-- Specialists Online Widget -->
-      <div class="specialists-widget">
-        <div class="widget-title">COUNCIL MEMBERS</div>
-        <div class="specialist-item">
-          <span class="spec-dot spec-chair"></span>
-          <div class="spec-info">
-            <span class="spec-name">Athena</span>
-            <span class="spec-role">Council Chair</span>
+    <div class="nav-meta">
+      <span class="meta-item"><span class="meta-k">Consensus Status:</span> <strong class="meta-v approved">Approved with Conditions</strong></span>
+      <span class="meta-item"><span class="meta-k">Delphi Round:</span> <strong class="meta-v">2 of 2 Completed</strong></span>
+    </div>
+  </nav>
+
+  <!-- Main Viewports Container -->
+  <main class="workbench-main">
+
+    <!-- VIEW 1: RFC Inspector & Specialist Audit Annotations -->
+    <section id="view-inspector" class="workbench-view active">
+      <div class="split-layout">
+        
+        <!-- Left Pane: RFC Specification Document -->
+        <article class="rfc-document-pane">
+          <header class="doc-header">
+            <div class="doc-meta-row">
+              <span class="doc-id" id="doc-rfc-id">RFC-042</span>
+              <span class="doc-state">Under Delphi Deliberation</span>
+              <span class="doc-author">Author: Platform Engineering Core</span>
+              <span class="doc-target">Target Scale: 100k Sockets</span>
+            </div>
+            <h1 class="doc-title" id="doc-rfc-title">Real-Time Messaging Fabric & Ingress Event Streaming</h1>
+          </header>
+
+          <div class="doc-body" id="rfc-rendered-body">
+            <!-- Dynamically populated from proposal DB -->
           </div>
-        </div>
-        <div class="specialist-item">
-          <span class="spec-dot spec-sec"></span>
-          <div class="spec-info">
-            <span class="spec-name">Aegis</span>
-            <span class="spec-role">Staff Security Auditor</span>
+        </article>
+
+        <!-- Right Pane: Independent Specialist Audits (Delphi Round 1) -->
+        <aside class="audit-annotations-pane">
+          <div class="pane-header">
+            <div class="pane-title-group">
+              <h3>Independent Specialist Scorecards</h3>
+              <p>Evaluated under server-enforced blind isolation without peer anchor bias.</p>
+            </div>
+            <span class="specialist-count">4 Domain Auditors</span>
           </div>
-        </div>
-        <div class="specialist-item">
-          <span class="spec-dot spec-scale"></span>
-          <div class="spec-info">
-            <span class="spec-name">Vanguard</span>
-            <span class="spec-role">Principal Systems Architect</span>
+
+          <div class="cards-list" id="audit-cards-list">
+            <!-- Dynamically populated -->
           </div>
-        </div>
-        <div class="specialist-item">
-          <span class="spec-dot spec-fin"></span>
-          <div class="spec-info">
-            <span class="spec-name">Ledger</span>
-            <span class="spec-role">Lead Cloud Economics</span>
-          </div>
-        </div>
-        <div class="specialist-item">
-          <span class="spec-dot spec-data"></span>
-          <div class="spec-info">
-            <span class="spec-name">Titan</span>
-            <span class="spec-role">Data & State Reliability</span>
-          </div>
-        </div>
-        <div class="specialist-item">
-          <span class="spec-dot spec-human"></span>
-          <div class="spec-info">
-            <span class="spec-name">izigriss</span>
-            <span class="spec-role">Lead Architect (Human)</span>
-          </div>
-        </div>
+        </aside>
+
       </div>
-    </aside>
-
-    <!-- Center Workspace Content Panels -->
-    <section class="studio-content">
-
-      <!-- TAB 1: Council Deliberation Floor -->
-      <div id="tab-floor" class="tab-panel active">
-        <div class="panel-header">
-          <div>
-            <h2># review-desk &mdash; Public Deliberation Floor</h2>
-            <p>Multi-Agent Deliberation &bull; Real Orthogonal Clashes &bull; Human-in-the-Loop Steering</p>
-          </div>
-          <!-- Fast Command Shortcuts -->
-          <div class="command-bar">
-            <span class="cmd-label">Quick Commands:</span>
-            <button class="cmd-pill" onclick="triggerCommand('!summary')">!summary</button>
-            <button class="cmd-pill" onclick="triggerCommand('!diagram')">!diagram</button>
-            <button class="cmd-pill" onclick="triggerCommand('!manifest')">!manifest</button>
-            <button class="cmd-pill cmd-approve" onclick="triggerCommand('approve')">approve</button>
-          </div>
-        </div>
-
-        <div class="stream-container" id="chat-stream">
-          <!-- Dynamically populated or rendered -->
-        </div>
-
-        <!-- Chat Input Bar -->
-        <div class="chat-input-bar">
-          <input type="text" id="user-msg-input" placeholder="Steer council naturally or use !summary, !diagram, !manifest, approve..." onkeydown="handleInputKey(event)">
-          <button class="btn btn-primary" onclick="sendCustomMessage()">Send Directive</button>
-        </div>
-      </div>
-
-      <!-- TAB 2: Switch Room Isolation Monitor -->
-      <div id="tab-isolation" class="tab-panel">
-        <div class="panel-header">
-          <div>
-            <h2>Switch Server-Enforced Room Isolation Monitor</h2>
-            <p>Physical Partitioning of Specialists to Prevent Sycophancy & Context Pollution</p>
-          </div>
-          <div class="isolation-status-tag">
-            <span class="pulse-dot"></span>
-            <span>100% BLIND ISOLATION VERIFIED (0 BYTES LEAKED)</span>
-          </div>
-        </div>
-
-        <!-- Room Topology Visualizer -->
-        <div class="isolation-grid">
-          <!-- Switch Gateway Center -->
-          <div class="gateway-card">
-            <div class="gateway-header">
-              <span class="gateway-icon">🛡️</span>
-              <h3>Switch Server / Gateway</h3>
-            </div>
-            <p>Workspace: <code>blindcouncil-eng</code></p>
-            <div class="gateway-metrics">
-              <div class="metric"><span class="val">5</span><span class="lbl">Soundproof Chambers</span></div>
-              <div class="metric"><span class="val">0</span><span class="lbl">Cross-Packets Leaked</span></div>
-              <div class="metric"><span class="val">100%</span><span class="lbl">Sovereignty Score</span></div>
-            </div>
-            <div class="gateway-rule">Server-Level ACL: Deny <code>VIEW_CHANNEL</code> across uninvited specialist tokens.</div>
-          </div>
-
-          <!-- Chamber Cards -->
-          <div class="chambers-container">
-            <div class="chamber-card chamber-sec">
-              <div class="ch-head">
-                <span class="ch-icon">🔒</span>
-                <div>
-                  <h4>#audit-security</h4>
-                  <span>Aegis (Staff Security Auditor)</span>
-                </div>
-                <span class="ch-score score-red">4.5 / 10</span>
-              </div>
-              <div class="ch-finding">
-                <strong>Vulnerability:</strong> In-band heartbeat token validation permits 15m window of unauthorized socket frames after account ban. Active CVE risk under SOC2 Article 4.
-              </div>
-              <div class="ch-mandate"><strong>Mandate:</strong> Sub-ms distributed revocation cache at gateway edge.</div>
-            </div>
-
-            <div class="chamber-card chamber-scale">
-              <div class="ch-head">
-                <span class="ch-icon">🔒</span>
-                <div>
-                  <h4>#audit-scalability</h4>
-                  <span>Vanguard (Distributed Systems)</span>
-                </div>
-                <span class="ch-score score-blue">6.8 / 10</span>
-              </div>
-              <div class="ch-finding">
-                <strong>Bottleneck:</strong> Synchronous database lookups on 100k reconnects during pod rolling deployments will exhaust connection pool and crash Postgres. p99 latency &gt;140ms.
-              </div>
-              <div class="ch-mandate"><strong>Mandate:</strong> In-memory Redis Bloom Filter with zero database hits.</div>
-            </div>
-
-            <div class="chamber-card chamber-fin">
-              <div class="ch-head">
-                <span class="ch-icon">🔒</span>
-                <div>
-                  <h4>#audit-finops</h4>
-                  <span>Ledger (Cloud Economics)</span>
-                </div>
-                <span class="ch-score score-green">6.0 / 10</span>
-              </div>
-              <div class="ch-finding">
-                <strong>Compute Waste:</strong> 12-node provisioned MemoryDB cluster costs $3,500/mo ($42,000/yr) for a 20k off-peak baseline.
-              </div>
-              <div class="ch-mandate"><strong>Mandate:</strong> Launch 4 nodes with 75% memory autoscale. Saves $25,200/year.</div>
-            </div>
-
-            <div class="chamber-card chamber-data">
-              <div class="ch-head">
-                <span class="ch-icon">🔒</span>
-                <div>
-                  <h4>#audit-database</h4>
-                  <span>Titan (State Reliability)</span>
-                </div>
-                <span class="ch-score score-cyan">7.2 / 10</span>
-              </div>
-              <div class="ch-finding">
-                <strong>State Inconsistency:</strong> Dual-writing directly to Redis Pub/Sub and Postgres causes message loss or ghost rows on worker crash.
-              </div>
-              <div class="ch-mandate"><strong>Mandate:</strong> Transactional Outbox pattern with Debezium CDC for guaranteed delivery.</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Sycophancy Benchmark Proof Table -->
-        <div class="benchmark-box">
-          <h3>The Sycophancy Benchmark: BlindCouncil vs Naive Multi-Agent Systems</h3>
-          <table class="benchmark-table">
-            <thead>
-              <tr>
-                <th>Deliberation Metric</th>
-                <th>Standard Multi-Agent (Single Room)</th>
-                <th>BlindCouncil (Switch Room Isolation)</th>
-                <th>Real-World Engineering Impact</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td><strong>Groupthink / Sycophancy Rate</strong></td>
-                <td class="text-red">94.2% Agreement (Echo Chamber)</td>
-                <td class="text-green">0.0% Initial Anchor Bias</td>
-                <td>Eliminates "yes-men" agents blindly approving flawed proposals.</td>
-              </tr>
-              <tr>
-                <td><strong>Vulnerability Detection (Aegis)</strong></td>
-                <td class="text-red">MISSED (Dismissed as non-blocking)</td>
-                <td class="text-green">BLOCKED (15m JWT TTL Flaw Caught)</td>
-                <td>Catches critical security CVEs before production deployment.</td>
-              </tr>
-              <tr>
-                <td><strong>Over-Provisioning Waste (Ledger)</strong></td>
-                <td class="text-red">$42,000 / Year Approved</td>
-                <td class="text-green">Saves $25,200 / Year (Right-Sized)</td>
-                <td>Enforces ruthless cloud economics without compromising peak load.</td>
-              </tr>
-              <tr>
-                <td><strong>State Loss Risk (Titan)</strong></td>
-                <td class="text-red">Dual-Write Race Conditions Ignored</td>
-                <td class="text-green">Transactional Outbox Enforced</td>
-                <td>Zero lost chat messages during network partitions.</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- TAB 3: Visual Architecture Topology -->
-      <div id="tab-topology" class="tab-panel">
-        <div class="panel-header">
-          <div>
-            <h2>Visual Architecture Topology &mdash; Resolved System</h2>
-            <p>Synthesized by Council Chair Athena &bull; All 4 Invariants Formally Resolved</p>
-          </div>
-          <a href="diagram_rfc042_resolved.png" download class="btn btn-secondary">⬇ Download High-Res PNG</a>
-        </div>
-
-        <div class="topology-display">
-          <img src="diagram_rfc042_resolved.png" alt="RFC-042 Resolved Architecture Topology" class="diagram-img">
-        </div>
-
-        <!-- Invariant Proof Cards -->
-        <div class="topology-invariants">
-          <div class="topo-card topo-sec">
-            <h4>🛡️ Security Invariant: Revocation &lt;0.2ms</h4>
-            <p>Redis Bloom Filter bitset deployed at gateway edge. Revoked user IDs checked in sub-millisecond RAM with zero database hits.</p>
-          </div>
-          <div class="topo-card topo-scale">
-            <h4>⚡ Scalability Invariant: p99 Latency &lt;18ms</h4>
-            <p>Zero synchronous database queries on WebSocket reconnects. Pod rollouts rebalance smoothly without thundering herd.</p>
-          </div>
-          <div class="topo-card topo-fin">
-            <h4>💰 FinOps Invariant: -$25,200 / Year Saved</h4>
-            <p>Right-sized from 12 nodes to 4 nodes with 75% memory autoscale. Handles 25k off-peak to 100k peak effortlessly.</p>
-          </div>
-          <div class="topo-card topo-data">
-            <h4>🏛️ Data Invariant: Zero Lost Messages (ACID CDC)</h4>
-            <p>Postgres <code>outbox_events</code> table commits atomically with state. Debezium CDC streams to Kafka for at-least-once fanout.</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- TAB 4: Deliverables & Claude Code Bridge -->
-      <div id="tab-deliverables" class="tab-panel">
-        <div class="panel-header">
-          <div>
-            <h2>Live Deliverables & Claude Code / Codex Bridge</h2>
-            <p>Michael Nygard Standard Architecture Decision Record &bull; Autonomous Implementation Manifest</p>
-          </div>
-          <div class="deliverable-actions">
-            <button class="btn btn-secondary" onclick="copyPRComment()">📋 Copy GitHub PR Comment</button>
-            <button class="btn btn-primary" onclick="copyClaudeCommand()">⚡ Copy Claude Code CLI</button>
-          </div>
-        </div>
-
-        <div class="deliverables-grid">
-          <!-- Left: ADR Viewer -->
-          <div class="adr-viewer">
-            <div class="viewer-header">
-              <span>📄 ADR-042_Scalable_RealTime_WebSocket_Cluster.md</span>
-              <span class="badge badge-approved">APPROVED WITH CONDITIONS</span>
-            </div>
-            <div class="markdown-preview" id="adr-content">
-              <!-- Dynamically populated -->
-            </div>
-          </div>
-
-          <!-- Right: Claude Code Terminal Execution Card -->
-          <div class="execution-card">
-            <div class="exec-header">
-              <span class="exec-icon">🚀</span>
-              <h3>Autonomous Implementer Handoff</h3>
-            </div>
-            <div class="exec-meta">
-              <div><strong>Target Git Branch:</strong> <code>git checkout -b feat/adr-042-impl</code></div>
-              <div><strong>Test Verification Harness:</strong> <code>pytest tests/ -v</code></div>
-            </div>
-
-            <h4>📂 Section 6: Implementation File Manifest:</h4>
-            <div class="manifest-list">
-              <div class="manifest-item">
-                <span class="action-tag action-create">CREATE</span>
-                <code>src/middleware/bloom_revocation.py</code>
-                <p>Redis Bloom filter revocation middleware (Mandated by Aegis & Vanguard)</p>
-              </div>
-              <div class="manifest-item">
-                <span class="action-tag action-create">CREATE</span>
-                <code>src/cluster/config.yaml</code>
-                <p>4-node cluster autoscaling spec saving $25,200/year (Mandated by Ledger)</p>
-              </div>
-              <div class="manifest-item">
-                <span class="action-tag action-create">CREATE</span>
-                <code>src/db/outbox_producer.py</code>
-                <p>Transactional Outbox pattern event producer (Mandated by Titan)</p>
-              </div>
-            </div>
-
-            <h4>⚡ Terminal Agent Launch Execution Command:</h4>
-            <pre class="terminal-cmd" id="claude-cmd-text">claude -p "Read ADR-042.md Section 6. Switch to branch 'feat/adr-042-impl'. Implement the scaffolded files in '.'. Run 'pytest tests/ -v' and do not finish until all tests pass."</pre>
-            <button class="btn btn-primary btn-block" onclick="copyClaudeCommand()">Copy Terminal Command to Clipboard</button>
-          </div>
-        </div>
-      </div>
-
     </section>
+
+    <!-- VIEW 2: Interactive Trade-off & Invariant Simulator -->
+    <section id="view-simulator" class="workbench-view">
+      <div class="simulator-layout">
+        
+        <!-- Simulator Controls Panel -->
+        <div class="sim-controls-card">
+          <div class="card-head">
+            <h3>Architectural Parameter Dials</h3>
+            <p>Adjust deployment parameters to simulate stress on latency, cost, security, and state integrity.</p>
+          </div>
+
+          <div class="control-group">
+            <div class="control-header">
+              <label for="dial-concurrency">Peak Concurrent Sockets</label>
+              <span class="dial-val" id="val-concurrency">100,000</span>
+            </div>
+            <input type="range" id="dial-concurrency" min="20000" max="250000" step="10000" value="100000" oninput="updateSimulation()">
+            <div class="range-labels">
+              <span>20k (Baseline)</span>
+              <span>100k (Target Peak)</span>
+              <span>250k (Stress)</span>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <div class="control-header">
+              <label for="dial-revocation">Session Revocation Architecture</label>
+              <span class="dial-tag" id="tag-revocation">Edge Redis Bloom Filter</span>
+            </div>
+            <select id="dial-revocation" class="form-select" onchange="updateSimulation()">
+              <option value="bloom">Edge Redis Bloom Filter Bitset (Sub-ms RAM)</option>
+              <option value="db">Synchronous Database Query on Heartbeat</option>
+              <option value="jwt">In-Band JWT TTL Only (15m Unrevoked Window)</option>
+            </select>
+          </div>
+
+          <div class="control-group">
+            <div class="control-header">
+              <label for="dial-cluster">Redis Cluster Provisioning</label>
+              <span class="dial-tag" id="tag-cluster">4 Nodes + 75% Autoscale</span>
+            </div>
+            <select id="dial-cluster" class="form-select" onchange="updateSimulation()">
+              <option value="dynamic">4 Nodes + Memory Autoscaling (FinOps Approved)</option>
+              <option value="static12">12 Nodes Provisioned Static (Over-Provisioned)</option>
+              <option value="static2">2 Nodes Minimal (SPOF Risk on Pod Rollout)</option>
+            </select>
+          </div>
+
+          <div class="control-group">
+            <div class="control-header">
+              <label for="dial-persistence">Event Persistence & Delivery Mechanism</label>
+              <span class="dial-tag" id="tag-persistence">Transactional Outbox + Debezium CDC</span>
+            </div>
+            <select id="dial-persistence" class="form-select" onchange="updateSimulation()">
+              <option value="outbox">Transactional Outbox Pattern + Debezium CDC</option>
+              <option value="dualwrite">Direct Dual-Write (Redis Pub/Sub + Postgres Insert)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Simulator Telemetry & Gauges Panel -->
+        <div class="sim-telemetry-card">
+          <div class="card-head">
+            <h3>Calculated Operational Invariants</h3>
+            <p>Real-time mathematical projection of runtime health under selected parameters.</p>
+          </div>
+
+          <div class="telemetry-grid">
+            <div class="metric-card" id="card-p99">
+              <span class="metric-label">p99 End-to-End Latency</span>
+              <div class="metric-value-row">
+                <span class="metric-num" id="metric-latency">14.2</span>
+                <span class="metric-unit">ms</span>
+              </div>
+              <span class="metric-status status-good" id="status-latency">Within 18ms SLA Target</span>
+            </div>
+
+            <div class="metric-card" id="card-cost">
+              <span class="metric-label">Estimated Infrastructure Cost</span>
+              <div class="metric-value-row">
+                <span class="metric-num" id="metric-cost">$16,800</span>
+                <span class="metric-unit">/ year</span>
+              </div>
+              <span class="metric-status status-good" id="status-cost">Saves $25,200/yr vs Static</span>
+            </div>
+
+            <div class="metric-card" id="card-sec">
+              <span class="metric-label">Revocation Enforcement Window</span>
+              <div class="metric-value-row">
+                <span class="metric-num" id="metric-revocation">&lt;0.2</span>
+                <span class="metric-unit">ms</span>
+              </div>
+              <span class="metric-status status-good" id="status-sec">Zero Unauthorized Frames</span>
+            </div>
+
+            <div class="metric-card" id="card-data">
+              <span class="metric-label">Message Loss Under Pod Crash</span>
+              <div class="metric-value-row">
+                <span class="metric-num" id="metric-loss">0.00%</span>
+                <span class="metric-unit">events</span>
+              </div>
+              <span class="metric-status status-good" id="status-data">Strict At-Least-Once (CDC)</span>
+            </div>
+          </div>
+
+          <!-- Trade-off Balance Summary Box -->
+          <div class="tradeoff-summary-box" id="tradeoff-summary">
+            <div class="summary-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+              </svg>
+            </div>
+            <div class="summary-text" id="summary-text">
+              <strong>Delphi Consensus Reconciled:</strong> Utilizing an edge Redis Bloom filter resolves the conflict between Aegis (revocation verification) and Vanguard (sub-18ms latency) without database connection thrashing.
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- VIEW 3: System Topology Graph -->
+    <section id="view-topology" class="workbench-view">
+      <div class="topology-layout">
+        <div class="topology-header">
+          <div>
+            <h3>Resolved System Architecture Topology</h3>
+            <p>Synthesized by Council Chair Athena &bull; All 4 specialist invariants mathematically verified.</p>
+          </div>
+          <div class="topology-actions">
+            <button class="btn btn-secondary" onclick="resetTopologyZoom()">Reset Canvas</button>
+            <a href="diagram_rfc042_resolved.png" download class="btn btn-secondary">Download High-Res PNG</a>
+          </div>
+        </div>
+
+        <div class="topology-viewport">
+          <div class="diagram-canvas">
+            <img src="diagram_rfc042_resolved.png" alt="Synthesized System Topology" class="topology-image" id="topo-img">
+          </div>
+
+          <!-- Topology Component Inspector Drawer -->
+          <div class="node-inspector">
+            <div class="inspector-header">
+              <span class="inspector-tag">COMPONENT SPECIFICATION</span>
+              <h4 id="node-title">Ingress Gateway & Bloom Filter</h4>
+            </div>
+            <div class="inspector-body">
+              <div class="spec-row">
+                <span class="spec-k">Enforcing Specialist:</span>
+                <span class="spec-v">Aegis (Security) + Vanguard (Scale)</span>
+              </div>
+              <div class="spec-row">
+                <span class="spec-k">Operational SLA:</span>
+                <span class="spec-v">Revocation &lt; 0.2ms / Zero DB Queries</span>
+              </div>
+              <div class="spec-row">
+                <span class="spec-k">Target Implementation:</span>
+                <span class="spec-v"><code>src/middleware/bloom_revocation.py</code></span>
+              </div>
+              <div class="code-preview">
+                <pre><code># Redis Bloom Revocation Filter
+async def check_revocation(socket_id: str, user_id: str) -> bool:
+    is_revoked = await redis_bloom.exists("revoked_tokens", user_id)
+    if is_revoked:
+        await terminate_socket(socket_id, code=4401)
+        return False
+    return True</code></pre>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 4: ADR & Autonomous Code Scaffolding Spec -->
+    <section id="view-handoff" class="workbench-view">
+      <div class="handoff-layout">
+        
+        <!-- Left: Michael Nygard ADR Document -->
+        <div class="adr-container">
+          <div class="container-header">
+            <div class="header-titles">
+              <span class="format-badge">Michael Nygard Standard</span>
+              <h3 id="adr-doc-title">ADR-042: Real-Time Messaging & Event Streaming Architecture</h3>
+            </div>
+            <span class="badge-status verified">Status: Approved with Conditions</span>
+          </div>
+
+          <div class="adr-markdown-view" id="adr-markdown-content">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+        <!-- Right: Claude Code / Terminal Agent Scaffolding Spec -->
+        <div class="scaffolding-container">
+          <div class="container-header">
+            <div class="header-titles">
+              <span class="format-badge">Autonomous Implementer Handoff</span>
+              <h3>Section 6: Implementation Scaffolding Spec</h3>
+            </div>
+            <button class="btn btn-primary" onclick="copyHandoffCommand()">Copy Launch Command</button>
+          </div>
+
+          <div class="scaffolding-body">
+            <div class="meta-box">
+              <div class="meta-line">
+                <span class="meta-label">Target Git Branch:</span>
+                <code class="meta-code" id="target-branch-text">git checkout -b feat/adr-042-impl</code>
+              </div>
+              <div class="meta-line">
+                <span class="meta-label">Verification Command:</span>
+                <code class="meta-code" id="verification-cmd-text">pytest tests/ -v</code>
+              </div>
+            </div>
+
+            <div class="manifest-section">
+              <h4>Scaffolded File Manifest</h4>
+              <div class="manifest-table" id="scaffold-manifest-rows">
+                <!-- Dynamically populated -->
+              </div>
+            </div>
+
+            <div class="terminal-box">
+              <div class="term-head">
+                <span>Terminal Agent Execution Command</span>
+                <span class="copy-hint" onclick="copyHandoffCommand()">Click to copy</span>
+              </div>
+              <pre class="term-pre" id="cli-cmd-display">claude -p "Read ADR-042.md Section 6. Switch to branch 'feat/adr-042-impl'. Implement the scaffolded files in '.'. Run 'pytest tests/ -v' and do not finish until all tests pass."</pre>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
   </main>
 
   <script src="app.js"></script>
