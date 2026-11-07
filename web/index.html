@@ -8,40 +8,55 @@
   <link rel="stylesheet" href="styles.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body class="workbench-app">
 
   <!-- ==========================================================================
-       1. TOP STUDIO NAVBAR
+       1. TOP STUDIO NAVBAR (Clean Linear / Raycast Style)
        ========================================================================== -->
   <header class="studio-header">
-    <div class="header-brand">
-      <div class="brand-symbol-box">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
-          <path d="M2 17l10 5 10-5"></path>
-          <path d="M2 12l10 5 10-5"></path>
-        </svg>
-      </div>
-      <div class="brand-meta">
+    <div class="header-left">
+      <div class="brand-wrap">
+        <div class="brand-symbol-box">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+            <path d="M2 17l10 5 10-5"></path>
+            <path d="M2 12l10 5 10-5"></path>
+          </svg>
+        </div>
         <span class="brand-title">Quorum</span>
-        <span class="brand-tagline">Autonomous Architecture Review Board</span>
+        <span class="brand-version-pill">v2.4 Delphi</span>
       </div>
-      <span class="brand-pill">Switch 0.31.0 Verified</span>
+
+      <!-- Proposal Selector & Custom Trigger -->
+      <div class="proposal-picker-wrap">
+        <div class="picker-inner">
+          <span class="picker-dot"></span>
+          <select id="proposal-dropdown" class="header-proposal-select" onchange="onProposalSelectChange(this.value)">
+            <option value="rfc042">RFC-042: WebSocket Messaging Fabric (100k Sockets)</option>
+            <option value="rfc019">RFC-019: Distributed URL Shortener (10B Keys)</option>
+            <option value="rfc088">RFC-088: Multi-Region Payment Saga (50k RPS)</option>
+          </select>
+        </div>
+        <button class="new-rfc-btn" onclick="openCustomRFCModal()" title="Submit custom architecture proposal">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          <span>+ Custom RFC</span>
+        </button>
+      </div>
     </div>
 
-    <!-- Center Stage Primary View Switcher (Linear Style Tab Group) -->
-    <div class="header-center-controls">
+    <!-- Center Stage Primary View Switcher -->
+    <div class="header-center-nav">
       <nav class="studio-view-nav" aria-label="Workbench Views">
         <button class="view-nav-btn active" data-view="topology" onclick="setCenterView('topology')">
-          <span class="nav-icon">🌐</span> Topology Canvas
+          <span class="nav-icon">🌐</span> Topology
         </button>
         <button class="view-nav-btn" data-view="floor" onclick="setCenterView('floor')">
           <span class="nav-icon">⚔️</span> Council Floor
         </button>
         <button class="view-nav-btn" data-view="chambers" onclick="setCenterView('chambers')">
-          <span class="nav-icon">🔒</span> Soundproof Chambers
+          <span class="nav-icon">🔒</span> Chambers
         </button>
         <button class="view-nav-btn" data-view="tools" id="tool-traces-btn" onclick="setCenterView('tools')">
           <span class="nav-icon">🔍</span> Tool Traces
@@ -56,326 +71,319 @@
     </div>
 
     <!-- Right Header Actions -->
-    <div class="header-actions">
-      <button class="action-btn play-btn" id="play-btn" onclick="togglePlayDeliberation()">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-          <polygon points="5 3 19 12 5 21 5 3"></polygon>
-        </svg>
-        <span id="play-btn-text">Auto-Play</span>
+    <div class="header-right-actions">
+      <!-- Live Deliberation Trigger -->
+      <button class="action-btn primary-convene-btn" id="convene-btn" onclick="triggerDeliberationRun()">
+        <span class="btn-pulse-dot"></span>
+        <span id="convene-btn-text">⚡ Convene Review</span>
       </button>
-      <button class="action-btn secondary-btn" onclick="copyPRComment()">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-          <polyline points="14 2 14 8 20 8"></polyline>
-          <line x1="16" y1="13" x2="8" y2="13"></line>
-          <line x1="16" y1="17" x2="8" y2="17"></line>
-          <polyline points="10 9 9 9 8 9"></polyline>
-        </svg>
-        Copy PR Sticky
+
+      <!-- Speed Selector Toggle -->
+      <button class="action-btn mode-toggle-btn" id="mode-toggle-btn" onclick="toggleDeliberationSpeed()" title="Toggle live animation vs instant resolution">
+        <span id="mode-icon">⏱️</span>
+        <span id="mode-text">Live Run</span>
       </button>
-      <button class="action-btn secondary-btn" onclick="exportADR()">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-          <polyline points="7 10 12 15 17 10"></polyline>
-          <line x1="12" y1="15" x2="12" y2="3"></line>
-        </svg>
-        Export ADR
+
+      <button class="action-btn icon-only-btn" onclick="copyPRComment()" title="Copy GitHub PR Sticky Markdown">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
       </button>
-      <button class="action-btn primary-btn" onclick="copyHandoffCommand()">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polyline points="4 17 10 11 4 5"></polyline>
-          <line x1="12" y1="19" x2="20" y2="19"></line>
-        </svg>
-        Copy CLI
+      <button class="action-btn icon-only-btn" onclick="exportADR()" title="Export Michael Nygard ADR Markdown">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+      </button>
+      <button class="action-btn cli-handoff-btn" onclick="copyHandoffCommand()" title="Copy Claude Code implementer launch command">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>
+        <span>Copy CLI</span>
+      </button>
+
+      <!-- Toggle Right Inspector -->
+      <button class="action-btn inspector-toggle-btn" id="inspector-toggle-btn" onclick="toggleInspector()" title="Toggle component specification inspector">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="15" y1="3" x2="15" y2="21"></line></svg>
       </button>
     </div>
   </header>
 
   <!-- ==========================================================================
-       2. MAIN 3-COLUMN STUDIO WORKSPACE
+       2. DELIBERATION PIPELINE EXECUTION HUD
        ========================================================================== -->
-  <div class="studio-body">
+  <div class="deliberation-hud" id="deliberation-hud">
+    <div class="hud-status-area">
+      <span class="hud-live-pill" id="hud-live-pill">
+        <span class="pulse-beacon"></span>
+        <span id="hud-status-state">CONSENSUS LOCKED</span>
+      </span>
+      <span class="hud-narrative-text" id="hud-narrative-text">
+        Delphi review complete: 4 Soundproof Chambers reconciled with 0 leaked bytes.
+      </span>
+    </div>
 
-    <!-- LEFT RAIL: Proposals & Council Specialists (280px) -->
-    <aside class="sidebar-rail">
-      
-      <!-- Target Proposal Section -->
-      <div class="rail-section">
-        <div class="rail-header">ACTIVE ARCHITECTURE REVIEW</div>
-        <select id="proposal-dropdown" class="rail-select" onchange="switchProposal(this.value)">
-          <option value="rfc042">RFC-042: WebSocket Messaging Fabric</option>
-          <option value="rfc019">RFC-019: Distributed URL Shortener</option>
-          <option value="rfc088">RFC-088: Multi-Region Payment Saga</option>
-        </select>
-        <div class="proposal-summary-card">
-          <div class="summary-headline" id="prop-headline">100,000 WebSocket Messaging Fabric</div>
-          <div class="summary-meta-line">
-            <span class="meta-badge approved">Approved with Conditions</span>
-            <span class="meta-target" id="prop-target">100k Sockets</span>
-          </div>
-          <div class="sync-line">
-            <span class="sync-dot live"></span>
-            <span>Switch Protocol: <code>#review-desk</code></span>
-          </div>
-        </div>
+    <div class="hud-stages-stepper">
+      <div class="hud-step done" id="hud-step-1" onclick="jumpToPhase(1)">
+        <span class="step-glyph">🔒</span>
+        <span class="step-label">1. Room Isolation</span>
       </div>
-
-      <!-- Council Roster & Rubric -->
-      <div class="rail-section flex-grow">
-        <div class="rail-header">
-          <span>COUNCIL SPECIALISTS</span>
-          <span class="badge-mini">4 Chambers</span>
-        </div>
-        <div class="specialists-list" id="specialists-list">
-          <!-- Dynamically populated via app.js -->
-        </div>
+      <span class="hud-step-arrow">→</span>
+      <div class="hud-step done" id="hud-step-2" onclick="jumpToPhase(2)">
+        <span class="step-glyph">🔍</span>
+        <span class="step-label">2. Blind Audits</span>
       </div>
-
-      <!-- Formal Invariant Verification Box -->
-      <div class="rail-section">
-        <div class="rail-header">INVARIANT ASSERTIONS</div>
-        <div class="invariant-items" id="invariant-items">
-          <!-- Dynamically populated via app.js -->
-        </div>
+      <span class="hud-step-arrow">→</span>
+      <div class="hud-step done" id="hud-step-3" onclick="jumpToPhase(3)">
+        <span class="step-glyph">⚔️</span>
+        <span class="step-label">3. Floor Clash</span>
       </div>
-
-    </aside>
-
-    <!-- CENTER WORKSPACE: Visual Architecture Stage (Flex 1) -->
-    <main class="center-stage">
-      
-      <!-- Streamlined Stage Breadcrumb & Phase Status -->
-      <div class="stage-top-bar">
-        <div class="stage-breadcrumbs">
-          <span class="stage-tag" id="stage-phase-tag">DELPHI PROTOCOL PHASE 3</span>
-          <h2 class="stage-title" id="stage-phase-title">Synthesized Architecture Topology (Vector Verification)</h2>
-        </div>
-        <div class="stage-meta-status">
-          <span class="status-indicator-pill"><span class="sync-dot live"></span> Consensus Locked • Zero Leakage</span>
-        </div>
+      <span class="hud-step-arrow">→</span>
+      <div class="hud-step done" id="hud-step-4" onclick="jumpToPhase(4)">
+        <span class="step-glyph">🌐</span>
+        <span class="step-label">4. Topology Consensus</span>
       </div>
+    </div>
 
-      <!-- Canvas Viewport -->
-      <div class="stage-canvas-area" id="stage-canvas-area">
-        
-        <!-- View 1: Interactive System Architecture Canvas -->
-        <div class="canvas-view active" id="view-topology">
-          <div class="topology-canvas-wrapper">
-            <div class="canvas-flow-header">
-              <div class="flow-title-group">
-                <h3>Resolved Ingress & State Topology</h3>
-                <p>Interactive service nodes — click any component to inspect specialist mandates and scaffolded contracts</p>
-              </div>
-              <span class="canvas-live-badge">
+    <div class="hud-actions-area">
+      <button class="hud-skip-action" id="hud-skip-action" onclick="skipToConsensus()" style="display:none;">
+        ⏩ Fast-Forward
+      </button>
+      <div class="hud-telemetry-badge">
+        <span class="hud-tele-item"><span class="hud-tele-dot"></span> 0B Leak</span>
+        <span class="hud-tele-divider">•</span>
+        <span class="hud-tele-item">4 Chambers</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       3. EXPANSIVE TWO-COLUMN STUDIO WORKSPACE (No Cluttered 3rd Rail)
+       ========================================================================== -->
+  <div class="studio-body" id="studio-body">
+
+    <!-- MAIN STAGE (Vast Canvas & Views, Flex 1) -->
+    <main class="center-stage" id="center-stage">
+
+      <!-- View 1: Dynamic Vector Topology Workbench -->
+      <div class="canvas-view active" id="view-topology">
+        <div class="topology-canvas-wrapper">
+          <div class="canvas-flow-header">
+            <div class="flow-title-group">
+              <h3 id="prop-headline">100,000 WebSocket Messaging Fabric</h3>
+              <p id="prop-subline">Interactive service topology — click any node to inspect chamber invariants and scaffolded code</p>
+            </div>
+            <div class="flow-right-meta">
+              <span class="meta-target-pill" id="prop-target">100k Sockets</span>
+              <span class="canvas-live-badge" id="canvas-status-badge">
                 <span class="sync-dot live"></span>
                 Consensus Reached
               </span>
             </div>
+          </div>
 
-            <!-- Dynamic Vector Topology Workbench (100% Client-Side Rendered) -->
-            <div class="dynamic-topology-workbench" id="dynamic-topology-workbench">
-              <div class="topology-toolbar">
-                <div class="topology-legend-chips">
-                  <span class="legend-chip sec"><span class="legend-dot"></span> Aegis (Security)</span>
-                  <span class="legend-chip scale"><span class="legend-dot"></span> Vanguard (Scalability)</span>
-                  <span class="legend-chip fin"><span class="legend-dot"></span> Ledger (FinOps -$25.2k)</span>
-                  <span class="legend-chip data"><span class="legend-dot"></span> Titan (Data Reliability)</span>
-                </div>
-                <div class="topology-actions-group">
-                  <button class="top-action-btn" id="btn-toggle-animation" onclick="toggleFlowAnimation()">
-                    <span class="btn-icon">⚡</span> Traffic Flow: <span id="anim-status-label">ACTIVE</span>
-                  </button>
-                  <button class="top-action-btn" id="btn-export-svg" onclick="exportDynamicSVG()">
-                    <span class="btn-icon">📥</span> Export Vector SVG
-                  </button>
-                </div>
+          <!-- Dynamic Vector Topology Area -->
+          <div class="dynamic-topology-workbench" id="dynamic-topology-workbench">
+            <div class="topology-toolbar">
+              <div class="topology-legend-chips">
+                <span class="legend-chip sec"><span class="legend-dot"></span> Aegis (Security)</span>
+                <span class="legend-chip scale"><span class="legend-dot"></span> Vanguard (Scalability)</span>
+                <span class="legend-chip fin"><span class="legend-dot"></span> Ledger (FinOps -$25.2k)</span>
+                <span class="legend-chip data"><span class="legend-dot"></span> Titan (Data Reliability)</span>
               </div>
+              <div class="topology-actions-group">
+                <button class="top-action-btn" id="btn-toggle-animation" onclick="toggleFlowAnimation()">
+                  <span class="btn-icon">⚡</span> Traffic Flow: <span id="anim-status-label">ACTIVE</span>
+                </button>
+                <button class="top-action-btn" id="btn-export-svg" onclick="exportDynamicSVG()">
+                  <span class="btn-icon">📥</span> Export Vector SVG
+                </button>
+              </div>
+            </div>
 
-              <!-- Real-time Generated SVG Topology Viewport -->
-              <div class="dynamic-svg-viewport" id="dynamic-svg-viewport">
-                <!-- Dynamically generated in SVG by app.js on proposal select / deliberation -->
+            <!-- SVG Container -->
+            <div class="dynamic-svg-viewport" id="dynamic-svg-viewport">
+              <!-- Rendered via app.js -->
+            </div>
+
+            <!-- Invariant Summary Strip (Subtle Footer) -->
+            <div class="canvas-invariant-strip" id="canvas-invariant-strip">
+              <span class="inv-strip-label">OPERATIONAL INVARIANTS:</span>
+              <div class="inv-strip-items" id="invariant-items">
+                <!-- Injected via app.js -->
               </div>
             </div>
           </div>
         </div>
+      </div>
 
-        <!-- View 2: Council Floor (#review-desk Clash & Steering) -->
-        <div class="canvas-view" id="view-floor">
-          <div class="floor-wrapper">
-            <div class="floor-header-bar">
-              <div class="floor-title-group">
-                <div class="floor-channel-name">#review-desk</div>
-                <div class="floor-desc">Public Council Deliberation Floor • Switch Server-Enforced Room • Human Architect Steered</div>
-              </div>
-              <span class="channel-status-pill">
-                <span class="sync-dot live"></span>
-                Deliberation Active
-              </span>
+      <!-- View 2: Council Floor (#review-desk Debate Stream) -->
+      <div class="canvas-view" id="view-floor">
+        <div class="floor-wrapper">
+          <div class="floor-header-bar">
+            <div class="floor-title-group">
+              <div class="floor-channel-name">#review-desk</div>
+              <div class="floor-desc">Public Deliberation Floor • Switch Server-Enforced Room • Human Architect Steered</div>
             </div>
+            <span class="channel-status-pill">
+              <span class="sync-dot live"></span>
+              Floor Active
+            </span>
+          </div>
 
-            <div class="floor-chat-stream" id="floor-messages-container">
-              <!-- Dynamically populated via app.js -->
-            </div>
+          <div class="floor-chat-stream" id="floor-messages-container">
+            <!-- Dynamically populated via app.js -->
+          </div>
 
-            <div class="floor-typing-indicator" id="floor-typing-bar">
-              <span class="typing-dot"></span>
-              <span class="typing-dot"></span>
-              <span class="typing-dot"></span>
-              <span class="typing-text" id="typing-status-text">Athena is synthesizing conflict resolution...</span>
-            </div>
+          <div class="floor-typing-indicator" id="floor-typing-bar" style="display:none;">
+            <span class="typing-dot"></span>
+            <span class="typing-dot"></span>
+            <span class="typing-dot"></span>
+            <span class="typing-text" id="typing-status-text">Athena is synthesizing conflict resolution...</span>
+          </div>
 
-            <div class="floor-input-bar">
-              <div class="quick-pills-row">
-                <button class="quick-pill" onclick="insertFloorPrompt('!summary')">!summary</button>
-                <button class="quick-pill" onclick="insertFloorPrompt('!diagram')">!diagram</button>
-                <button class="quick-pill" onclick="insertFloorPrompt('approve')">approve</button>
-                <button class="quick-pill" onclick="insertFloorPrompt('veto')">veto</button>
-              </div>
-              <form class="floor-form" onsubmit="handleFloorSubmit(event)">
-                <input type="text" id="floor-user-input" class="floor-input" placeholder="Directive to Council (e.g. 'approve', '!summary', 'Adopt Redis Bloom filter')..." autocomplete="off">
-                <button type="submit" class="floor-send-btn">Send Directive</button>
-              </form>
+          <div class="floor-input-bar">
+            <div class="quick-pills-row">
+              <button class="quick-pill" onclick="insertFloorPrompt('!summary')">!summary</button>
+              <button class="quick-pill" onclick="insertFloorPrompt('!diagram')">!diagram</button>
+              <button class="quick-pill" onclick="insertFloorPrompt('approve')">approve</button>
+              <button class="quick-pill" onclick="insertFloorPrompt('veto')">veto</button>
             </div>
+            <form class="floor-form" onsubmit="handleFloorSubmit(event)">
+              <input type="text" id="floor-user-input" class="floor-input" placeholder="Directive to Council (e.g. 'approve', '!summary', 'Mandate Redis Bloom filter')..." autocomplete="off">
+              <button type="submit" class="floor-send-btn">Send Directive</button>
+            </form>
           </div>
         </div>
+      </div>
 
-        <!-- View 3: Soundproof Isolation Chambers (The Switch Superpower Proof) -->
-        <div class="canvas-view" id="view-chambers">
-          <div class="chambers-wrapper">
-            <!-- Telemetry Header -->
-            <div class="telemetry-bar">
-              <div class="tele-stat">
-                <span class="tele-val text-success" id="tele-leakage">0 Bytes</span>
-                <span class="tele-label">Cross-Chamber Leakage</span>
-              </div>
-              <div class="tele-divider"></div>
-              <div class="tele-stat">
-                <span class="tele-val" id="tele-chambers">4 Active</span>
-                <span class="tele-label">Soundproof Chambers</span>
-              </div>
-              <div class="tele-divider"></div>
-              <div class="tele-stat">
-                <span class="tele-val text-brand">0.0% Anchor Bias</span>
-                <span class="tele-label">Sycophancy Echo Rate</span>
-              </div>
-              <div class="tele-divider"></div>
-              <div class="tele-stat">
-                <span class="tele-val text-purple">Switch Core 0.31.0</span>
-                <span class="tele-label">Server-Enforced ACLs</span>
-              </div>
+      <!-- View 3: Soundproof Chambers (Zero Leakage Monitor) -->
+      <div class="canvas-view" id="view-chambers">
+        <div class="chambers-wrapper">
+          <!-- Telemetry Bar -->
+          <div class="telemetry-bar">
+            <div class="tele-stat">
+              <span class="tele-val text-success" id="tele-leakage">0 Bytes</span>
+              <span class="tele-label">Cross-Chamber Leakage</span>
             </div>
-
-            <!-- Chamber Cards Grid -->
-            <div class="chambers-grid" id="chambers-grid-container">
-              <!-- Dynamically populated via app.js -->
+            <div class="tele-divider"></div>
+            <div class="tele-stat">
+              <span class="tele-val" id="tele-chambers">4 Active</span>
+              <span class="tele-label">Soundproof Chambers</span>
+            </div>
+            <div class="tele-divider"></div>
+            <div class="tele-stat">
+              <span class="tele-val text-brand">0.0% Anchor Bias</span>
+              <span class="tele-label">Sycophancy Echo Rate</span>
+            </div>
+            <div class="tele-divider"></div>
+            <div class="tele-stat">
+              <span class="tele-val text-purple">Switch Core 0.31.0</span>
+              <span class="tele-label">Server-Enforced ACLs</span>
             </div>
           </div>
-        </div>
 
-        <!-- View 4: Live Tool Calls & Execution Traces -->
-        <div class="canvas-view" id="view-tools">
-          <div class="tools-stream-wrap" id="tools-stream-container">
+          <!-- Chamber Cards Grid -->
+          <div class="chambers-grid" id="chambers-grid-container">
             <!-- Dynamically populated via app.js -->
           </div>
         </div>
-
-        <!-- View 5: Tension & Conflict Matrix -->
-        <div class="canvas-view" id="view-matrix">
-          <div class="matrix-card-wrap">
-            <table class="studio-table">
-              <thead>
-                <tr>
-                  <th style="width: 25%;">Tension Vector</th>
-                  <th style="width: 35%;">Chamber Clash</th>
-                  <th style="width: 40%;">Consensus Synthesis & Invariant</th>
-                </tr>
-              </thead>
-              <tbody id="studio-matrix-rows">
-                <!-- Dynamically populated via app.js -->
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- View 6: ADR & Autonomous Implementer Handoff -->
-        <div class="canvas-view" id="view-adr">
-          <div class="handoff-layout">
-            
-            <!-- Left Panel: Michael Nygard ADR Sheet -->
-            <div class="adr-sheet-card">
-              <div class="card-header-line">
-                <span class="card-kicker">MICHAEL NYGARD STANDARD</span>
-                <span class="badge-mini approved">Consensus Locked</span>
-              </div>
-              <div class="adr-sheet" id="adr-sheet-content">
-                <!-- Dynamically populated via app.js -->
-              </div>
-            </div>
-
-            <!-- Right Panel: Scaffolding Manifest & CLI Launch Command -->
-            <div class="handoff-manifest-card">
-              <div class="card-header-line">
-                <span class="card-kicker">AUTONOMOUS IMPLEMENTER BRIDGE</span>
-                <button class="badge-action-btn" onclick="copyHandoffCommand()">Copy CLI</button>
-              </div>
-
-              <div class="manifest-meta-box">
-                <div class="meta-row">
-                  <span class="meta-label">Target Git Branch:</span>
-                  <code class="meta-val" id="target-branch-display">feat/adr-042-impl</code>
-                </div>
-                <div class="meta-row">
-                  <span class="meta-label">Verification Command:</span>
-                  <code class="meta-val" id="verification-cmd-display">pytest tests/ -v</code>
-                </div>
-              </div>
-
-              <div class="section-title-mini">SECTION 6 SCAFFOLDING FILE MANIFEST</div>
-              <div class="manifest-table-box" id="manifest-table-container">
-                <!-- Dynamically populated via app.js -->
-              </div>
-
-              <div class="terminal-command-box">
-                <div class="term-bar">
-                  <span class="term-title">Terminal Launch Command (Claude Code / Codex)</span>
-                  <button class="term-copy-btn" onclick="copyHandoffCommand()">Copy</button>
-                </div>
-                <pre class="term-code" id="term-launch-display"></pre>
-              </div>
-
-              <!-- GitHub PR Sticky Comment Preview -->
-              <div class="pr-sticky-preview-box">
-                <div class="term-bar">
-                  <span class="term-title">GitHub PR Sticky Review Comment</span>
-                  <button class="term-copy-btn" onclick="copyPRComment()">Copy PR Markdown</button>
-                </div>
-                <div class="pr-preview-scroll" id="pr-preview-content">
-                  <!-- Dynamically populated via app.js -->
-                </div>
-              </div>
-
-            </div>
-
-          </div>
-        </div>
-
       </div>
+
+      <!-- View 4: Specialist Tool Execution Traces -->
+      <div class="canvas-view" id="view-tools">
+        <div class="tools-stream-wrap" id="tools-stream-container">
+          <!-- Dynamically populated via app.js -->
+        </div>
+      </div>
+
+      <!-- View 5: Tension Matrix -->
+      <div class="canvas-view" id="view-matrix">
+        <div class="matrix-card-wrap">
+          <table class="studio-table">
+            <thead>
+              <tr>
+                <th style="width: 25%;">Tension Vector</th>
+                <th style="width: 35%;">Chamber Clash</th>
+                <th style="width: 40%;">Consensus Synthesis & Invariant</th>
+              </tr>
+            </thead>
+            <tbody id="studio-matrix-rows">
+              <!-- Dynamically populated via app.js -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- View 6: ADR & Implementer Handoff -->
+      <div class="canvas-view" id="view-adr">
+        <div class="handoff-layout">
+          <!-- Left Panel: Michael Nygard ADR -->
+          <div class="adr-sheet-card">
+            <div class="card-header-line">
+              <span class="card-kicker">MICHAEL NYGARD STANDARD</span>
+              <span class="badge-mini approved">Consensus Locked</span>
+            </div>
+            <div class="adr-sheet" id="adr-sheet-content">
+              <!-- Dynamically populated via app.js -->
+            </div>
+          </div>
+
+          <!-- Right Panel: Implementation Bridge -->
+          <div class="handoff-manifest-card">
+            <div class="card-header-line">
+              <span class="card-kicker">AUTONOMOUS IMPLEMENTER BRIDGE</span>
+              <button class="badge-action-btn" onclick="copyHandoffCommand()">Copy CLI</button>
+            </div>
+
+            <div class="manifest-meta-box">
+              <div class="meta-row">
+                <span class="meta-label">Target Git Branch:</span>
+                <code class="meta-val" id="target-branch-display">feat/adr-042-impl</code>
+              </div>
+              <div class="meta-row">
+                <span class="meta-label">Verification Command:</span>
+                <code class="meta-val" id="verification-cmd-display">pytest tests/ -v</code>
+              </div>
+            </div>
+
+            <div class="section-title-mini">SECTION 6 SCAFFOLDING FILE MANIFEST</div>
+            <div class="manifest-table-box" id="manifest-table-container">
+              <!-- Dynamically populated via app.js -->
+            </div>
+
+            <div class="terminal-command-box">
+              <div class="term-bar">
+                <span class="term-title">Terminal Launch Command (Claude Code / Codex)</span>
+                <button class="term-copy-btn" onclick="copyHandoffCommand()">Copy</button>
+              </div>
+              <pre class="term-code" id="term-launch-display"></pre>
+            </div>
+
+            <!-- GitHub PR Sticky Preview -->
+            <div class="pr-sticky-preview-box">
+              <div class="term-bar">
+                <span class="term-title">GitHub PR Sticky Review Comment</span>
+                <button class="term-copy-btn" onclick="copyPRComment()">Copy PR Markdown</button>
+              </div>
+              <div class="pr-preview-scroll" id="pr-preview-content">
+                <!-- Dynamically populated via app.js -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </main>
 
-    <!-- RIGHT INSPECTOR: Contextual Detail Panel (300px) -->
-    <aside class="inspector-rail">
+    <!-- RIGHT INSPECTOR: Contextual Detail Panel (Clean Linear Style) -->
+    <aside class="inspector-rail" id="inspector-rail">
       <div class="inspector-header">
         <div class="inspector-title-row">
           <span class="inspector-tag">COMPONENT SPECIFICATION</span>
           <h3 class="inspector-title" id="insp-title">Ingress Gateway & Bloom Filter</h3>
         </div>
+        <button class="inspector-close-btn" onclick="toggleInspector()" title="Close inspector">✕</button>
       </div>
 
       <div class="inspector-body">
         
         <!-- Auditor Sign-Off -->
-        <div class="inspector-card">
-          <div class="card-label">CHAMBER AUDITOR SIGN-OFF</div>
+        <div class="inspector-section">
+          <div class="inspector-label">CHAMBER AUDITOR SIGN-OFF</div>
           <div class="auditor-badge-line">
             <div class="auditor-name-wrap">
               <div class="spec-avatar sec" id="insp-avatar">A</div>
@@ -386,24 +394,24 @@
         </div>
 
         <!-- Vulnerability / Tension -->
-        <div class="inspector-card">
-          <div class="card-label">IDENTIFIED VULNERABILITY / BOTTLENECK</div>
+        <div class="inspector-section">
+          <div class="inspector-label">IDENTIFIED VULNERABILITY / BOTTLENECK</div>
           <p class="finding-desc" id="insp-finding">
             In-band heartbeat token validation permits a 15-minute window of unauthorized socket frames after account ban.
           </p>
         </div>
 
         <!-- Mandated Resolution -->
-        <div class="inspector-card">
-          <div class="card-label">MANDATED RESOLUTION</div>
+        <div class="inspector-section">
+          <div class="inspector-label">MANDATED RESOLUTION</div>
           <div class="resolution-box" id="insp-resolution">
             Sub-ms Redis Bloom filter bitset deployed at gateway edge. Revoked tokens checked in RAM with zero DB load.
           </div>
         </div>
 
         <!-- Live Tool Trace -->
-        <div class="inspector-card">
-          <div class="card-label">EVALUATION TOOL CALL</div>
+        <div class="inspector-section">
+          <div class="inspector-label">EVALUATION TOOL TRACE</div>
           <div class="auditor-badge-line" style="margin-bottom: 6px;">
             <code style="font-family: var(--font-mono); font-size: 11px; color: var(--text-primary);" id="insp-tool-name">cve_database_search</code>
             <span class="badge-mini" id="insp-tool-duration">142ms</span>
@@ -413,7 +421,7 @@ result: "CVE-2023-4580 (CVSS 8.1 High)"</pre>
         </div>
 
         <!-- Scaffolded Contract -->
-        <div class="inspector-code-card">
+        <div class="inspector-code-section">
           <div class="code-header-bar">
             <span class="code-filename">Contract Specification</span>
             <button class="code-copy-btn" onclick="copyInspectorCode()">Copy</button>
@@ -426,6 +434,53 @@ result: "CVE-2023-4580 (CVSS 8.1 High)"</pre>
       </div>
     </aside>
 
+  </div>
+
+  <!-- ==========================================================================
+       4. CUSTOM ARCHITECTURE RFC MODAL (Zero-Mock Assurance)
+       ========================================================================== -->
+  <div class="custom-modal-backdrop" id="custom-rfc-modal" style="display:none;" onclick="handleModalBackdropClick(event)">
+    <div class="custom-modal-card">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <span class="modal-kicker">DELPHI ENGINE INTAKE</span>
+          <h3 class="modal-title">Convene Review for Custom Architecture</h3>
+        </div>
+        <button class="modal-close-btn" onclick="closeCustomRFCModal()">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <p class="modal-desc">
+          Enter any architectural challenge or PR description. Quorum’s 4 soundproof specialist chambers (Security, Scalability, FinOps, Data Reliability) will partition with zero leakage, execute independent tools, clash on the floor, and synthesize the resolved topology.
+        </p>
+
+        <div class="modal-form-group">
+          <label class="modal-label" for="custom-title-input">Proposal Title & Target Subsystem</label>
+          <input type="text" id="custom-title-input" class="modal-input" placeholder="e.g., Real-Time Fraud Scoring & Risk Engine" value="Real-Time Fraud Scoring & Risk Engine">
+        </div>
+
+        <div class="modal-form-group">
+          <label class="modal-label" for="custom-dilemma-input">Architectural Dilemma & Scale Constraints</label>
+          <textarea id="custom-dilemma-input" class="modal-textarea" rows="3" placeholder="e.g., Ingest 100,000 tx/sec with sub-5ms ML scoring, zero false-positive account bans, and max $12k/mo infrastructure spend under regional partition..."></textarea>
+        </div>
+
+        <div class="presets-section">
+          <span class="presets-title">QUICK ARCHITECTURE PRESETS:</span>
+          <div class="preset-chips-row">
+            <button type="button" class="preset-chip" onclick="applyRFCPreset('fraud')">⚡ Real-Time Fraud (100k evt/s)</button>
+            <button type="button" class="preset-chip" onclick="applyRFCPreset('stream')">🌐 Global Video CDN (10M Streams)</button>
+            <button type="button" class="preset-chip" onclick="applyRFCPreset('crypto')">💳 Crypto Matching Engine (Sub-1ms)</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="modal-btn secondary" onclick="closeCustomRFCModal()">Cancel</button>
+        <button class="modal-btn primary" onclick="submitCustomRFC()">
+          <span>🚀 Launch Delphi Deliberation</span>
+        </button>
+      </div>
+    </div>
   </div>
 
   <!-- Toast Notification -->
