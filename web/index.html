@@ -142,6 +142,7 @@
         </div>
         <div class="stage-view-toggles">
           <button class="stage-toggle-btn active" data-view="topology" onclick="setCenterView('topology')">Visual Canvas</button>
+          <button class="stage-toggle-btn" data-view="tools" onclick="setCenterView('tools')">Agent Tool Calls & Traces</button>
           <button class="stage-toggle-btn" data-view="matrix" onclick="setCenterView('matrix')">Tension Matrix</button>
           <button class="stage-toggle-btn" data-view="adr" onclick="setCenterView('adr')">ADR Preview</button>
         </div>
@@ -218,7 +219,14 @@
           </div>
         </div>
 
-        <!-- View B: Tension Matrix & Conflict Radar -->
+        <!-- View B: Agent Tool Calls & Research Traces -->
+        <div class="canvas-view" id="view-tools">
+          <div class="tools-stream-wrap" id="tools-stream-container">
+            <!-- Dynamically populated with live tool calls -->
+          </div>
+        </div>
+
+        <!-- View C: Tension Matrix & Conflict Radar -->
         <div class="canvas-view" id="view-matrix">
           <div class="matrix-card-wrap">
             <table class="studio-table">
@@ -345,7 +353,20 @@
           </div>
         </div>
 
-        <!-- Inspector Card 3: Code Contract Snippet -->
+        <!-- Inspector Card 3: Active Tool Call Trace -->
+        <div class="insp-card">
+          <div class="insp-card-label">ACTIVE TOOL CALL TRACE</div>
+          <div class="tool-trace-block">
+            <div class="tool-trace-header">
+              <span class="tool-tag" id="insp-tool-name">cve_database_search</span>
+              <span class="tool-duration" id="insp-tool-duration">140ms</span>
+            </div>
+            <pre class="tool-trace-body"><code id="insp-tool-snippet">query: "WebSocket in-band heartbeat session hijacking"
+result: "CVE-2023-4580 (CVSS 8.1 High)"</code></pre>
+          </div>
+        </div>
+
+        <!-- Inspector Card 4: Code Contract Snippet -->
         <div class="insp-card">
           <div class="insp-card-label">SCAFFOLDED INTERFACE CONTRACT</div>
           <div class="code-box">

@@ -986,6 +986,113 @@ body.workbench-app {
   line-height: 1.5;
 }
 
+/* Tool Call Stream & Inspector Trace */
+.tools-stream-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.tool-log-card {
+  background-color: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.tool-log-header {
+  padding: 10px 14px;
+  background-color: var(--studio-elevated);
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tool-agent-badge {
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tool-badge-pill {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.tool-call-body {
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tool-call-box {
+  background-color: #0f172a;
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: #93c5fd;
+}
+
+.tool-result-box {
+  background-color: #f8fafc;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: #1e293b;
+}
+
+.tool-trace-block {
+  background-color: #0f172a;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.tool-trace-header {
+  background-color: #1e293b;
+  padding: 6px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tool-tag {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  color: #38bdf8;
+}
+
+.tool-duration {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: #94a3b8;
+}
+
+.tool-trace-body {
+  padding: 8px 10px;
+  margin: 0;
+}
+
+.tool-trace-body code {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  line-height: 1.45;
+  color: #cbd5e1;
+}
+
 .adr-sheet code {
   font-family: var(--font-mono);
   font-size: 11.5px;

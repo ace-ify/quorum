@@ -1,5 +1,6 @@
 /**
  * BlindCouncil Studio — Production Architecture Workbench Logic
+ * Displays interactive visual topology, live agent tool calls, tension matrix, and code scaffolding.
  */
 
 const PROPOSALS = {
@@ -15,6 +16,53 @@ const PROPOSALS = {
       { key: "scale", name: "Vanguard", domain: "Concurrency & p99 Latency", score: "6.8/10", tag: "scale", role: "Principal Systems Architect" },
       { key: "fin", name: "Ledger", domain: "Cloud Economics & ROI", score: "6.0/10", tag: "fin", role: "Lead Cloud Economics" },
       { key: "data", name: "Titan", domain: "State Consistency & ACID", score: "7.2/10", tag: "data", role: "Data Reliability Architect" }
+    ],
+    toolsLog: [
+      {
+        agent: "Aegis",
+        role: "Staff Security Auditor",
+        tool: "cve_database_search",
+        duration: "142ms",
+        tag: "sec",
+        query: 'query: "WebSocket in-band heartbeat token refresh session hijacking"\ncompliance: "SOC2 Article 4 | OWASP ASVS 4.0"',
+        result: '{\n  "matched_cve": "CVE-2023-4580 (Severity: High / CVSS 8.1)",\n  "vulnerability": "In-band WebSocket heartbeat renews token without central revocation check",\n  "exposure_window": "15 minutes between heartbeats allowing banned credentials to pump frames",\n  "remediation": "Synchronous sub-ms token blacklist verification before socket frame ingest"\n}'
+      },
+      {
+        agent: "Vanguard",
+        role: "Principal Systems Architect",
+        tool: "queue_concurrency_sim",
+        duration: "215ms",
+        tag: "scale",
+        query: 'concurrent_sockets: 100000\nreconnect_burst_window_sec: 15\nauth_mode: "synchronous_postgres_query"\npostgres_pool_size: 500',
+        result: '{\n  "time_to_failure": "11.8 seconds",\n  "exception": "ConnectionPoolExhaustedException (500/500 active)",\n  "throttled_clients": 94210,\n  "measured_p99_latency_ms": 144.2,\n  "sla_target_ms": 20.0,\n  "status": "CRITICAL SLA BREACH"\n}'
+      },
+      {
+        agent: "Ledger",
+        role: "Lead Cloud Economics",
+        tool: "aws_pricing_calculator",
+        duration: "98ms",
+        tag: "fin",
+        query: 'service: "Amazon MemoryDB for Redis"\nnode_type: "cache.r6g.2xlarge"\nnode_count: 12\nbaseline_sockets: 20000',
+        result: '{\n  "monthly_bill": "$3,504.00",\n  "annual_spend": "$42,048.00",\n  "off_peak_memory_utilization": "16.4%",\n  "optimized_cluster_4_nodes": "$16,848.00",\n  "net_annual_savings": "$25,200.00"\n}'
+      },
+      {
+        agent: "Titan",
+        role: "Data Reliability Architect",
+        tool: "distributed_fault_injection",
+        duration: "310ms",
+        tag: "data",
+        query: 'pipeline: "dual_write (Redis Streams + Postgres Insert)"\nfault_scenario: "worker_sigkill_mid_transaction"\niterations: 1000',
+        result: '{\n  "total_events_dispatched": 50000,\n  "simulated_worker_crashes": 38,\n  "dropped_events_uncommitted": 92,\n  "message_loss_percentage": "1.84%",\n  "consistency_guarantee": "VIOLATED (Split-brain dual write)"\n}'
+      },
+      {
+        agent: "Vanguard",
+        role: "Principal Systems Architect",
+        tool: "redis_bloom_benchmark",
+        duration: "76ms",
+        tag: "scale",
+        query: 'capacity: 1000000\nerror_rate: 0.0001\nbitset_size_mb: 2.38',
+        result: '{\n  "lookup_latency_micros": 140,\n  "lookup_latency_ms": 0.14,\n  "memory_footprint_mb": 2.38,\n  "zero_db_queries_guarantee": true\n}'
+      }
     ],
     matrix: [
       {
@@ -42,6 +90,9 @@ const PROPOSALS = {
         auditor: "Vanguard • Scale",
         score: "Score: 6.8/10",
         avatar: "V",
+        toolName: "queue_concurrency_sim",
+        toolDuration: "215ms",
+        toolSnippet: 'connections: 100000\nstatus: "ConnectionPoolExhaustedException at t=11.8s"',
         finding: "100k simultaneous reconnections during rolling pod deployments risk crashing relational connection pool.",
         resolution: "Client-side randomized jitter and exponential backoff enforced at connection layer.",
         code: `# Client reconnect jitter spec
@@ -53,6 +104,9 @@ jittered_delay = reconnect_delay * (0.5 + random.random())`
         auditor: "Vanguard • Scale",
         score: "Score: 9.0/10",
         avatar: "V",
+        toolName: "tls_passthrough_eval",
+        toolDuration: "64ms",
+        toolSnippet: 'mode: "TCP_PASS_THROUGH"\nlatency_overhead: "<0.05ms"',
         finding: "TCP level pass-through avoids HTTP long-polling handshake overhead and terminates TLS at line speed.",
         resolution: "L4 direct routing preserves client socket state without TLS re-encryption tax.",
         code: `Type: AWS::ElasticLoadBalancingV2::LoadBalancer
@@ -66,6 +120,9 @@ Properties:
         auditor: "Aegis • Security",
         score: "Score: 4.5/10 (Resolved)",
         avatar: "A",
+        toolName: "cve_database_search",
+        toolDuration: "142ms",
+        toolSnippet: 'query: "WebSocket heartbeat session hijacking"\nresult: "CVE-2023-4580 (CVSS 8.1 High)"',
         finding: "In-band heartbeat token validation permits a 15-minute window of unauthorized socket frames after account ban.",
         resolution: "Sub-ms Redis Bloom filter bitset deployed at gateway edge. Revoked tokens checked in RAM with zero DB load.",
         code: `# src/middleware/bloom_revocation.py
@@ -81,6 +138,9 @@ async def verify_socket_session(socket_id: str, token_id: str) -> bool:
         auditor: "Ledger • FinOps",
         score: "Score: 6.0/10 (Resolved)",
         avatar: "L",
+        toolName: "aws_pricing_calculator",
+        toolDuration: "98ms",
+        toolSnippet: '12_nodes: "$42,048/yr (16.4% utilization)"\n4_nodes_autoscale: "$16,848/yr (Saves $25,200/yr)"',
         finding: "12 provisioned nodes for a 20k baseline is rejected by Ledger. Wastes $25,200/year on idle compute.",
         resolution: "Right-sized to 4 primary instances with 75% memory autoscaling alarms, saving $25,200 annually.",
         code: `ClusterConfiguration:
@@ -96,6 +156,9 @@ async def verify_socket_session(socket_id: str, token_id: str) -> bool:
         auditor: "Titan • State Reliability",
         score: "Score: 7.2/10 (Resolved)",
         avatar: "T",
+        toolName: "distributed_fault_injection",
+        toolDuration: "310ms",
+        toolSnippet: 'fault: "worker_sigkill_mid_write"\npacket_loss: "1.84% (Dual-write violation)"',
         finding: "Dual-writing directly to Redis Pub/Sub and Postgres causes message loss if a worker crashes between writes.",
         resolution: "Transactional Outbox table with Debezium CDC into Kafka guarantees strict at-least-once delivery.",
         code: `# src/db/outbox_producer.py
@@ -153,6 +216,26 @@ Legacy HTTP long-polling architecture is failing under scale (450ms p99 latency)
       { key: "fin", name: "Ledger", domain: "Telemetry Tiering ROI", score: "6.5/10", tag: "fin", role: "Lead Cloud Economics" },
       { key: "data", name: "Titan", domain: "Cross-Region Pinning", score: "8.1/10", tag: "data", role: "Data Reliability Architect" }
     ],
+    toolsLog: [
+      {
+        agent: "Vanguard",
+        role: "Principal Systems Architect",
+        tool: "key_generation_lock_benchmark",
+        duration: "185ms",
+        tag: "scale",
+        query: 'mechanism: "sql_auto_increment"\nqps_target: 50000',
+        result: '{\n  "row_lock_contention": "92.4%",\n  "max_achievable_qps": 6200,\n  "status": "FAIL: Centralized sequence bottleneck"\n}'
+      },
+      {
+        agent: "Aegis",
+        role: "Staff Security Auditor",
+        tool: "entropy_enumeration_test",
+        duration: "120ms",
+        tag: "sec",
+        query: 'id_format: "sequential_base62"\nworker_probe_rate: 1000',
+        result: '{\n  "enumeration_rate": "99.8%",\n  "vulnerability": "Predictable sequential URLs enable automated harvesting"\n}'
+      }
+    ],
     matrix: [
       {
         vector: "Key Generation Throughput vs Randomness",
@@ -173,6 +256,9 @@ Legacy HTTP long-polling architecture is failing under scale (450ms p99 latency)
         auditor: "Vanguard • Scale",
         score: "Score: 7.0/10",
         avatar: "V",
+        toolName: "edge_latency_benchmark",
+        toolDuration: "82ms",
+        toolSnippet: 'qps: 50000\nmeasured_latency: "1.8ms at Cloudflare edge"',
         finding: "50,000 incoming query operations per second worldwide.",
         resolution: "Cloudflare edge workers handle initial redirect caching.",
         code: `addEventListener('fetch', event => {
@@ -184,6 +270,9 @@ Legacy HTTP long-polling architecture is failing under scale (450ms p99 latency)
         auditor: "Vanguard • Scale",
         score: "Score: 8.5/10",
         avatar: "V",
+        toolName: "dns_anycast_eval",
+        toolDuration: "55ms",
+        toolSnippet: 'routing: "LatencyBased"\nhandshake_overhead: "<12ms"',
         finding: "Edge DNS routing clients to nearest regional data center.",
         resolution: "Latency-based routing reduces handshake to <15ms.",
         code: `RoutingPolicy: LatencyBased
@@ -194,6 +283,9 @@ TTL: 60`
         auditor: "Aegis • Security",
         score: "Score: 5.2/10 (Resolved)",
         avatar: "A",
+        toolName: "entropy_enumeration_test",
+        toolDuration: "120ms",
+        toolSnippet: 'sequence: "shuffled_base62"\nharvesting_resistance: "100%"',
         finding: "Auto-increment keys allow scraping bots to enumerate private links.",
         resolution: "Shuffled Base62 ranges pre-computed and leased in 1M chunks.",
         code: `def get_next_token():
@@ -204,6 +296,9 @@ TTL: 60`
         auditor: "Ledger • FinOps",
         score: "Score: 6.5/10 (Resolved)",
         avatar: "L",
+        toolName: "cache_hit_ratio_sim",
+        toolDuration: "90ms",
+        toolSnippet: 'hit_ratio: "84.2%"\nmemory_bound: "32GB"',
         finding: "80/20 rule: top 20% URLs receive 80% of click traffic.",
         resolution: "Memory cache prevents database reads for hot links.",
         code: `maxmemory-policy allkeys-lru`
@@ -213,6 +308,9 @@ TTL: 60`
         auditor: "Titan • State Reliability",
         score: "Score: 8.1/10",
         avatar: "T",
+        toolName: "clickhouse_compression_calc",
+        toolDuration: "115ms",
+        toolSnippet: 'compression_ratio: "14:1"\nannual_savings: "$14,000/yr"',
         finding: "Telemetry retention in OLTP database inflates storage costs by 400%.",
         resolution: "Decouple click streams into ClickHouse with 90-day TTL.",
         code: `ALTER TABLE click_events MODIFY TTL click_time + INTERVAL 90 DAY;`
@@ -264,6 +362,26 @@ Design a global URL shortener supporting 10B links with 50,000 QPS and sub-10ms 
       { key: "fin", name: "Ledger", domain: "Interchange Cost Routing", score: "5.8/10", tag: "fin", role: "Lead Cloud Economics" },
       { key: "data", name: "Titan", domain: "Saga Compensations", score: "6.5/10", tag: "data", role: "Data Reliability Architect" }
     ],
+    toolsLog: [
+      {
+        agent: "Aegis",
+        role: "Staff Security Auditor",
+        tool: "pci_dss_log_scanner",
+        duration: "135ms",
+        tag: "sec",
+        query: 'target_index: "elasticsearch-app-logs"\nregex: "card_number|cvv|exp"',
+        result: '{\n  "unmasked_pan_matches": 1420,\n  "compliance_status": "CRITICAL PCI-DSS VIOLATION (Req 3.4)"\n}'
+      },
+      {
+        agent: "Vanguard",
+        role: "Principal Systems Architect",
+        tool: "cross_region_lock_evaluator",
+        duration: "240ms",
+        tag: "scale",
+        query: 'topology: "2pc_global_pessimistic_lock"\nregions: ["us-east-1", "eu-west-1"]',
+        result: '{\n  "p99_latency_ms": 820.5,\n  "abandonment_projection": "18.2%",\n  "status": "FAIL: Checkout latency spike"\n}'
+      }
+    ],
     matrix: [
       {
         vector: "PCI-DSS Compliance vs Debug Visibility",
@@ -284,6 +402,9 @@ Design a global URL shortener supporting 10B links with 50,000 QPS and sub-10ms 
         auditor: "Vanguard • Scale",
         score: "Score: 6.2/10",
         avatar: "V",
+        toolName: "regional_handshake_timer",
+        toolDuration: "45ms",
+        toolSnippet: 'client_edge: "Cloudflare Anycast"\nlatency: "14ms"',
         finding: "Cross-region latency spikes cause shopping cart abandonment.",
         resolution: "Regional client endpoint with local TLS handshake.",
         code: `fetch('/api/pay', { headers: { 'Idempotency-Key': uuid() } })`
@@ -293,6 +414,9 @@ Design a global URL shortener supporting 10B links with 50,000 QPS and sub-10ms 
         auditor: "Aegis • Security",
         score: "Score: 3.8/10 (Resolved)",
         avatar: "A",
+        toolName: "pci_dss_log_scanner",
+        toolDuration: "135ms",
+        toolSnippet: 'matches: "1,420 unmasked PAN in logs"\nremediation: "Edge tokenization in HSM"',
         finding: "Raw cardholder PAN exposure in debug log aggregators violates PCI-DSS 3.4.",
         resolution: "Hardware security module replaces card details with opaque tokens at edge.",
         code: `def tokenize_card(pan, cvv):
@@ -303,6 +427,9 @@ Design a global URL shortener supporting 10B links with 50,000 QPS and sub-10ms 
         auditor: "Vanguard • Scale",
         score: "Score: 6.2/10 (Resolved)",
         avatar: "V",
+        toolName: "cross_region_lock_evaluator",
+        toolDuration: "240ms",
+        toolSnippet: '2pc_latency: "820ms"\ndynamodb_lease: "18ms"',
         finding: "Cross-region locks introduce 800ms latency spikes.",
         resolution: "DynamoDB conditional writes with TTL leases per idempotency key.",
         code: `dynamodb.put_item(
@@ -314,6 +441,9 @@ Design a global URL shortener supporting 10B links with 50,000 QPS and sub-10ms 
         auditor: "Ledger • FinOps",
         score: "Score: 5.8/10 (Resolved)",
         avatar: "L",
+        toolName: "interchange_optimization_matrix",
+        toolDuration: "88ms",
+        toolSnippet: 'static_markup: "2.9% + 30c"\nleast_cost_routing: "-$38,000/yr"',
         finding: "Static payment gateway routing pays 2.9% + 30c flat interchange.",
         resolution: "Dynamic least-cost router routes to lowest-fee provider, saving $38,000/yr.",
         code: `def select_lowest_fee_provider(card_bin, currency):
@@ -324,6 +454,9 @@ Design a global URL shortener supporting 10B links with 50,000 QPS and sub-10ms 
         auditor: "Titan • State Reliability",
         score: "Score: 6.5/10 (Resolved)",
         avatar: "T",
+        toolName: "saga_compensation_harness",
+        toolDuration: "190ms",
+        toolSnippet: 'compensations_verified: "100%"\nzero_orphan_holds: true',
         finding: "Non-atomic webhook retries cause duplicate balance crediting.",
         resolution: "Two-phase saga state machine with strict database unique constraints.",
         code: `async def execute_payment_saga(tx_id):
@@ -391,6 +524,35 @@ function switchProposal(key) {
     </div>
   `).join("");
 
+  // Live Tools Stream
+  const toolsContainer = document.getElementById("tools-stream-container");
+  if (toolsContainer && p.toolsLog) {
+    toolsContainer.innerHTML = p.toolsLog.map(t => `
+      <div class="tool-log-card">
+        <div class="tool-log-header">
+          <div class="tool-agent-badge">
+            <span class="sp-score ${t.tag}">${t.agent}</span>
+            <span>${t.role}</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span class="tool-tag">${t.tool}</span>
+            <span class="tool-duration">${t.duration}</span>
+          </div>
+        </div>
+        <div class="tool-call-body">
+          <div class="tool-call-box">
+            <span style="color:#64748b;">// Tool Arguments</span><br>
+            ${t.query.replace(/\n/g, '<br>')}
+          </div>
+          <div class="tool-result-box">
+            <span style="color:#64748b;">// Tool Output Payload</span><br>
+            <pre style="margin:0; font-family:var(--font-mono); font-size:11px;">${t.result}</pre>
+          </div>
+        </div>
+      </div>
+    `).join("");
+  }
+
   // Matrix Table
   const matrixTbody = document.getElementById("studio-matrix-rows");
   matrixTbody.innerHTML = p.matrix.map(m => `
@@ -447,6 +609,13 @@ function selectNode(nodeKey) {
   document.getElementById("insp-finding").textContent = comp.finding;
   document.getElementById("insp-resolution").textContent = comp.resolution;
   document.getElementById("insp-code-snippet").textContent = comp.code;
+
+  // Update Tool Call Trace in Inspector
+  if (comp.toolName) {
+    document.getElementById("insp-tool-name").textContent = comp.toolName;
+    document.getElementById("insp-tool-duration").textContent = comp.toolDuration || "120ms";
+    document.getElementById("insp-tool-snippet").textContent = comp.toolSnippet || "";
+  }
 }
 
 // 3. Select Specialist
@@ -478,7 +647,7 @@ function jumpToPhase(phaseNum) {
   if (phaseNum === 1) {
     tag.textContent = "PHASE 1 OF 4";
     title.textContent = "Isolated Blind Chamber Audits (0 Cross-Leakage Verified)";
-    setCenterView("topology");
+    setCenterView("tools");
     selectSpecialist("sec");
   } else if (phaseNum === 2) {
     tag.textContent = "PHASE 2 OF 4";
