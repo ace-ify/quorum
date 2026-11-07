@@ -178,14 +178,43 @@
               </span>
             </div>
 
-            <!-- Interactive Tier Row (Dynamically populated via app.js) -->
-            <div class="visual-node-graph" id="visual-node-graph-container">
-              <!-- Dynamically populated -->
-            </div>
+            <!-- Dynamic Vector Topology Workbench (100% Client-Side Rendered) -->
+            <div class="dynamic-topology-workbench" id="dynamic-topology-workbench">
+              <div class="topology-toolbar">
+                <div class="topology-legend-chips">
+                  <span class="legend-chip sec"><span class="legend-dot"></span> Aegis (Security)</span>
+                  <span class="legend-chip scale"><span class="legend-dot"></span> Vanguard (Scalability)</span>
+                  <span class="legend-chip fin"><span class="legend-dot"></span> Ledger (FinOps -$25.2k)</span>
+                  <span class="legend-chip data"><span class="legend-dot"></span> Titan (Data Reliability)</span>
+                </div>
+                <div class="topology-actions-group">
+                  <button class="top-action-btn" id="btn-toggle-animation" onclick="toggleFlowAnimation()">
+                    <span class="btn-icon">⚡</span> Traffic Flow: <span id="anim-status-label" style="color:var(--accent-primary); font-weight:700;">ACTIVE</span>
+                  </button>
+                  <button class="top-action-btn" id="btn-export-svg" onclick="exportDynamicSVG()">
+                    <span class="btn-icon">📥</span> Export Vector SVG
+                  </button>
+                </div>
+              </div>
 
-            <!-- Visual High-Res Architecture Render -->
-            <div class="diagram-canvas-card">
-              <img src="diagram_rfc042_resolved.svg" alt="Synthesized System Topology" id="topology-img">
+              <!-- Real-time Generated SVG Topology Viewport -->
+              <div class="dynamic-svg-viewport" id="dynamic-svg-viewport">
+                <!-- Dynamically generated in SVG by app.js on proposal select / deliberation -->
+              </div>
+
+              <!-- Interactive Node Inspector Drawer -->
+              <div class="node-inspector-drawer" id="node-inspector-drawer">
+                <div class="inspector-header">
+                  <div class="inspector-title-group">
+                    <span class="inspector-badge" id="inspector-badge">Selected Component</span>
+                    <h4 class="inspector-node-title" id="inspector-node-title">Click any node above to inspect architectural invariants & contracts</h4>
+                  </div>
+                  <button class="inspector-close-btn" onclick="closeInspector()">✕</button>
+                </div>
+                <div class="inspector-body" id="inspector-body">
+                  <p class="inspector-placeholder">Click any component node in the dynamic topology above to view its mandating specialist, formal invariant mathematical contract, latency budget, and Section 6 implementation scaffolding contract.</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>

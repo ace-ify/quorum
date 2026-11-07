@@ -701,21 +701,8 @@ function switchProposal(key) {
     `).join("");
   }
 
-  // Visual Node Graph (Center Stage Canvas)
-  const nodeGraph = document.getElementById("visual-node-graph-container");
-  if (nodeGraph && p.nodes) {
-    nodeGraph.innerHTML = p.nodes.map(n => `
-      <div class="arch-node ${n.key === 'gateway' ? 'active' : ''}" id="node-${n.key}" onclick="selectNode('${n.key}')">
-        ${n.pin ? `<div class="node-pin ${n.pinClass || 'flag-sec'}">${n.pin}</div>` : ''}
-        <div class="node-icon-box">
-          ${getNodeIconSvg(n.iconType)}
-        </div>
-        <div class="node-label">${n.label}</div>
-        <div class="node-sub">${n.sub}</div>
-        <div class="node-metric">${n.metric}</div>
-      </div>
-    `).join("");
-  }
+  // Render Dynamic Vector Architecture Topology (100% Client-Side Synthesized)
+  renderDynamicTopologySVG(key);
 
   // Live Tools Stream
   const toolsContainer = document.getElementById("tools-stream-container");
@@ -1115,3 +1102,447 @@ window.addEventListener("DOMContentLoaded", () => {
   switchProposal("rfc042");
   jumpToPhase(3);
 });
+
+
+// ==========================================================================
+// DYNAMIC VECTOR TOPOLOGY SYNTHESIS ENGINE (100% Client-Side Rendered)
+// ==========================================================================
+let flowAnimationActive = true;
+let selectedTopologyNode = null;
+
+const TOPOLOGY_MODELS = {
+  rfc042: {
+    title: "RFC-042: Real-Time Messaging & Event Streaming Architecture",
+    viewBox: "0 0 1060 420",
+    nodes: [
+      {
+        key: "clients",
+        x: 30, y: 160, w: 150, h: 95,
+        title: "100k Sockets",
+        sub: "Client Apps Tier",
+        metric: "Sub-20ms p99 SLA",
+        pin: "INGRESS",
+        color: "#38bdf8",
+        specialist: "Vanguard",
+        invariant: "INV-SCALE-02: Zero-DB reconnection thundering herd"
+      },
+      {
+        key: "nlb",
+        x: 235, y: 160, w: 155, h: 95,
+        title: "AWS L4 NLB",
+        sub: "TLS Termination",
+        metric: "Zero In-Band Auth",
+        pin: "EDGE LB",
+        color: "#818cf8",
+        specialist: "Vanguard",
+        invariant: "INV-SCALE-02: TCP connection distribution"
+      },
+      {
+        key: "redis",
+        x: 445, y: 160, w: 175, h: 95,
+        title: "WebSocket Cluster",
+        sub: "4 Nodes Autoscaling",
+        metric: "$16.8k/yr vs $42k",
+        pin: "💰 -$25.2k/yr",
+        pinClass: "highlight-fin",
+        color: "#10b981",
+        specialist: "Ledger (FinOps)",
+        invariant: "INV-FIN-03: Downsized from 12 to 4 nodes with 75% memory autoscale"
+      },
+      {
+        key: "gateway",
+        x: 675, y: 70, w: 175, h: 95,
+        title: "Redis Bloom Filter",
+        sub: "Edge Revocation Cache",
+        metric: "<0.2ms RAM Lookup",
+        pin: "🛡️ Aegis: INV-SEC-01",
+        pinClass: "highlight-sec",
+        color: "#f43f5e",
+        specialist: "Aegis (Security)",
+        invariant: "INV-SEC-01: Sub-ms token revocation blacklist check on heartbeat"
+      },
+      {
+        key: "outbox",
+        x: 675, y: 250, w: 175, h: 95,
+        title: "Postgres Outbox",
+        sub: "Transactional Table",
+        metric: "Zero Message Loss",
+        pin: "🏛️ Titan: INV-DATA-04",
+        pinClass: "highlight-data",
+        color: "#a78bfa",
+        specialist: "Titan (Database)",
+        invariant: "INV-DATA-04: Atomic persistence + Debezium CDC guarantee"
+      },
+      {
+        key: "kafka",
+        x: 900, y: 250, w: 140, h: 95,
+        title: "Kafka Event Stream",
+        sub: "Debezium CDC Replica",
+        metric: "Guaranteed Delivery",
+        pin: "STREAM",
+        color: "#06b6d4",
+        specialist: "Titan & Vanguard",
+        invariant: "INV-DATA-04: Resilient cross-service event broadcast"
+      }
+    ],
+    connections: [
+      { from: "clients", to: "nlb", d: "M 180 207 L 235 207" },
+      { from: "nlb", to: "redis", d: "M 390 207 L 445 207" },
+      { from: "redis", to: "gateway", d: "M 620 207 C 648 207, 648 117, 675 117" },
+      { from: "redis", to: "outbox", d: "M 620 207 C 648 207, 648 297, 675 297" },
+      { from: "outbox", to: "kafka", d: "M 850 297 L 900 297" }
+    ]
+  },
+
+  rfc019: {
+    title: "RFC-019: High-Throughput Distributed URL Shortener (10B Keys)",
+    viewBox: "0 0 1060 420",
+    nodes: [
+      {
+        key: "clients",
+        x: 30, y: 160, w: 150, h: 95,
+        title: "Global Clients",
+        sub: "Anycast Ingress",
+        metric: "10,000 req/sec",
+        pin: "GLOBAL",
+        color: "#38bdf8",
+        specialist: "Vanguard",
+        invariant: "INV-SCALE-01: Global latency <25ms p99"
+      },
+      {
+        key: "nlb",
+        x: 235, y: 160, w: 155, h: 95,
+        title: "Cloudflare Edge",
+        sub: "CDN & Hot Cache",
+        metric: "98% Cache Hit",
+        pin: "CDN EDGE",
+        color: "#818cf8",
+        specialist: "Vanguard",
+        invariant: "INV-SCALE-02: Edge caching offload"
+      },
+      {
+        key: "gateway",
+        x: 445, y: 160, w: 175, h: 95,
+        title: "Envoy Gateway",
+        sub: "Token Bucket Rate Limit",
+        metric: "100k Burst Cap",
+        pin: "🛡️ Aegis: Sec",
+        pinClass: "highlight-sec",
+        color: "#f43f5e",
+        specialist: "Aegis (Security)",
+        invariant: "INV-SEC-01: Distributed DDoS mitigation & scrapers throttle"
+      },
+      {
+        key: "redis",
+        x: 675, y: 70, w: 175, h: 95,
+        title: "Redis LRU Tier",
+        sub: "80/20 Working Set",
+        metric: "<1.2ms Read SLA",
+        pin: "⚡ Vanguard: Perf",
+        pinClass: "highlight-scale",
+        color: "#06b6d4",
+        specialist: "Vanguard",
+        invariant: "INV-SCALE-03: Sub-2ms redirect cache latency"
+      },
+      {
+        key: "outbox",
+        x: 675, y: 250, w: 175, h: 95,
+        title: "Base62 Murmur3",
+        sub: "Key Gen Service",
+        metric: "Deterministic 7-Char",
+        pin: "💰 Ledger: FinOps",
+        pinClass: "highlight-fin",
+        color: "#10b981",
+        specialist: "Ledger",
+        invariant: "INV-FIN-02: Compact 7-character encoding saves 42% SSD storage"
+      },
+      {
+        key: "kafka",
+        x: 900, y: 250, w: 140, h: 95,
+        title: "DynamoDB Store",
+        sub: "Partitioned Hash",
+        metric: "10B Keys Capacity",
+        pin: "🏛️ Titan: Store",
+        pinClass: "highlight-data",
+        color: "#a78bfa",
+        specialist: "Titan (Database)",
+        invariant: "INV-DATA-01: Multi-partition single-table hash key design"
+      }
+    ],
+    connections: [
+      { from: "clients", to: "nlb", d: "M 180 207 L 235 207" },
+      { from: "nlb", to: "gateway", d: "M 390 207 L 445 207" },
+      { from: "gateway", to: "redis", d: "M 620 207 C 648 207, 648 117, 675 117" },
+      { from: "gateway", to: "outbox", d: "M 620 207 C 648 207, 648 297, 675 297" },
+      { from: "outbox", to: "kafka", d: "M 850 297 L 900 297" }
+    ]
+  },
+
+  rfc088: {
+    title: "RFC-088: Multi-Region Active-Active Payment Processing Saga",
+    viewBox: "0 0 1060 420",
+    nodes: [
+      {
+        key: "clients",
+        x: 30, y: 160, w: 150, h: 95,
+        title: "Checkout Apps",
+        sub: "Web & Mobile SDKs",
+        metric: "<14ms Handshake",
+        pin: "INGRESS",
+        color: "#38bdf8",
+        specialist: "Vanguard",
+        invariant: "INV-SCALE-01: Mobile client network resilience"
+      },
+      {
+        key: "nlb",
+        x: 235, y: 160, w: 155, h: 95,
+        title: "Perimeter HSM",
+        sub: "Tokenization Vault",
+        metric: "Zero PAN Ingest",
+        pin: "🛡️ Aegis: PCI-1",
+        pinClass: "highlight-sec",
+        color: "#f43f5e",
+        specialist: "Aegis (Security)",
+        invariant: "INV-SEC-01: PCI-DSS 3.4 strict raw PAN isolation in HSM"
+      },
+      {
+        key: "gateway",
+        x: 445, y: 160, w: 175, h: 95,
+        title: "Idempotency Coord",
+        sub: "DynamoDB Leases",
+        metric: "18ms Regional",
+        pin: "⚡ Vanguard: NoLock",
+        pinClass: "highlight-scale",
+        color: "#06b6d4",
+        specialist: "Vanguard",
+        invariant: "INV-SCALE-02: Conditional write leases eliminate 820ms cross-region locks"
+      },
+      {
+        key: "redis",
+        x: 675, y: 70, w: 175, h: 95,
+        title: "Smart BIN Router",
+        sub: "Least-Cost Routing",
+        metric: "-$38,000/yr Saved",
+        pin: "💰 Ledger: -$38k",
+        pinClass: "highlight-fin",
+        color: "#10b981",
+        specialist: "Ledger (FinOps)",
+        invariant: "INV-FIN-03: Dynamic debit interchange routing reduces fees by 1.0%"
+      },
+      {
+        key: "outbox",
+        x: 675, y: 250, w: 175, h: 95,
+        title: "2PC Saga Engine",
+        sub: "State Coordinator",
+        metric: "Atomic Compensate",
+        pin: "🏛️ Titan: Saga",
+        pinClass: "highlight-data",
+        color: "#a78bfa",
+        specialist: "Titan (Database)",
+        invariant: "INV-DATA-04: Guaranteed automated rollback on gateway timeout"
+      },
+      {
+        key: "kafka",
+        x: 900, y: 250, w: 140, h: 95,
+        title: "Payment Rails",
+        sub: "Multi-Acquirer Active",
+        metric: "Stripe / Adyen / Fed",
+        pin: "MULTI-RAIL",
+        color: "#38bdf8",
+        specialist: "Vanguard & Ledger",
+        invariant: "INV-SCALE-03: High-availability payment gateway failover"
+      }
+    ],
+    connections: [
+      { from: "clients", to: "nlb", d: "M 180 207 L 235 207" },
+      { from: "nlb", to: "gateway", d: "M 390 207 L 445 207" },
+      { from: "gateway", to: "redis", d: "M 620 207 C 648 207, 648 117, 675 117" },
+      { from: "gateway", to: "outbox", d: "M 620 207 C 648 207, 648 297, 675 297" },
+      { from: "outbox", to: "kafka", d: "M 850 297 L 900 297" }
+    ]
+  }
+};
+
+function renderDynamicTopologySVG(rfcKey) {
+  const container = document.getElementById("dynamic-svg-viewport");
+  if (!container) return;
+
+  const model = TOPOLOGY_MODELS[rfcKey] || TOPOLOGY_MODELS.rfc042;
+  const isPaused = !flowAnimationActive;
+
+  let svgHtml = `
+    <svg viewBox="${model.viewBox}" class="topology-svg-root" id="synthesized-topology-svg" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="grad-node-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#111827" stop-opacity="0.95" />
+          <stop offset="100%" stop-color="#0b0f19" stop-opacity="0.95" />
+        </linearGradient>
+        <filter id="glow-cyan" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="0" stdDeviation="5" flood-color="#06b6d4" flood-opacity="0.4" />
+        </filter>
+        <filter id="glow-emerald" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="0" stdDeviation="5" flood-color="#10b981" flood-opacity="0.4" />
+        </filter>
+        <filter id="glow-rose" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="0" stdDeviation="5" flood-color="#f43f5e" flood-opacity="0.4" />
+        </filter>
+      </defs>
+
+      <!-- Connections / Flow Wires -->
+      <g class="topology-wires-layer">
+  `;
+
+  // Draw wire paths and animated particles
+  model.connections.forEach((conn, idx) => {
+    svgHtml += `
+      <path id="flow-path-${idx}" class="flow-wire active-stream ${isPaused ? 'paused' : ''}" d="${conn.d}" />
+      ${!isPaused ? `
+        <circle r="3.5" class="flow-particle">
+          <animateMotion path="${conn.d}" dur="${1.8 + (idx * 0.3)}s" repeatCount="indefinite" />
+        </circle>
+      ` : ''}
+    `;
+  });
+
+  svgHtml += `
+      </g>
+      <!-- Nodes Layer -->
+      <g class="topology-nodes-layer">
+  `;
+
+  // Draw Nodes
+  model.nodes.forEach(n => {
+    const isSelected = selectedTopologyNode === n.key;
+    svgHtml += `
+      <g class="svg-node-group ${isSelected ? 'selected' : ''}" id="svg-node-${n.key}" onclick="selectDynamicNode('${n.key}')">
+        <!-- Node Box -->
+        <rect class="node-body-rect" x="${n.x}" y="${n.y}" width="${n.w}" height="${n.h}" rx="12"
+          fill="url(#grad-node-bg)" stroke="${isSelected ? '#06b6d4' : 'rgba(255,255,255,0.1)'}" stroke-width="${isSelected ? '2.5' : '1.2'}" />
+
+        <!-- Accent Top Bar -->
+        <rect x="${n.x + 12}" y="${n.y}" width="${n.w - 24}" height="2" rx="1" fill="${n.color}" opacity="0.8" />
+
+        <!-- Pin / Tag Badge -->
+        ${n.pin ? `
+          <rect x="${n.x + n.w - 82}" y="${n.y + 10}" width="72" height="18" rx="4" fill="rgba(255,255,255,0.06)" stroke="${n.color}" stroke-width="0.8" />
+          <text x="${n.x + n.w - 46}" y="${n.y + 22}" text-anchor="middle" font-family="var(--font-mono)" font-size="9.5" font-weight="700" fill="${n.color}">${n.pin}</text>
+        ` : ''}
+
+        <!-- Titles & Subtitles -->
+        <text x="${n.x + 14}" y="${n.y + 32}" font-family="var(--font-sans)" font-size="13.5" font-weight="700" fill="#f8fafc">${n.title}</text>
+        <text x="${n.x + 14}" y="${n.y + 50}" font-family="var(--font-sans)" font-size="11" fill="#94a3b8">${n.sub}</text>
+
+        <!-- Metric Footer Box -->
+        <rect x="${n.x + 12}" y="${n.y + 64}" width="${n.w - 24}" height="20" rx="4" fill="rgba(0,0,0,0.4)" stroke="rgba(255,255,255,0.05)" />
+        <text x="${n.x + 20}" y="${n.y + 78}" font-family="var(--font-mono)" font-size="10.5" font-weight="600" fill="${n.color}">⚡ ${n.metric}</text>
+      </g>
+    `;
+  });
+
+  svgHtml += `
+      </g>
+    </svg>
+  `;
+
+  container.innerHTML = svgHtml;
+
+  // Auto-select gateway or default node if none selected
+  const defaultKey = model.nodes[2] ? model.nodes[2].key : model.nodes[0].key;
+  selectDynamicNode(defaultKey);
+}
+
+function selectDynamicNode(nodeKey) {
+  selectedTopologyNode = nodeKey;
+  const p = PROPOSALS[currentProposalKey];
+  const comp = p.components ? p.components[nodeKey] : null;
+
+  // Highlight SVG Node
+  document.querySelectorAll(".svg-node-group").forEach(el => el.classList.remove("selected"));
+  const svgNode = document.getElementById(`svg-node-${nodeKey}`);
+  if (svgNode) svgNode.classList.add("selected");
+
+  // Also call existing selectNode to sync right-rail inspector
+  if (typeof selectNode === "function") {
+    selectNode(nodeKey);
+  }
+
+  // Populate Bottom Drawer Inspector
+  const drawer = document.getElementById("node-inspector-drawer");
+  const titleElem = document.getElementById("inspector-node-title");
+  const badgeElem = document.getElementById("inspector-badge");
+  const bodyElem = document.getElementById("inspector-body");
+
+  if (!drawer || !titleElem || !bodyElem) return;
+
+  drawer.style.display = "block";
+
+  if (comp) {
+    badgeElem.textContent = `${comp.auditor || 'Specialist'} Mandatory Contract`;
+    titleElem.innerHTML = `<strong>${comp.title}</strong> — <span style="color:var(--accent-primary); font-family:var(--font-mono); font-size:12px;">Score: ${comp.score}</span>`;
+    bodyElem.innerHTML = `
+      <div class="inspector-grid">
+        <div class="inspector-stat-box">
+          <span class="stat-box-label">Mandating Auditor</span>
+          <span class="stat-box-val highlight-${comp.tag || 'sec'}">${comp.auditor}</span>
+        </div>
+        <div class="inspector-stat-box">
+          <span class="stat-box-label">Enforced Invariant</span>
+          <span class="stat-box-val highlight-scale">${comp.resolution || 'Zero-compromise SLA'}</span>
+        </div>
+        <div class="inspector-stat-box">
+          <span class="stat-box-label">Measured Telemetry</span>
+          <span class="stat-box-val highlight-fin">${comp.toolName || 'Active Inspection'}: ${comp.toolDuration || '<1ms'}</span>
+        </div>
+      </div>
+      <div style="margin-top:10px; display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.5); padding:8px 12px; border-radius:6px; border:1px solid rgba(255,255,255,0.05);">
+        <span style="font-family:var(--font-mono); font-size:11px; color:#cbd5e1;"><strong>Scaffold Contract:</strong> <code>${comp.code ? comp.code.split('\n')[0] : 'Scaffold verified'}</code></span>
+        <button class="top-action-btn" onclick="copyInspectorCode()" style="padding:3px 8px; font-size:10.5px;">Copy Contract</button>
+      </div>
+    `;
+  } else {
+    badgeElem.textContent = "Component Spec";
+    titleElem.textContent = `${nodeKey.toUpperCase()} Tier Specification`;
+    bodyElem.innerHTML = `<p class="inspector-placeholder">Component active in system topology.</p>`;
+  }
+}
+
+function toggleFlowAnimation() {
+  flowAnimationActive = !flowAnimationActive;
+  const label = document.getElementById("anim-status-label");
+  if (label) {
+    label.textContent = flowAnimationActive ? "ACTIVE" : "PAUSED";
+    label.style.color = flowAnimationActive ? "var(--accent-primary)" : "var(--text-muted)";
+  }
+  // Re-render SVG to update animateMotion
+  renderDynamicTopologySVG(currentProposalKey);
+  showToast(flowAnimationActive ? "Animated packet traffic resumed" : "Traffic animation paused");
+}
+
+function exportDynamicSVG() {
+  const svgElem = document.getElementById("synthesized-topology-svg");
+  if (!svgElem) {
+    showToast("No active SVG topology to export.");
+    return;
+  }
+
+  const svgXml = new XMLSerializer().serializeToString(svgElem);
+  const standaloneSvg = `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated dynamically by Quorum 2.0 Delphi Architecture Engine -->
+${svgXml}
+`;
+
+  const blob = new Blob([standaloneSvg], { type: "image/svg+xml;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${currentProposalKey}_Synthesized_System_Topology.svg`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast(`Exported ${currentProposalKey}_Synthesized_System_Topology.svg`);
+}
+
+function closeInspector() {
+  const drawer = document.getElementById("node-inspector-drawer");
+  if (drawer) drawer.style.display = "none";
+}

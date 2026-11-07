@@ -824,21 +824,263 @@ body.workbench-app {
   white-space: nowrap;
 }
 
-/* Vector Diagram Card */
-.diagram-canvas-card {
+/* --------------------------------------------------------------------------
+   DYNAMIC VECTOR TOPOLOGY WORKBENCH
+   -------------------------------------------------------------------------- */
+.dynamic-topology-workbench {
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
-  background-color: #0d1117;
+  background-color: #080c14;
   overflow: hidden;
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-md);
+  display: flex;
+  flex-direction: column;
 }
 
-.diagram-canvas-card img {
-  width: 100%;
-  height: auto;
-  display: block;
-  object-fit: contain;
+.topology-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 16px;
+  background-color: rgba(15, 23, 42, 0.65);
+  border-bottom: 1px solid var(--border-subtle);
+  flex-wrap: wrap;
+  gap: 10px;
 }
+
+.topology-legend-chips {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.legend-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.legend-chip .legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.legend-chip.sec .legend-dot { background-color: var(--accent-danger); box-shadow: 0 0 6px var(--accent-danger); }
+.legend-chip.scale .legend-dot { background-color: var(--accent-primary); box-shadow: 0 0 6px var(--accent-primary); }
+.legend-chip.fin .legend-dot { background-color: var(--accent-success); box-shadow: 0 0 6px var(--accent-success); }
+.legend-chip.data .legend-dot { background-color: #8b5cf6; box-shadow: 0 0 6px #8b5cf6; }
+
+.topology-actions-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.top-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--font-size-xs);
+  font-family: var(--font-mono);
+  font-weight: 600;
+  padding: 5px 11px;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.top-action-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 8px rgba(6, 182, 212, 0.2);
+}
+
+/* SVG Viewport & Stage */
+.dynamic-svg-viewport {
+  width: 100%;
+  min-height: 440px;
+  background-color: #070a10;
+  background-image: 
+    radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.05) 0%, transparent 40%),
+    radial-gradient(circle at 90% 80%, rgba(6, 182, 212, 0.05) 0%, transparent 40%),
+    linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 30px 30px, 30px 30px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.topology-svg-root {
+  width: 100%;
+  height: 100%;
+  min-height: 440px;
+  display: block;
+}
+
+/* SVG Node Group Styles */
+.svg-node-group {
+  cursor: pointer;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), filter 0.25s ease;
+}
+
+.svg-node-group:hover {
+  filter: drop-shadow(0 0 14px rgba(6, 182, 212, 0.45));
+}
+
+.svg-node-group.selected .node-body-rect {
+  stroke: var(--accent-primary) !important;
+  stroke-width: 2px !important;
+  filter: drop-shadow(0 0 12px var(--accent-primary));
+}
+
+.node-body-rect {
+  transition: stroke 0.2s ease, stroke-width 0.2s ease;
+}
+
+/* Flow Wires & Animated Particles */
+.flow-wire {
+  stroke: rgba(148, 163, 184, 0.18);
+  stroke-width: 2;
+  fill: none;
+  stroke-linecap: round;
+}
+
+.flow-wire.active-stream {
+  stroke: #0284c7;
+  stroke-width: 2.2;
+  stroke-dasharray: 6 5;
+  animation: streamFlow 25s linear infinite;
+}
+
+.flow-wire.paused {
+  animation-play-state: paused;
+}
+
+@keyframes streamFlow {
+  from { stroke-dashoffset: 400; }
+  to { stroke-dashoffset: 0; }
+}
+
+.flow-particle {
+  fill: #38bdf8;
+  filter: drop-shadow(0 0 6px #38bdf8);
+}
+
+.flow-particle.paused {
+  display: none;
+}
+
+/* Node Inspector Drawer */
+.node-inspector-drawer {
+  background: rgba(15, 23, 42, 0.95);
+  border-top: 1px solid var(--border-subtle);
+  padding: 14px 20px;
+  backdrop-filter: blur(12px);
+  transition: all 0.3s ease;
+}
+
+.inspector-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+}
+
+.inspector-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.inspector-badge {
+  font-size: 10px;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--accent-primary);
+  letter-spacing: 0.05em;
+}
+
+.inspector-node-title {
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.inspector-close-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.inspector-close-btn:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.inspector-body {
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.inspector-placeholder {
+  color: var(--text-muted);
+  font-style: italic;
+  margin: 0;
+}
+
+.inspector-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.inspector-stat-box {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+}
+
+.stat-box-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  font-weight: 600;
+  display: block;
+  margin-bottom: 2px;
+}
+
+.stat-box-val {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.stat-box-val.highlight-sec { color: var(--accent-danger); }
+.stat-box-val.highlight-scale { color: var(--accent-primary); }
+.stat-box-val.highlight-fin { color: var(--accent-success); }
+.stat-box-val.highlight-data { color: #a78bfa; }
 
 /* --------------------------------------------------------------------------
    VIEW 2: Live Tool Traces
