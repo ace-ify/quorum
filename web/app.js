@@ -1,123 +1,111 @@
 /**
- * BlindCouncil Workbench — Enterprise Application Logic
+ * BlindCouncil Studio — Production Architecture Workbench Logic
  */
 
 const PROPOSALS = {
   rfc042: {
     id: "RFC-042",
-    title: "RFC-042: Real-Time Messaging Fabric & Ingress Event Streaming",
+    headline: "100,000 WebSocket Messaging Fabric",
     targetBranch: "feat/adr-042-impl",
     verificationCmd: "pytest tests/ -v",
     claudeCmd: `claude -p "Read ADR-042.md Section 6. Switch to branch 'feat/adr-042-impl'. Implement the scaffolded files in '.'. Run 'pytest tests/ -v' and do not finish until all tests pass."`,
-    scores: {
-      sec: "4.5 / 10 • Conditional",
-      scale: "6.8 / 10 • Approved",
-      fin: "6.0 / 10 • Conditional",
-      data: "7.2 / 10 • Conditional"
-    },
-    resolutions: {
-      sec: "Mandate: Sub-ms Edge Bloom Revocation",
-      scale: "Mandate: Zero-DB Reconnection Ingress",
-      fin: "Mandate: 4 Nodes + Autoscale (-$25.2k/yr)",
-      data: "Mandate: Transactional Outbox + CDC"
-    },
-    rfcHtml: `
-      <h2>1. Workload Scope & Architecture Target</h2>
-      <p>Our legacy HTTP long-polling architecture is exhausting server memory, creating 450ms p99 message delivery latency, and driving database connection churn during peak hours. This RFC proposes a dedicated WebSocket messaging fabric to sustain 100,000 concurrent sockets with p99 delivery latency &lt; 20ms.</p>
-      
-      <h2>2. Ingress & Authentication Pipeline</h2>
-      <p>Clients connect to an AWS Network Load Balancer (NLB) configured with TCP pass-through to an auto-scaling Envoy gateway tier. During initial handshake, clients pass a signed JSON Web Token (JWT).</p>
-      
-      <div class="rfc-inline-callout callout-flag">
-        <strong>Review Note [Line 42 — Auth Renewal]:</strong> Active sockets renew credentials using in-band heartbeat frames every 15 minutes. No external revocation checks are performed between renewals.
-      </div>
-
-      <h2>3. Cluster Memory & Sizing Strategy</h2>
-      <p>To support high-throughput broadcast channels and 24-hour backpressure buffering, the initial proposal provisions 12 dedicated Redis Enterprise nodes (<code>cache.r6g.2xlarge</code>).</p>
-
-      <div class="rfc-inline-callout callout-flag">
-        <strong>Review Note [Section 3.1 — Provisioning]:</strong> Baseline traffic drops to 20,000 off-peak sockets. The 12-node static provisioning incurs an annual cost of $42,000 regardless of load.
-      </div>
-
-      <h2>4. Persistence, Buffering & Fanout Guarantees</h2>
-      <p>Message frames written to Redis streams are simultaneously committed to Postgres via asynchronous background application workers.</p>
-
-      <div class="rfc-inline-callout callout-flag">
-        <strong>Review Note [Section 4.3 — Dual-Write Hazard]:</strong> Direct dual-writing without an atomic boundary exposes the cluster to message loss during worker crashes.
-      </div>
-    `,
-    audits: [
-      {
-        specialist: "Aegis",
-        role: "Staff Security Auditor",
-        score: "4.5 / 10",
-        scoreClass: "pill-warn",
-        finding: "In-band heartbeat token validation permits a <strong>15-minute window of unauthorized socket frames</strong> after account ban. Active CVE risk under SOC2 Article 4.",
-        resolution: "Mandate Redis Bloom Filter bitset deployed at gateway edge. Revoked user IDs checked in sub-0.2ms RAM with zero database load."
-      },
-      {
-        specialist: "Vanguard",
-        role: "Principal Systems Architect",
-        score: "6.8 / 10",
-        scoreClass: "pill-ok",
-        finding: "Synchronous database lookups on 100k reconnects during pod rolling restarts will <strong>exhaust Postgres connection pools</strong> and crash the database. p99 latency >140ms.",
-        resolution: "Session lookup and revocation bitsets reside strictly within cluster memory. Zero synchronous database queries during reconnection bursts."
-      },
-      {
-        specialist: "Ledger",
-        role: "Lead Cloud Economics",
-        score: "6.0 / 10",
-        scoreClass: "pill-warn",
-        finding: "12-node provisioned cluster incurs <strong>$3,500/month ($42,000/yr)</strong> for a 20k off-peak baseline. Over-provisioned by 200%.",
-        resolution: "Downsize initial launch to 4-node cluster with auto-scaling triggers at 75% memory. Recoups $25,200 annually while maintaining headroom."
-      },
-      {
-        specialist: "Titan",
-        role: "Data Reliability Architect",
-        score: "7.2 / 10",
-        scoreClass: "pill-warn",
-        finding: "Dual-writing directly to Redis Pub/Sub and Postgres causes <strong>message loss or ghost rows</strong> on worker container termination.",
-        resolution: "Adopt Transactional Outbox Pattern with Debezium CDC into Kafka, guaranteeing strict linearizable at-least-once delivery."
-      }
+    diagramImg: "diagram_rfc042_resolved.png",
+    specialists: [
+      { key: "sec", name: "Aegis", domain: "Threat Modeling & Auth", score: "4.5/10", tag: "sec", role: "Staff Security Auditor" },
+      { key: "scale", name: "Vanguard", domain: "Concurrency & p99 Latency", score: "6.8/10", tag: "scale", role: "Principal Systems Architect" },
+      { key: "fin", name: "Ledger", domain: "Cloud Economics & ROI", score: "6.0/10", tag: "fin", role: "Lead Cloud Economics" },
+      { key: "data", name: "Titan", domain: "State Consistency & ACID", score: "7.2/10", tag: "data", role: "Data Reliability Architect" }
     ],
-    tradeoffs: [
+    matrix: [
       {
-        dimension: "Security vs Ingress Latency",
-        tensions: "Aegis (Synchronous auth revocation on every heartbeat) vs Vanguard (Sub-18ms socket latency requirement).",
+        vector: "Auth Revocation vs Ingress Latency",
+        clash: "Aegis (Synchronous auth revocation on every heartbeat) vs Vanguard (Sub-18ms socket latency requirement).",
         resolution: "Edge Redis Bloom Filter bitset (<0.2ms lookup in RAM, zero Postgres connection churn).",
-        invariant: "INV-SEC-01: Revocation latency &lt; 1ms; zero unauthenticated frame delivery."
+        invariant: "INV-SEC-01: Revocation latency < 1ms"
       },
       {
-        dimension: "Cluster Sizing vs Peak Headroom",
-        tensions: "Platform Lead (12 static nodes for 100k burst safety) vs Ledger ($42,000/yr budget breach).",
+        vector: "Cluster Sizing vs Peak Headroom",
+        clash: "Original Spec (12 static nodes, $42,000/yr) vs Ledger (20k off-peak baseline, $25.2k budget waste).",
         resolution: "4 primary nodes with AWS CloudWatch 75% memory autoscaling alarms.",
-        invariant: "INV-FIN-03: Cloud compute right-sizing saving $25,200/year."
+        invariant: "INV-FIN-03: Compute right-sizing (-$25,200/yr)"
       },
       {
-        dimension: "Data Consistency vs Write Throughput",
-        tensions: "Original Design (Dual-write Redis + Postgres) vs Titan (Message loss on worker crash).",
+        vector: "Persistence vs Write Throughput",
+        clash: "Original Spec (Dual-write Redis + Postgres) vs Titan (Message loss on worker crash).",
         resolution: "Transactional Outbox table with Debezium CDC log streaming to Kafka.",
-        invariant: "INV-DATA-04: At-least-once guaranteed delivery under worker fail-stop model."
+        invariant: "INV-DATA-04: At-least-once linearizable delivery"
       }
     ],
-    components: [
-      {
-        name: "Ingress Edge & Redis Bloom Filter",
-        desc: "Terminates WebSocket connections and verifies revoked credentials in <0.2ms RAM bitset before frame ingestion."
+    components: {
+      clients: {
+        title: "100k Sockets Clients Tier",
+        auditor: "Vanguard • Scale",
+        score: "Score: 6.8/10",
+        avatar: "V",
+        finding: "100k simultaneous reconnections during rolling pod deployments risk crashing relational connection pool.",
+        resolution: "Client-side randomized jitter and exponential backoff enforced at connection layer.",
+        code: `# Client reconnect jitter spec
+reconnect_delay = min(MAX_BACKOFF, BASE_BACKOFF * (2 ** retry_count))
+jittered_delay = reconnect_delay * (0.5 + random.random())`
       },
-      {
-        name: "4-Node MemoryDB Autoscaling Cluster",
-        desc: "Right-sized from 12 nodes to 4 primary instances with 75% memory scaling triggers, saving $25,200/year."
+      nlb: {
+        title: "AWS L4 Network Load Balancer",
+        auditor: "Vanguard • Scale",
+        score: "Score: 9.0/10",
+        avatar: "V",
+        finding: "TCP level pass-through avoids HTTP long-polling handshake overhead and terminates TLS at line speed.",
+        resolution: "L4 direct routing preserves client socket state without TLS re-encryption tax.",
+        code: `Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+Properties:
+  Type: network
+  Scheme: internet-facing
+  IpAddressType: dualstack`
       },
-      {
-        name: "Transactional Outbox Table",
-        desc: "Postgres outbox_events commits atomically with application state, eliminating dual-write split-brain risk."
+      gateway: {
+        title: "Ingress Gateway & Bloom Filter",
+        auditor: "Aegis • Security",
+        score: "Score: 4.5/10 (Resolved)",
+        avatar: "A",
+        finding: "In-band heartbeat token validation permits a 15-minute window of unauthorized socket frames after account ban.",
+        resolution: "Sub-ms Redis Bloom filter bitset deployed at gateway edge. Revoked tokens checked in RAM with zero DB load.",
+        code: `# src/middleware/bloom_revocation.py
+async def verify_socket_session(socket_id: str, token_id: str) -> bool:
+    """Checks sub-ms RAM bitset for revoked tokens without DB hits."""
+    if await redis_bloom.exists("revoked_tokens", token_id):
+        await terminate_connection(socket_id, reason="Revoked")
+        return False
+    return True`
       },
-      {
-        name: "Debezium CDC ➔ Kafka Fanout",
-        desc: "Tails write-ahead log (WAL) to publish events to Kafka with guaranteed at-least-once ordering."
+      redis: {
+        title: "4-Node MemoryDB Autoscaling Cluster",
+        auditor: "Ledger • FinOps",
+        score: "Score: 6.0/10 (Resolved)",
+        avatar: "L",
+        finding: "12 provisioned nodes for a 20k baseline is rejected by Ledger. Wastes $25,200/year on idle compute.",
+        resolution: "Right-sized to 4 primary instances with 75% memory autoscaling alarms, saving $25,200 annually.",
+        code: `ClusterConfiguration:
+  InitialNodes: 4
+  NodeType: cache.r6g.xlarge
+  AutoScaling:
+    Metric: MemoryUtilizationPercentage
+    Threshold: 75
+    CooldownSeconds: 300`
+      },
+      outbox: {
+        title: "Postgres Outbox & Debezium CDC",
+        auditor: "Titan • State Reliability",
+        score: "Score: 7.2/10 (Resolved)",
+        avatar: "T",
+        finding: "Dual-writing directly to Redis Pub/Sub and Postgres causes message loss if a worker crashes between writes.",
+        resolution: "Transactional Outbox table with Debezium CDC into Kafka guarantees strict at-least-once delivery.",
+        code: `# src/db/outbox_producer.py
+async def emit_chat_event(session, event_payload: dict):
+    # Commits to outbox_events in same ACID transaction as state
+    event = OutboxEvent(payload=event_payload, status="PENDING")
+    session.add(event)
+    await session.commit()`
       }
-    ],
+    },
     manifest: [
       { action: "CREATE", path: "src/middleware/bloom_revocation.py", purpose: "Redis Bloom filter revocation middleware (Mandated by Aegis & Vanguard)" },
       { action: "CREATE", path: "src/cluster/config.yaml", purpose: "4-node cluster autoscaling spec saving $25,200/year (Mandated by Ledger)" },
@@ -133,7 +121,7 @@ const PROPOSALS = {
 ---
 
 ## 1. Context & Workload Target
-Our HTTP long-polling architecture is failing under scale (450ms p99 latency). This design introduces a dedicated WebSocket cluster supporting 100,000 concurrent sockets with sub-20ms broadcast latency.
+Legacy HTTP long-polling architecture is failing under scale (450ms p99 latency). This design introduces a dedicated WebSocket cluster supporting 100,000 concurrent sockets with sub-20ms broadcast latency.
 
 ---
 
@@ -154,106 +142,82 @@ Our HTTP long-polling architecture is failing under scale (450ms p99 latency). T
 
   rfc019: {
     id: "RFC-019",
-    title: "RFC-019: Global Scalable URL Shortener Architecture (10B Keys)",
+    headline: "Global Scalable URL Shortener (10B Keys)",
     targetBranch: "feat/adr-019-impl",
     verificationCmd: "pytest tests/ -v",
     claudeCmd: `claude -p "Read ADR-019.md Section 6. Switch to branch 'feat/adr-019-impl'. Implement Base62 collision-free ID generator with Redis cluster cache and Cassandra persistent tier. Run 'pytest tests/ -v'."`,
-    scores: {
-      sec: "5.2 / 10 • Conditional",
-      scale: "7.0 / 10 • Approved",
-      fin: "6.5 / 10 • Conditional",
-      data: "8.1 / 10 • Approved"
-    },
-    resolutions: {
-      sec: "Mandate: Randomized Pre-Allocated KGS",
-      scale: "Mandate: Distributed Range Coordinator",
-      fin: "Mandate: ClickHouse Telemetry Tiering",
-      data: "Mandate: Read-Your-Own-Writes Session Pinning"
-    },
-    rfcHtml: `
-      <h2>1. Workload Scope & Key Space</h2>
-      <p>Designing a global URL shortening service capable of persisting 10 Billion distinct links with a read:write ratio of 100:1 and 50,000 query operations per second.</p>
-
-      <h2>2. Key Generation & Sequence Allocation</h2>
-      <p>The initial specification converts standard relational database auto-increment integers into 7-character Base62 strings.</p>
-      
-      <div class="rfc-inline-callout callout-flag">
-        <strong>Review Note [Section 2.1 — Sequence Bottleneck]:</strong> Centralized auto-increment sequence creates a lock bottleneck at 50k QPS and allows scraping bots to enumerate sequential URLs.
-      </div>
-
-      <h2>3. Analytics & Telemetry Retention</h2>
-      <p>Click telemetry events are written directly to the relational primary database for 365 days.</p>
-
-      <div class="rfc-inline-callout callout-flag">
-        <strong>Review Note [Section 3.4 — Storage Waste]:</strong> Storing raw click streams in primary transactional storage increases database footprint by 400%, adding $14,000/year in unnecessary high-IOPS storage.
-      </div>
-    `,
-    audits: [
-      {
-        specialist: "Aegis",
-        role: "Staff Security Auditor",
-        score: "5.2 / 10",
-        scoreClass: "pill-warn",
-        finding: "Sequential Base62 IDs allow automated scraping bots to <strong>enumerate and harvest private shortened links</strong>.",
-        resolution: "Pre-allocated key ranges must be randomly shuffled before worker allocation in distributed KGS."
-      },
-      {
-        specialist: "Vanguard",
-        role: "Principal Systems Architect",
-        score: "7.0 / 10",
-        scoreClass: "pill-ok",
-        finding: "Single relational sequence generator bottlenecks under <strong>50k QPS global concurrent writes</strong>.",
-        resolution: "Distributed Key Generation Service (KGS) allocating 1M key chunks per node via Zookeeper leases."
-      },
-      {
-        specialist: "Ledger",
-        role: "Lead Cloud Economics",
-        score: "6.5 / 10",
-        scoreClass: "pill-warn",
-        finding: "Storing raw click streams in primary transactional storage incurs <strong>$14,000/year in wasted IOPS</strong>.",
-        resolution: "Stream telemetry to ClickHouse/S3 with 90-day cold retention policy."
-      },
-      {
-        specialist: "Titan",
-        role: "Data Reliability Architect",
-        score: "8.1 / 10",
-        scoreClass: "pill-ok",
-        finding: "Cross-region replication lag can return <strong>404 Not Found</strong> for links clicked immediately in another continent.",
-        resolution: "Read-your-own-writes session pinning to primary origin region."
-      }
+    diagramImg: "diagram_rfc042_resolved.png",
+    specialists: [
+      { key: "sec", name: "Aegis", domain: "Abuse & Link Scraping", score: "5.2/10", tag: "sec", role: "Staff Security Auditor" },
+      { key: "scale", name: "Vanguard", domain: "50k QPS Key Generation", score: "7.0/10", tag: "scale", role: "Principal Systems Architect" },
+      { key: "fin", name: "Ledger", domain: "Telemetry Tiering ROI", score: "6.5/10", tag: "fin", role: "Lead Cloud Economics" },
+      { key: "data", name: "Titan", domain: "Cross-Region Pinning", score: "8.1/10", tag: "data", role: "Data Reliability Architect" }
     ],
-    tradeoffs: [
+    matrix: [
       {
-        dimension: "Key Generation Throughput vs Randomness",
-        tensions: "Vanguard (Zero DB locks on key generation) vs Aegis (Prevent sequential enumeration).",
+        vector: "Key Generation Throughput vs Randomness",
+        clash: "Vanguard (Zero DB locks on key generation) vs Aegis (Prevent sequential enumeration).",
         resolution: "Pre-allocated 1M key ranges with cryptographically shuffled Base62 tokens.",
-        invariant: "INV-SCALE-01: Zero central database lock on link creation."
+        invariant: "INV-SCALE-01: Zero central database lock on link creation"
       },
       {
-        dimension: "Analytics Retention vs Primary DB Cost",
-        tensions: "Product Team (365-day click telemetry) vs Ledger (Relational IOPS budget breach).",
+        vector: "Analytics Retention vs Primary DB Cost",
+        clash: "Product Team (365-day click telemetry) vs Ledger (Relational IOPS budget breach).",
         resolution: "Tier telemetry to ClickHouse with 90-day retention, saving $14,000/year.",
-        invariant: "INV-FIN-02: Analytics storage decoupled from OLTP database."
+        invariant: "INV-FIN-02: Analytics storage decoupled from OLTP database"
       }
     ],
-    components: [
-      {
-        name: "Distributed Key Generation Service (KGS)",
-        desc: "Zookeeper-managed service pre-computing unique Base62 strings to eliminate database auto-increment bottlenecks."
+    components: {
+      clients: {
+        title: "Global HTTP Redirect Clients",
+        auditor: "Vanguard • Scale",
+        score: "Score: 7.0/10",
+        avatar: "V",
+        finding: "50,000 incoming query operations per second worldwide.",
+        resolution: "Cloudflare edge workers handle initial redirect caching.",
+        code: `addEventListener('fetch', event => {
+  event.respondWith(handleRedirect(event.request))
+})`
       },
-      {
-        name: "Redis LRU Hot-Tier Cache",
-        desc: "Caches the top 20% most active URLs in memory, serving 80% of redirect requests with <2ms latency."
+      nlb: {
+        title: "Anycast Edge Gateway",
+        auditor: "Vanguard • Scale",
+        score: "Score: 8.5/10",
+        avatar: "V",
+        finding: "Edge DNS routing clients to nearest regional data center.",
+        resolution: "Latency-based routing reduces handshake to <15ms.",
+        code: `RoutingPolicy: LatencyBased
+TTL: 60`
       },
-      {
-        name: "Cassandra Persistent Tier",
-        desc: "Distributed wide-column store optimized for high-throughput single-key lookups across multi-region clusters."
+      gateway: {
+        title: "Distributed Key Generation Service (KGS)",
+        auditor: "Aegis • Security",
+        score: "Score: 5.2/10 (Resolved)",
+        avatar: "A",
+        finding: "Auto-increment keys allow scraping bots to enumerate private links.",
+        resolution: "Shuffled Base62 ranges pre-computed and leased in 1M chunks.",
+        code: `def get_next_token():
+    return token_buffer.pop_shuffled()`
       },
-      {
-        name: "ClickHouse Telemetry Sink",
-        desc: "Columnar database for low-cost click stream analytics with 90-day automated TTL retention."
+      redis: {
+        title: "Redis LRU Hot Cache Tier",
+        auditor: "Ledger • FinOps",
+        score: "Score: 6.5/10 (Resolved)",
+        avatar: "L",
+        finding: "80/20 rule: top 20% URLs receive 80% of click traffic.",
+        resolution: "Memory cache prevents database reads for hot links.",
+        code: `maxmemory-policy allkeys-lru`
+      },
+      outbox: {
+        title: "Cassandra + ClickHouse Sinks",
+        auditor: "Titan • State Reliability",
+        score: "Score: 8.1/10",
+        avatar: "T",
+        finding: "Telemetry retention in OLTP database inflates storage costs by 400%.",
+        resolution: "Decouple click streams into ClickHouse with 90-day TTL.",
+        code: `ALTER TABLE click_events MODIFY TTL click_time + INTERVAL 90 DAY;`
       }
-    ],
+    },
     manifest: [
       { action: "CREATE", path: "src/kgs/range_allocator.py", purpose: "Base62 distributed key generation range coordinator" },
       { action: "CREATE", path: "src/cache/lru_tier.py", purpose: "Redis hot-tier cache with 80/20 memory eviction policy" },
@@ -289,106 +253,85 @@ Design a global URL shortener supporting 10B links with 50,000 QPS and sub-10ms 
 
   rfc088: {
     id: "RFC-088",
-    title: "RFC-088: Multi-Region Payment Processing Service",
+    headline: "Multi-Region Payment Processing Service",
     targetBranch: "feat/adr-088-impl",
     verificationCmd: "pytest tests/ -v",
     claudeCmd: `claude -p "Read ADR-088.md Section 6. Switch to branch 'feat/adr-088-impl'. Implement idempotency key middleware with DynamoDB TTL and distributed two-phase saga coordinator. Run 'pytest tests/ -v'."`,
-    scores: {
-      sec: "3.8 / 10 • Blocking",
-      scale: "6.2 / 10 • Conditional",
-      fin: "5.8 / 10 • Conditional",
-      data: "6.5 / 10 • Conditional"
-    },
-    resolutions: {
-      sec: "Mandate: Edge Perimeter Tokenization",
-      scale: "Mandate: Regional Idempotency Leases",
-      fin: "Mandate: Least-Cost Interchange Routing",
-      data: "Mandate: Distributed Saga Orchestrator"
-    },
-    rfcHtml: `
-      <h2>1. Architecture Scope & Payment Resilience</h2>
-      <p>Designing a high-availability active-active multi-region payment gateway with automated failover across Stripe, Adyen, and Chase.</p>
-
-      <h2>2. Logging & Audit Telemetry</h2>
-      <p>Incoming HTTP payloads are logged comprehensively to centralized Elasticsearch cluster for real-time customer support debugging.</p>
-      
-      <div class="rfc-inline-callout callout-flag">
-        <strong>Review Note [Section 2.4 — PCI-DSS Breach]:</strong> Raw payment payload ingestion logs unmasked cardholder metadata, creating a critical PCI-DSS Level 1 compliance failure.
-      </div>
-
-      <h2>3. Idempotency & Distributed Locking</h2>
-      <p>Cross-region distributed locks synchronize payment authorization across AWS us-east-1 and eu-west-1.</p>
-
-      <div class="rfc-inline-callout callout-flag">
-        <strong>Review Note [Section 3.2 — Checkout Latency]:</strong> Synchronous cross-region distributed lock handshakes add 800ms to checkout p99 latency.
-      </div>
-    `,
-    audits: [
-      {
-        specialist: "Aegis",
-        role: "Staff Security Auditor",
-        score: "3.8 / 10",
-        scoreClass: "pill-err",
-        finding: "Unmasked cardholder data in debug log aggregation violates <strong>PCI-DSS Requirement 3.4</strong>. Absolute deployment blocker.",
-        resolution: "Zero-knowledge perimeter tokenization before service routing. Zero PAN stored in memory."
-      },
-      {
-        specialist: "Vanguard",
-        role: "Principal Systems Architect",
-        score: "6.2 / 10",
-        scoreClass: "pill-warn",
-        finding: "Cross-region locking introduces <strong>800ms checkout latency spikes</strong>, increasing shopping cart abandonment.",
-        resolution: "Regional idempotency leases backed by DynamoDB global tables."
-      },
-      {
-        specialist: "Ledger",
-        role: "Lead Cloud Economics",
-        score: "5.8 / 10",
-        scoreClass: "pill-warn",
-        finding: "Static payment gateway routing pays <strong>2.9% + 30c flat interchange</strong> on all transactions regardless of region.",
-        resolution: "Implement least-cost smart router dynamically routing to lowest interchange fee (-$38,000/yr)."
-      },
-      {
-        specialist: "Titan",
-        role: "Data Reliability Architect",
-        score: "6.5 / 10",
-        scoreClass: "pill-warn",
-        finding: "Non-atomic webhook retries from payment providers cause <strong>duplicate balance crediting</strong>.",
-        resolution: "Two-phase saga state machine with strict database unique constraints."
-      }
+    diagramImg: "diagram_rfc042_resolved.png",
+    specialists: [
+      { key: "sec", name: "Aegis", domain: "PCI-DSS Level 1 Auth", score: "3.8/10", tag: "sec", role: "Staff Security Auditor" },
+      { key: "scale", name: "Vanguard", domain: "Active-Active Idempotency", score: "6.2/10", tag: "scale", role: "Principal Systems Architect" },
+      { key: "fin", name: "Ledger", domain: "Interchange Cost Routing", score: "5.8/10", tag: "fin", role: "Lead Cloud Economics" },
+      { key: "data", name: "Titan", domain: "Saga Compensations", score: "6.5/10", tag: "data", role: "Data Reliability Architect" }
     ],
-    tradeoffs: [
+    matrix: [
       {
-        dimension: "PCI-DSS Compliance vs Debug Visibility",
-        tensions: "Engineering Ops (Full raw payload logging) vs Aegis (PCI-DSS Level 1 violation).",
+        vector: "PCI-DSS Compliance vs Debug Visibility",
+        clash: "Engineering Ops (Full raw payload logging) vs Aegis (PCI-DSS Level 1 violation).",
         resolution: "Perimeter tokenization in HSM vault; debug logs only contain opaque token IDs.",
-        invariant: "INV-SEC-02: Zero raw cardholder PAN exposure in application memory."
+        invariant: "INV-SEC-02: Zero raw cardholder PAN exposure in application memory"
       },
       {
-        dimension: "Cross-Region Locking vs Checkout Speed",
-        tensions: "Titan (Global locks to prevent double-charging) vs Vanguard (800ms cross-region latency).",
+        vector: "Cross-Region Locking vs Checkout Speed",
+        clash: "Titan (Global locks to prevent double-charging) vs Vanguard (800ms cross-region latency).",
         resolution: "Regional idempotency leases with conditional writes in DynamoDB global tables.",
-        invariant: "INV-SCALE-03: Sub-50ms checkout authorization latency."
+        invariant: "INV-SCALE-03: Sub-50ms checkout authorization latency"
       }
     ],
-    components: [
-      {
-        name: "Perimeter Tokenization Vault",
-        desc: "Hardware-security module (HSM) intercepting incoming card frames and replacing PAN with opaque tokens."
+    components: {
+      clients: {
+        title: "Checkout Client Apps (Web / iOS)",
+        auditor: "Vanguard • Scale",
+        score: "Score: 6.2/10",
+        avatar: "V",
+        finding: "Cross-region latency spikes cause shopping cart abandonment.",
+        resolution: "Regional client endpoint with local TLS handshake.",
+        code: `fetch('/api/pay', { headers: { 'Idempotency-Key': uuid() } })`
       },
-      {
-        name: "Regional Idempotency Coordinator",
-        desc: "DynamoDB conditional writes with TTL leases to prevent double charging during retries."
+      nlb: {
+        title: "Perimeter Tokenization Vault (HSM)",
+        auditor: "Aegis • Security",
+        score: "Score: 3.8/10 (Resolved)",
+        avatar: "A",
+        finding: "Raw cardholder PAN exposure in debug log aggregators violates PCI-DSS 3.4.",
+        resolution: "Hardware security module replaces card details with opaque tokens at edge.",
+        code: `def tokenize_card(pan, cvv):
+    return hsm_client.mint_token(pan, cvv)`
       },
-      {
-        name: "Smart Interchange Router",
-        desc: "Real-time decision engine selecting lowest-fee payment processor (saving $38,000/year)."
+      gateway: {
+        title: "Regional Idempotency Coordinator",
+        auditor: "Vanguard • Scale",
+        score: "Score: 6.2/10 (Resolved)",
+        avatar: "V",
+        finding: "Cross-region locks introduce 800ms latency spikes.",
+        resolution: "DynamoDB conditional writes with TTL leases per idempotency key.",
+        code: `dynamodb.put_item(
+    ConditionExpression='attribute_not_exists(idempotency_key)'
+)`
       },
-      {
-        name: "Two-Phase Saga State Machine",
-        desc: "Compensating transactions orchestrating bank auth, fraud check, and ledger commit."
+      redis: {
+        title: "Smart Interchange Router",
+        auditor: "Ledger • FinOps",
+        score: "Score: 5.8/10 (Resolved)",
+        avatar: "L",
+        finding: "Static payment gateway routing pays 2.9% + 30c flat interchange.",
+        resolution: "Dynamic least-cost router routes to lowest-fee provider, saving $38,000/yr.",
+        code: `def select_lowest_fee_provider(card_bin, currency):
+    return fee_matrix.get_cheapest(card_bin, currency)`
+      },
+      outbox: {
+        title: "Two-Phase Saga State Machine",
+        auditor: "Titan • State Reliability",
+        score: "Score: 6.5/10 (Resolved)",
+        avatar: "T",
+        finding: "Non-atomic webhook retries cause duplicate balance crediting.",
+        resolution: "Two-phase saga state machine with strict database unique constraints.",
+        code: `async def execute_payment_saga(tx_id):
+    await auth_hold()
+    await commit_ledger()
+    await capture_payment()`
       }
-    ],
+    },
     manifest: [
       { action: "CREATE", path: "src/payment/idempotency_guard.py", purpose: "Distributed idempotency filter with DynamoDB conditional write" },
       { action: "CREATE", path: "src/saga/payment_coordinator.py", purpose: "Two-phase saga state machine with automatic compensations" },
@@ -424,114 +367,178 @@ Active-active multi-region payment gateway with automated multi-bank failover an
 };
 
 let currentProposalKey = "rfc042";
+let currentPhase = 3;
+let isPlaying = false;
+let playInterval = null;
 
-// 1. Tab Switching
-function switchTab(tabId) {
-  const tabs = document.querySelectorAll(".tab-item");
-  tabs.forEach(tab => {
-    tab.classList.remove("active");
-    if (tab.getAttribute("data-tab") === tabId) {
-      tab.classList.add("active");
-    }
-  });
-
-  const panes = document.querySelectorAll(".tab-pane");
-  panes.forEach(pane => {
-    pane.classList.remove("active");
-  });
-
-  const activePane = document.getElementById(`tab-${tabId}`);
-  if (activePane) {
-    activePane.classList.add("active");
-  }
-}
-
-// 2. Load Proposal Data
-function loadProposal(key) {
+// 1. Proposal Switcher
+function switchProposal(key) {
   if (!PROPOSALS[key]) return;
   currentProposalKey = key;
   const p = PROPOSALS[key];
 
-  // Header & Banner
-  document.getElementById("crumb-rfc-id").textContent = p.id;
-  document.getElementById("banner-rfc-title").textContent = p.title;
+  document.getElementById("prop-headline").textContent = p.headline;
 
-  // Reviewer Scores & Resolutions
-  document.getElementById("score-sec").textContent = p.scores.sec;
-  document.getElementById("res-sec").textContent = p.resolutions.sec;
-
-  document.getElementById("score-scale").textContent = p.scores.scale;
-  document.getElementById("res-scale").textContent = p.resolutions.scale;
-
-  document.getElementById("score-fin").textContent = p.scores.fin;
-  document.getElementById("res-fin").textContent = p.resolutions.fin;
-
-  document.getElementById("score-data").textContent = p.scores.data;
-  document.getElementById("res-data").textContent = p.resolutions.data;
-
-  // TAB 1: RFC Article & Audit Threads
-  document.getElementById("rfc-content-inner").innerHTML = p.rfcHtml;
-  document.getElementById("sidebar-finding-count").textContent = `${p.audits.length} Audits`;
-
-  const threadsContainer = document.getElementById("audit-threads-container");
-  threadsContainer.innerHTML = p.audits.map(a => `
-    <div class="audit-thread-card">
-      <div class="thread-header">
-        <div class="thread-author-group">
-          <span class="thread-author-name">${a.specialist}</span>
-          <span class="thread-author-role">${a.role}</span>
-        </div>
-        <span class="pill ${a.scoreClass}">${a.score}</span>
+  // Specialists List
+  const spList = document.getElementById("specialists-list");
+  spList.innerHTML = p.specialists.map(sp => `
+    <div class="specialist-row ${sp.key === 'sec' ? 'active' : ''}" onclick="selectSpecialist('${sp.key}')" id="sp-row-${sp.key}">
+      <div class="sp-top">
+        <span class="sp-name">${sp.name}</span>
+        <span class="sp-score ${sp.tag}">${sp.score}</span>
       </div>
-      <div class="thread-body">
-        <div class="thread-finding">${a.finding}</div>
-        <div class="thread-resolution">
-          <div class="resolution-label">ADOPTED RESOLUTION</div>
-          <div>${a.resolution}</div>
-        </div>
-      </div>
+      <div class="sp-domain">${sp.domain}</div>
     </div>
   `).join("");
 
-  // TAB 2: Trade-offs Table
-  const tradeoffsTbody = document.getElementById("tradeoffs-tbody");
-  tradeoffsTbody.innerHTML = p.tradeoffs.map(t => `
+  // Matrix Table
+  const matrixTbody = document.getElementById("studio-matrix-rows");
+  matrixTbody.innerHTML = p.matrix.map(m => `
     <tr>
-      <td><strong>${t.dimension}</strong></td>
-      <td>${t.tensions}</td>
-      <td>${t.resolution}</td>
-      <td><code>${t.invariant}</code></td>
+      <td><strong>${m.vector}</strong></td>
+      <td>${m.clash}</td>
+      <td>${m.resolution}</td>
+      <td><code>${m.invariant}</code></td>
     </tr>
   `).join("");
 
-  // TAB 3: Components Grid
-  const compGrid = document.getElementById("topology-components-grid");
-  compGrid.innerHTML = p.components.map(c => `
-    <div class="comp-card">
-      <h4>${c.name}</h4>
-      <p>${c.desc}</p>
+  // ADR Sheet
+  document.getElementById("adr-sheet-content").innerHTML = renderMarkdown(p.adrMarkdown);
+
+  // Dock Scaffolding
+  const scaffoldGrid = document.getElementById("scaffold-grid");
+  scaffoldGrid.innerHTML = p.manifest.map(m => `
+    <div class="scaffold-card">
+      <div class="scaffold-card-top">
+        <span class="action-pill">${m.action}</span>
+        <code>${m.path}</code>
+      </div>
+      <p>${m.purpose}</p>
     </div>
   `).join("");
 
-  // TAB 4: ADR Document
-  document.getElementById("adr-rendered-text").innerHTML = renderMarkdown(p.adrMarkdown);
+  // Dock Terminal
+  document.getElementById("term-branch").textContent = `git checkout -b ${p.targetBranch}`;
+  document.getElementById("term-test").textContent = p.verificationCmd;
+  document.getElementById("term-cli-cmd").textContent = p.claudeCmd;
 
-  // TAB 5: Implementation Handoff
-  document.getElementById("hand-branch").textContent = `git checkout -b ${p.targetBranch}`;
-  document.getElementById("hand-test").textContent = p.verificationCmd;
-  document.getElementById("hand-cli-code").textContent = p.claudeCmd;
-
-  const manifestTbody = document.getElementById("manifest-tbody");
-  manifestTbody.innerHTML = p.manifest.map(m => `
-    <tr>
-      <td><span class="pill pill-ok">${m.action}</span></td>
-      <td><code>${m.path}</code></td>
-      <td>${m.purpose}</td>
-    </tr>
-  `).join("");
+  // Select Default Node (Gateway)
+  selectNode("gateway");
 }
 
-// 3. Clipboard and Export Handlers
+// 2. Select Node on Interactive Graph
+function selectNode(nodeKey) {
+  const p = PROPOSALS[currentProposalKey];
+  const comp = p.components[nodeKey];
+  if (!comp) return;
+
+  // Highlight active node in graph
+  document.querySelectorAll(".arch-node").forEach(node => {
+    node.classList.remove("active");
+  });
+  const activeNode = document.querySelector(`.arch-node[onclick="selectNode('${nodeKey}')"]`);
+  if (activeNode) activeNode.classList.add("active");
+
+  // Update Right Inspector Drawer
+  document.getElementById("insp-title").textContent = comp.title;
+  document.getElementById("insp-auditor-avatar").textContent = comp.avatar;
+  document.getElementById("insp-auditor-name").textContent = comp.auditor;
+  document.getElementById("insp-auditor-score").textContent = comp.score;
+  document.getElementById("insp-finding").textContent = comp.finding;
+  document.getElementById("insp-resolution").textContent = comp.resolution;
+  document.getElementById("insp-code-snippet").textContent = comp.code;
+}
+
+// 3. Select Specialist
+function selectSpecialist(spKey) {
+  document.querySelectorAll(".specialist-row").forEach(r => r.classList.remove("active"));
+  const row = document.getElementById(`sp-row-${spKey}`);
+  if (row) row.classList.add("active");
+
+  // Map specialist to primary node
+  if (spKey === "sec") selectNode("gateway");
+  else if (spKey === "scale") selectNode("clients");
+  else if (spKey === "fin") selectNode("redis");
+  else if (spKey === "data") selectNode("outbox");
+}
+
+// 4. Stepper & Phase Jump
+function jumpToPhase(phaseNum) {
+  currentPhase = phaseNum;
+  document.querySelectorAll(".step-btn").forEach(btn => {
+    btn.classList.remove("active");
+    if (btn.getAttribute("data-phase") == phaseNum) {
+      btn.classList.add("active");
+    }
+  });
+
+  const tag = document.getElementById("stage-phase-tag");
+  const title = document.getElementById("stage-phase-title");
+
+  if (phaseNum === 1) {
+    tag.textContent = "PHASE 1 OF 4";
+    title.textContent = "Isolated Blind Chamber Audits (0 Cross-Leakage Verified)";
+    setCenterView("topology");
+    selectSpecialist("sec");
+  } else if (phaseNum === 2) {
+    tag.textContent = "PHASE 2 OF 4";
+    title.textContent = "Specialist Tension Matrix & Trade-off Deliberation";
+    setCenterView("matrix");
+  } else if (phaseNum === 3) {
+    tag.textContent = "PHASE 3 OF 4";
+    title.textContent = "Synthesized Architecture Topology (Vector Verification)";
+    setCenterView("topology");
+    selectNode("gateway");
+  } else if (phaseNum === 4) {
+    tag.textContent = "PHASE 4 OF 4";
+    title.textContent = "Autonomous Implementer Handoff (Claude Code / Codex)";
+    setCenterView("adr");
+    switchDockTab("terminal");
+  }
+}
+
+// 5. Play / Pause Deliberation Animation
+function togglePlayDeliberation() {
+  const btnText = document.getElementById("play-btn-text");
+  if (isPlaying) {
+    clearInterval(playInterval);
+    isPlaying = false;
+    btnText.textContent = "Play Review";
+  } else {
+    isPlaying = true;
+    btnText.textContent = "Pause Review";
+    playInterval = setInterval(() => {
+      let nextPhase = (currentPhase % 4) + 1;
+      jumpToPhase(nextPhase);
+    }, 2800);
+  }
+}
+
+// 6. View Switcher in Stage
+function setCenterView(viewId) {
+  document.querySelectorAll(".stage-toggle-btn").forEach(btn => {
+    btn.classList.remove("active");
+    if (btn.getAttribute("data-view") === viewId) btn.classList.add("active");
+  });
+
+  document.querySelectorAll(".canvas-view").forEach(v => v.classList.remove("active"));
+  const target = document.getElementById(`view-${viewId}`);
+  if (target) target.classList.add("active");
+}
+
+// 7. Dock Tab Switcher
+function switchDockTab(dockId) {
+  document.querySelectorAll(".dock-tab").forEach(tab => {
+    tab.classList.remove("active");
+    if (tab.getAttribute("data-dock") === dockId) tab.classList.add("active");
+  });
+
+  document.querySelectorAll(".dock-panel").forEach(p => p.classList.remove("active"));
+  const target = document.getElementById(`dock-${dockId}`);
+  if (target) target.classList.add("active");
+}
+
+// 8. Clipboard & Export
 function copyHandoffCommand() {
   const cmd = PROPOSALS[currentProposalKey].claudeCmd;
   navigator.clipboard.writeText(cmd).then(() => {
@@ -553,12 +560,28 @@ function exportADR() {
   showToast(`Exported ${PROPOSALS[currentProposalKey].id}_Architecture_Decision_Record.md`);
 }
 
-// 4. Toast Notification Utility
 function showToast(text) {
-  let toast = document.getElementById("workbench-toast");
+  let toast = document.getElementById("studio-toast");
   if (!toast) {
     toast = document.createElement("div");
-    toast.id = "workbench-toast";
+    toast.id = "studio-toast";
+    toast.style.cssText = `
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #1e2328;
+      color: #fff;
+      border-radius: 6px;
+      padding: 9px 16px;
+      font-size: 12px;
+      font-weight: 500;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+      z-index: 99999;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: all 0.2s ease;
+      font-family: var(--font-sans);
+    `;
     document.body.appendChild(toast);
   }
   toast.textContent = text;
@@ -568,22 +591,21 @@ function showToast(text) {
   setTimeout(() => {
     toast.style.opacity = "0";
     toast.style.transform = "translateY(8px)";
-  }, 2400);
+  }, 2200);
 }
 
-// 5. Simple Markdown Parser for ADR Viewer
 function renderMarkdown(md) {
   return md
-    .replace(/^# (.*$)/gim, '<h1>$1</h1>')
-    .replace(/^## (.*$)/gim, '<h2>$1</h2>')
-    .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+    .replace(/^# (.*$)/gim, '<h2 style="font-size:16px; margin:14px 0 6px; color:#1e2328;">$1</h2>')
+    .replace(/^## (.*$)/gim, '<h3 style="font-size:13.5px; margin:12px 0 4px; color:#0969da;">$1</h3>')
     .replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>')
     .replace(/`(.*?)`/gim, '<code>$1</code>')
-    .replace(/^\- (.*$)/gim, '<li>$1</li>')
+    .replace(/^\- (.*$)/gim, '<li style="margin-left:16px; margin-bottom:2px;">$1</li>')
     .replace(/\n$/gim, '<br>');
 }
 
 // Initialize on page load
 window.addEventListener("DOMContentLoaded", () => {
-  loadProposal("rfc042");
+  switchProposal("rfc042");
+  jumpToPhase(3);
 });

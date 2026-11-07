@@ -3,334 +3,366 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BlindCouncil — Architecture Review & Decision Workbench</title>
+  <title>BlindCouncil Studio | Architecture Review & Governance Workbench</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
-<body>
+<body class="workbench-app">
 
-  <!-- Top Enterprise Navigation Bar -->
-  <header class="navbar">
-    <div class="nav-left">
-      <div class="brand">
-        <svg class="brand-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+  <!-- 1. Top Studio Application Header -->
+  <header class="studio-header">
+    <div class="header-brand">
+      <div class="brand-symbol">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="18" height="18" rx="3"></rect>
           <path d="M3 9h18"></path>
           <path d="M9 21V9"></path>
         </svg>
-        <span class="brand-name">BlindCouncil</span>
-        <span class="brand-badge">Enterprise</span>
       </div>
-
-      <nav class="breadcrumb">
-        <span class="crumb">Platform Engineering</span>
-        <span class="separator">/</span>
-        <span class="crumb">RFC Architecture Reviews</span>
-        <span class="separator">/</span>
-        <span class="crumb current" id="crumb-rfc-id">RFC-042</span>
-      </nav>
+      <div class="brand-titles">
+        <span class="brand-title">BlindCouncil</span>
+        <span class="brand-tagline">Architecture Review Workbench</span>
+      </div>
+      <span class="brand-pill">Enterprise v2.4</span>
     </div>
 
-    <div class="nav-right">
-      <div class="rfc-selector-box">
-        <label for="rfc-select" class="selector-label">Select Review:</label>
-        <select id="rfc-select" class="select-input" onchange="loadProposal(this.value)">
-          <option value="rfc042">RFC-042: Real-Time WebSocket Messaging Fabric</option>
-          <option value="rfc019">RFC-019: Global Scalable URL Shortener (10B Keys)</option>
-          <option value="rfc088">RFC-088: Multi-Region Payment Processing Service</option>
-        </select>
+    <!-- Center Stage Controls -->
+    <div class="header-center-controls">
+      <div class="stepper-bar">
+        <button class="step-btn active" data-phase="1" onclick="jumpToPhase(1)">
+          <span class="step-num">1</span>
+          <span class="step-label">Blind Audits</span>
+        </button>
+        <div class="step-arrow">&rarr;</div>
+        <button class="step-btn" data-phase="2" onclick="jumpToPhase(2)">
+          <span class="step-num">2</span>
+          <span class="step-label">Tension Matrix</span>
+        </button>
+        <div class="step-arrow">&rarr;</div>
+        <button class="step-btn" data-phase="3" onclick="jumpToPhase(3)">
+          <span class="step-num">3</span>
+          <span class="step-label">Resolved Topology</span>
+        </button>
+        <div class="step-arrow">&rarr;</div>
+        <button class="step-btn" data-phase="4" onclick="jumpToPhase(4)">
+          <span class="step-num">4</span>
+          <span class="step-label">Claude Code Handoff</span>
+        </button>
       </div>
+    </div>
 
-      <div class="btn-group">
-        <button class="btn btn-secondary" onclick="exportADR()">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-            <polyline points="7 10 12 15 17 10"></polyline>
-            <line x1="12" y1="15" x2="12" y2="3"></line>
-          </svg>
-          Export ADR.md
-        </button>
-        <button class="btn btn-primary" onclick="copyHandoffCommand()">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polygon points="5 3 19 12 5 21 5 3"></polygon>
-          </svg>
-          Handoff to Terminal Agent
-        </button>
-      </div>
+    <!-- Right Header Actions -->
+    <div class="header-actions">
+      <button class="action-btn play-btn" id="play-btn" onclick="togglePlayDeliberation()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+          <polygon points="5 3 19 12 5 21 5 3"></polygon>
+        </svg>
+        <span id="play-btn-text">Play Review</span>
+      </button>
+      <button class="action-btn secondary-btn" onclick="exportADR()">Export ADR</button>
+      <button class="action-btn primary-btn" onclick="copyHandoffCommand()">Copy CLI Command</button>
     </div>
   </header>
 
-  <!-- Document Meta Header Banner -->
-  <div class="doc-meta-banner">
-    <div class="banner-main">
-      <div class="status-indicator-row">
-        <span class="pill pill-approved">Approved with Conditions</span>
-        <span class="pill pill-neutral">Delphi Protocol Completed</span>
-        <span class="meta-date">Review Date: November 6, 2026</span>
-        <span class="meta-channel">Live Sync: <code>#review-desk</code> (Discord Guild: <code>blindcouncil-eng</code>)</span>
-      </div>
-      <h1 class="document-headline" id="banner-rfc-title">RFC-042: Real-Time Messaging Fabric & Ingress Event Streaming</h1>
-      <p class="document-description">Multi-agent architecture review evaluating distributed scalability, zero-trust token revocation, and cloud infrastructure expenditure.</p>
-    </div>
+  <!-- 2. Three-Column Main Studio Workspace (Fixed 100vh Shell) -->
+  <div class="studio-body">
 
-    <!-- Reviewer Sign-Off Rubric -->
-    <div class="reviewers-grid">
-      <div class="reviewer-card">
-        <div class="rev-header">
-          <span class="rev-role">Security Auditor</span>
-          <span class="pill pill-warn" id="score-sec">4.5 / 10 &bull; Conditional</span>
+    <!-- LEFT RAIL: Proposals & Council Specialists (280px) -->
+    <aside class="sidebar-rail">
+      
+      <!-- Target Proposal Section -->
+      <div class="rail-section">
+        <div class="rail-header">ACTIVE ARCHITECTURE REVIEW</div>
+        <div class="proposal-picker">
+          <select id="proposal-dropdown" class="rail-select" onchange="switchProposal(this.value)">
+            <option value="rfc042">RFC-042: WebSocket Cluster (100k Conns)</option>
+            <option value="rfc019">RFC-019: URL Shortener (10B Keys)</option>
+            <option value="rfc088">RFC-088: Multi-Region Payment Saga</option>
+          </select>
         </div>
-        <div class="rev-name">Aegis</div>
-        <div class="rev-resolution" id="res-sec">Mandate: Sub-ms Edge Bloom Revocation</div>
-      </div>
-
-      <div class="reviewer-card">
-        <div class="rev-header">
-          <span class="rev-role">Scale & Concurrency</span>
-          <span class="pill pill-ok" id="score-scale">6.8 / 10 &bull; Approved</span>
-        </div>
-        <div class="rev-name">Vanguard</div>
-        <div class="rev-resolution" id="res-scale">Mandate: Zero-DB Reconnection Ingress</div>
-      </div>
-
-      <div class="reviewer-card">
-        <div class="rev-header">
-          <span class="rev-role">Cloud Economics</span>
-          <span class="pill pill-warn" id="score-fin">6.0 / 10 &bull; Conditional</span>
-        </div>
-        <div class="rev-name">Ledger</div>
-        <div class="rev-resolution" id="res-fin">Mandate: 4 Nodes + Autoscale (-$25.2k/yr)</div>
-      </div>
-
-      <div class="reviewer-card">
-        <div class="rev-header">
-          <span class="rev-role">Data & State</span>
-          <span class="pill pill-warn" id="score-data">7.2 / 10 &bull; Conditional</span>
-        </div>
-        <div class="rev-name">Titan</div>
-        <div class="rev-resolution" id="res-data">Mandate: Transactional Outbox + CDC</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Primary Sub-Navigation Tabs -->
-  <nav class="tab-navigation">
-    <div class="tabs-list">
-      <button class="tab-item active" data-tab="rfc-review" onclick="switchTab('rfc-review')">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-          <polyline points="14 2 14 8 20 8"></polyline>
-          <line x1="16" y1="13" x2="8" y2="13"></line>
-          <line x1="16" y1="17" x2="8" y2="17"></line>
-        </svg>
-        RFC & Specialist Annotations
-      </button>
-
-      <button class="tab-item" data-tab="tradeoffs" onclick="switchTab('tradeoffs')">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="18" y1="20" x2="18" y2="10"></line>
-          <line x1="12" y1="20" x2="12" y2="4"></line>
-          <line x1="6" y1="20" x2="6" y2="14"></line>
-        </svg>
-        Trade-Off & Invariant Matrix
-      </button>
-
-      <button class="tab-item" data-tab="topology" onclick="switchTab('topology')">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
-          <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
-          <line x1="6" y1="10" x2="6" y2="14"></line>
-          <line x1="18" y1="10" x2="18" y2="14"></line>
-        </svg>
-        Synthesized System Topology
-      </button>
-
-      <button class="tab-item" data-tab="adr" onclick="switchTab('adr')">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
-        </svg>
-        Architecture Decision Record (ADR)
-      </button>
-
-      <button class="tab-item" data-tab="handoff" onclick="switchTab('handoff')">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polyline points="4 17 10 11 4 5"></polyline>
-          <line x1="12" y1="19" x2="20" y2="19"></line>
-        </svg>
-        Terminal Implementation Handoff
-      </button>
-    </div>
-  </nav>
-
-  <!-- Main Viewports Content Area -->
-  <main class="content-container">
-
-    <!-- TAB 1: RFC & Specialist Annotations -->
-    <div id="tab-rfc-review" class="tab-pane active">
-      <div class="document-review-layout">
-        
-        <!-- Left Article: RFC Content with Line References -->
-        <div class="rfc-article-pane">
-          <div class="article-inner" id="rfc-content-inner">
-            <!-- Dynamically populated -->
+        <div class="proposal-summary-card">
+          <div class="summary-headline" id="prop-headline">100,000 WebSocket Messaging Cluster</div>
+          <div class="summary-meta-line">
+            <span class="meta-badge approved">Approved with Conditions</span>
+            <span class="meta-target">100k Sockets</span>
+          </div>
+          <div class="sync-line">
+            <span class="sync-dot live"></span>
+            <span>Discord: <code>#review-desk</code></span>
           </div>
         </div>
-
-        <!-- Right Sidebar: Delphi Specialist Review Threads -->
-        <aside class="annotations-sidebar">
-          <div class="sidebar-header">
-            <h3>Specialist Audit Findings & Consensus Resolutions</h3>
-            <span class="count-tag" id="sidebar-finding-count">4 Audits</span>
-          </div>
-          <div class="threads-list" id="audit-threads-container">
-            <!-- Dynamically populated -->
-          </div>
-        </aside>
-
       </div>
-    </div>
 
-    <!-- TAB 2: Trade-Off & Invariant Matrix -->
-    <div id="tab-tradeoffs" class="tab-pane">
-      <div class="tradeoffs-view">
-        <div class="section-intro">
-          <h2>Deliberation Trade-Offs & Formal Invariants</h2>
-          <p>Institutional architecture reviews require resolving competing engineering tensions. The table below outlines each trade-off, conflicting specialist perspectives, and the adopted consensus invariant.</p>
+      <!-- Council Roster & Rubric -->
+      <div class="rail-section flex-grow">
+        <div class="rail-header">
+          <span>COUNCIL SPECIALISTS</span>
+          <span class="badge-mini">4 Chambers</span>
         </div>
-
-        <div class="table-card">
-          <table class="enterprise-table">
-            <thead>
-              <tr>
-                <th style="width: 22%;">Trade-Off Dimension</th>
-                <th style="width: 26%;">Conflicting Perspectives</th>
-                <th style="width: 26%;">Adopted Resolution</th>
-                <th style="width: 26%;">Enforced Invariant</th>
-              </tr>
-            </thead>
-            <tbody id="tradeoffs-tbody">
-              <!-- Dynamically populated -->
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- TAB 3: Synthesized System Topology -->
-    <div id="tab-topology" class="tab-pane">
-      <div class="topology-view">
-        <div class="topology-toolbar">
-          <div>
-            <h2>Synthesized Architecture Topology</h2>
-            <p>Vector system architecture synthesized by Council Chair Athena resolving all 4 specialist invariants.</p>
-          </div>
-          <div class="toolbar-actions">
-            <a href="diagram_rfc042_resolved.png" download class="btn btn-secondary">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                <polyline points="7 10 12 15 17 10"></polyline>
-                <line x1="12" y1="15" x2="12" y2="3"></line>
-              </svg>
-              Download Diagram PNG
-            </a>
-          </div>
-        </div>
-
-        <div class="diagram-display-card">
-          <img src="diagram_rfc042_resolved.png" alt="Synthesized System Topology" class="diagram-render" id="topo-img">
-        </div>
-
-        <!-- Architectural Component Specs -->
-        <div class="components-grid" id="topology-components-grid">
+        <div class="specialists-list" id="specialists-list">
           <!-- Dynamically populated -->
         </div>
       </div>
-    </div>
 
-    <!-- TAB 4: Architecture Decision Record (ADR) -->
-    <div id="tab-adr" class="tab-pane">
-      <div class="adr-view">
-        <div class="adr-toolbar">
-          <div>
-            <h2>Michael Nygard Standard Architecture Decision Record</h2>
-            <p>Formatted for version-controlled repository commit (<code>docs/adr/ADR-042.md</code>) and GitHub PR sticky comment.</p>
+      <!-- Formal Invariant Verification Box -->
+      <div class="rail-section invariant-status-box">
+        <div class="rail-header">INVARIANT ASSERTIONS</div>
+        <div class="invariant-items" id="invariant-items">
+          <div class="inv-item ok">
+            <span class="inv-dot"></span>
+            <span class="inv-name">INV-SEC-01: Revocation &lt;1ms</span>
           </div>
-          <button class="btn btn-secondary" onclick="exportADR()">Download Markdown</button>
-        </div>
-
-        <div class="adr-doc-card">
-          <div class="markdown-body" id="adr-rendered-text">
-            <!-- Dynamically populated -->
+          <div class="inv-item ok">
+            <span class="inv-dot"></span>
+            <span class="inv-name">INV-SCALE-02: Zero-DB Reconnect</span>
           </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- TAB 5: Terminal Implementation Handoff -->
-    <div id="tab-handoff" class="tab-pane">
-      <div class="handoff-view">
-        <div class="section-intro">
-          <h2>Autonomous Implementer Handoff (Claude Code / Codex)</h2>
-          <p>Section 6 scaffolding specification providing direct instructions, branch coordinates, and interface contracts to terminal coding agents.</p>
-        </div>
-
-        <div class="handoff-grid">
-          <!-- Left: Scaffolding File Manifest -->
-          <div class="card manifest-card">
-            <div class="card-title-row">
-              <h3>Implementation File Manifest</h3>
-              <span class="pill pill-neutral">Section 6 Scaffolding</span>
-            </div>
-            <div class="manifest-table-wrapper">
-              <table class="enterprise-table">
-                <thead>
-                  <tr>
-                    <th>Action</th>
-                    <th>Target Path</th>
-                    <th>Mandating Specialist & Purpose</th>
-                  </tr>
-                </thead>
-                <tbody id="manifest-tbody">
-                  <!-- Dynamically populated -->
-                </tbody>
-              </table>
-            </div>
+          <div class="inv-item ok">
+            <span class="inv-dot"></span>
+            <span class="inv-name">INV-FIN-03: Compute -$25.2k/yr</span>
           </div>
-
-          <!-- Right: Execution Coordinates & Command Box -->
-          <div class="card command-card">
-            <div class="card-title-row">
-              <h3>Execution Instructions</h3>
-              <span class="pill pill-approved">Ready for Dispatch</span>
-            </div>
-
-            <div class="coord-list">
-              <div class="coord-item">
-                <span class="coord-label">Target Git Branch:</span>
-                <code class="coord-val" id="hand-branch">git checkout -b feat/adr-042-impl</code>
-              </div>
-              <div class="coord-item">
-                <span class="coord-label">Verification Command:</span>
-                <code class="coord-val" id="hand-test">pytest tests/ -v</code>
-              </div>
-            </div>
-
-            <div class="terminal-shell">
-              <div class="shell-header">
-                <span class="shell-title">One-Shot Terminal Launch Command</span>
-                <button class="shell-copy-btn" onclick="copyHandoffCommand()">Copy</button>
-              </div>
-              <pre class="shell-code" id="hand-cli-code">claude -p "Read ADR-042.md Section 6. Switch to branch 'feat/adr-042-impl'. Implement the scaffolded files in '.'. Run 'pytest tests/ -v' and do not finish until all tests pass."</pre>
-            </div>
+          <div class="inv-item ok">
+            <span class="inv-dot"></span>
+            <span class="inv-name">INV-DATA-04: Outbox CDC Atomicity</span>
           </div>
         </div>
       </div>
-    </div>
 
-  </main>
+    </aside>
+
+    <!-- CENTER WORKSPACE: Visual Architecture Stage & Dock (Flex 1) -->
+    <main class="center-stage">
+      
+      <!-- Stage Stageboard Bar -->
+      <div class="stage-top-bar">
+        <div class="stage-breadcrumbs">
+          <span class="stage-tag" id="stage-phase-tag">PHASE 3 OF 4</span>
+          <h2 class="stage-title" id="stage-phase-title">Synthesized Architecture Topology (Vector Verification)</h2>
+        </div>
+        <div class="stage-view-toggles">
+          <button class="stage-toggle-btn active" data-view="topology" onclick="setCenterView('topology')">Visual Canvas</button>
+          <button class="stage-toggle-btn" data-view="matrix" onclick="setCenterView('matrix')">Tension Matrix</button>
+          <button class="stage-toggle-btn" data-view="adr" onclick="setCenterView('adr')">ADR Preview</button>
+        </div>
+      </div>
+
+      <!-- Canvas / Stage Viewport -->
+      <div class="stage-canvas-area" id="stage-canvas-area">
+        
+        <!-- View A: Interactive System Topology Graph -->
+        <div class="canvas-view active" id="view-topology">
+          <div class="topology-canvas-wrapper">
+            <div class="diagram-artboard">
+              <!-- Visual Node Map -->
+              <div class="visual-node-graph">
+                
+                <div class="graph-tier" id="tier-clients">
+                  <div class="arch-node" onclick="selectNode('clients')">
+                    <div class="node-icon">📱</div>
+                    <div class="node-label">100k Sockets</div>
+                    <div class="node-sub">Clients Tier</div>
+                  </div>
+                </div>
+
+                <div class="graph-arrow">&rarr;</div>
+
+                <div class="graph-tier" id="tier-lb">
+                  <div class="arch-node" onclick="selectNode('nlb')">
+                    <div class="node-icon">⚖️</div>
+                    <div class="node-label">AWS L4 NLB</div>
+                    <div class="node-sub">TLS Termination</div>
+                  </div>
+                </div>
+
+                <div class="graph-arrow">&rarr;</div>
+
+                <div class="graph-tier" id="tier-gateway">
+                  <div class="arch-node active" onclick="selectNode('gateway')">
+                    <div class="node-pin flag-sec">SEC</div>
+                    <div class="node-icon">🛡️</div>
+                    <div class="node-label">Ingress Gateway</div>
+                    <div class="node-sub">Bloom Revocation</div>
+                  </div>
+                </div>
+
+                <div class="graph-arrow">&rarr;</div>
+
+                <div class="graph-tier" id="tier-cluster">
+                  <div class="arch-node" onclick="selectNode('redis')">
+                    <div class="node-pin flag-fin">-$25.2k</div>
+                    <div class="node-icon">⚡</div>
+                    <div class="node-label">4-Node Cluster</div>
+                    <div class="node-sub">75% Autoscale</div>
+                  </div>
+                </div>
+
+                <div class="graph-arrow">&rarr;</div>
+
+                <div class="graph-tier" id="tier-storage">
+                  <div class="arch-node" onclick="selectNode('outbox')">
+                    <div class="node-pin flag-data">CDC</div>
+                    <div class="node-icon">🏛️</div>
+                    <div class="node-label">Postgres Outbox</div>
+                    <div class="node-sub">Debezium ➔ Kafka</div>
+                  </div>
+                </div>
+
+              </div>
+
+              <!-- High-Res Synthesized Topology Embed -->
+              <div class="rendered-diagram-box">
+                <img src="diagram_rfc042_resolved.png" alt="Synthesized System Topology" class="diagram-img-interactive" id="topology-img">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- View B: Tension Matrix & Conflict Radar -->
+        <div class="canvas-view" id="view-matrix">
+          <div class="matrix-card-wrap">
+            <table class="studio-table">
+              <thead>
+                <tr>
+                  <th>Tension Vector</th>
+                  <th>Chamber Clash</th>
+                  <th>Consensus Synthesis</th>
+                  <th>Enforced Invariant</th>
+                </tr>
+              </thead>
+              <tbody id="studio-matrix-rows">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- View C: ADR Preview -->
+        <div class="canvas-view" id="view-adr">
+          <div class="adr-preview-wrap">
+            <div class="adr-sheet" id="adr-sheet-content">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Bottom Implementation Dock (Interactive Tabs) -->
+      <div class="bottom-dock">
+        <div class="dock-tabs">
+          <button class="dock-tab active" data-dock="scaffold" onclick="switchDockTab('scaffold')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+            </svg>
+            Section 6 File Manifest (3 Files)
+          </button>
+          <button class="dock-tab" data-dock="terminal" onclick="switchDockTab('terminal')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="4 17 10 11 4 5"></polyline>
+              <line x1="12" y1="19" x2="20" y2="19"></line>
+            </svg>
+            Claude Code CLI Coordinates
+          </button>
+          <button class="dock-tab" data-dock="tests" onclick="switchDockTab('tests')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+              <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+            Verification Suite (5/5 Passed)
+          </button>
+        </div>
+
+        <div class="dock-content">
+          <!-- Dock Tab 1: Scaffold Files List -->
+          <div class="dock-panel active" id="dock-scaffold">
+            <div class="scaffold-grid" id="scaffold-grid">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+          <!-- Dock Tab 2: Terminal Command -->
+          <div class="dock-panel" id="dock-terminal">
+            <div class="terminal-bar-row">
+              <div class="term-line">
+                <span class="term-lbl">Target Git Branch:</span>
+                <code class="term-txt" id="term-branch">git checkout -b feat/adr-042-impl</code>
+              </div>
+              <div class="term-line">
+                <span class="term-lbl">Verification Harness:</span>
+                <code class="term-txt" id="term-test">pytest tests/ -v</code>
+              </div>
+              <div class="term-cmd-wrap">
+                <pre class="term-cmd-block" id="term-cli-cmd">claude -p "Read ADR-042.md Section 6. Switch to branch 'feat/adr-042-impl'. Implement the scaffolded files in '.'. Run 'pytest tests/ -v' and do not finish until all tests pass."</pre>
+                <button class="copy-pill-btn" onclick="copyHandoffCommand()">Copy Launch Command</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dock Tab 3: Verification Suite -->
+          <div class="dock-panel" id="dock-tests">
+            <div class="test-results-row">
+              <span class="test-badge-ok">5/5 TESTS PASSED in 0.012s</span>
+              <span class="test-sub">Verified: Room Isolation, Invariant Asserts, Conflict Synthesis, Manifest Generation</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+
+    <!-- RIGHT DRAWER: Component & Audit Inspector (340px) -->
+    <aside class="inspector-drawer">
+      <div class="drawer-header">
+        <div class="drawer-tag" id="insp-tag">COMPONENT SPECIFICATION</div>
+        <h3 class="drawer-title" id="insp-title">Ingress Gateway & Bloom Filter</h3>
+      </div>
+
+      <div class="drawer-body">
+        
+        <!-- Inspector Card 1: Enforcing Authority -->
+        <div class="insp-card">
+          <div class="insp-card-label">CHAMBER AUDITOR SIGN-OFF</div>
+          <div class="insp-auditor-row">
+            <div class="auditor-avatar" id="insp-auditor-avatar">A</div>
+            <div>
+              <div class="auditor-name" id="insp-auditor-name">Aegis &bull; Security</div>
+              <div class="auditor-score" id="insp-auditor-score">Score: 4.5/10 (Initial Block Resolved)</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Inspector Card 2: Risk & Resolution -->
+        <div class="insp-card">
+          <div class="insp-card-label">IDENTIFIED VULNERABILITY</div>
+          <div class="insp-finding" id="insp-finding">
+            In-band heartbeat token validation permits a 15-minute window of unauthorized socket frames after account ban. Active CVE risk under SOC2.
+          </div>
+          <div class="insp-card-label" style="margin-top:10px;">MANDATED RESOLUTION</div>
+          <div class="insp-resolution" id="insp-resolution">
+            Sub-ms Redis Bloom filter bitset deployed at gateway edge. Revoked tokens checked in RAM with zero DB load.
+          </div>
+        </div>
+
+        <!-- Inspector Card 3: Code Contract Snippet -->
+        <div class="insp-card">
+          <div class="insp-card-label">SCAFFOLDED INTERFACE CONTRACT</div>
+          <div class="code-box">
+            <pre><code id="insp-code-snippet"># src/middleware/bloom_revocation.py
+async def verify_socket_session(socket_id: str, token_id: str) -> bool:
+    """Checks sub-ms RAM bitset for revoked tokens without DB hits."""
+    if await redis_bloom.exists("revoked_tokens", token_id):
+        await terminate_connection(socket_id, reason="Revoked")
+        return False
+    return True</code></pre>
+          </div>
+        </div>
+
+      </div>
+    </aside>
+
+  </div>
 
   <script src="app.js"></script>
 </body>
