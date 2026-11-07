@@ -31,27 +31,26 @@
       <span class="brand-pill">Switch 0.31.0 Verified</span>
     </div>
 
-    <!-- Center Stage Delphi Protocol Stepper -->
+    <!-- Center Stage Primary View Switcher (Linear Style Tab Group) -->
     <div class="header-center-controls">
-      <nav class="stepper-bar" aria-label="Review Progress">
-        <button class="step-btn" data-phase="1" onclick="jumpToPhase(1)">
-          <span class="step-num">1</span>
-          <span class="step-label">Isolated Audits</span>
+      <nav class="studio-view-nav" aria-label="Workbench Views">
+        <button class="view-nav-btn active" data-view="topology" onclick="setCenterView('topology')">
+          <span class="nav-icon">🌐</span> Topology Canvas
         </button>
-        <span class="step-arrow">&rsaquo;</span>
-        <button class="step-btn" data-phase="2" onclick="jumpToPhase(2)">
-          <span class="step-num">2</span>
-          <span class="step-label">Tension Matrix</span>
+        <button class="view-nav-btn" data-view="floor" onclick="setCenterView('floor')">
+          <span class="nav-icon">⚔️</span> Council Floor
         </button>
-        <span class="step-arrow">&rsaquo;</span>
-        <button class="step-btn active" data-phase="3" onclick="jumpToPhase(3)">
-          <span class="step-num">3</span>
-          <span class="step-label">Resolved Topology</span>
+        <button class="view-nav-btn" data-view="chambers" onclick="setCenterView('chambers')">
+          <span class="nav-icon">🔒</span> Soundproof Chambers
         </button>
-        <span class="step-arrow">&rsaquo;</span>
-        <button class="step-btn" data-phase="4" onclick="jumpToPhase(4)">
-          <span class="step-num">4</span>
-          <span class="step-label">Terminal Handoff</span>
+        <button class="view-nav-btn" data-view="tools" id="tool-traces-btn" onclick="setCenterView('tools')">
+          <span class="nav-icon">🔍</span> Tool Traces
+        </button>
+        <button class="view-nav-btn" data-view="matrix" onclick="setCenterView('matrix')">
+          <span class="nav-icon">📊</span> Tension Matrix
+        </button>
+        <button class="view-nav-btn" data-view="adr" onclick="setCenterView('adr')">
+          <span class="nav-icon">🚀</span> ADR & Handoff
         </button>
       </nav>
     </div>
@@ -145,19 +144,14 @@
     <!-- CENTER WORKSPACE: Visual Architecture Stage (Flex 1) -->
     <main class="center-stage">
       
-      <!-- Stageboard Sub-Navbar -->
+      <!-- Streamlined Stage Breadcrumb & Phase Status -->
       <div class="stage-top-bar">
         <div class="stage-breadcrumbs">
-          <span class="stage-tag" id="stage-phase-tag">PHASE 3 OF 4</span>
+          <span class="stage-tag" id="stage-phase-tag">DELPHI PROTOCOL PHASE 3</span>
           <h2 class="stage-title" id="stage-phase-title">Synthesized Architecture Topology (Vector Verification)</h2>
         </div>
-        <div class="stage-view-toggles">
-          <button class="stage-toggle-btn active" data-view="topology" onclick="setCenterView('topology')">Canvas</button>
-          <button class="stage-toggle-btn" data-view="floor" onclick="setCenterView('floor')">Council Floor</button>
-          <button class="stage-toggle-btn" data-view="chambers" onclick="setCenterView('chambers')">Soundproof Chambers</button>
-          <button class="stage-toggle-btn" data-view="tools" id="tool-traces-btn" onclick="setCenterView('tools')">Tool Traces</button>
-          <button class="stage-toggle-btn" data-view="matrix" onclick="setCenterView('matrix')">Tension Matrix</button>
-          <button class="stage-toggle-btn" data-view="adr" onclick="setCenterView('adr')">ADR & Handoff</button>
+        <div class="stage-meta-status">
+          <span class="status-indicator-pill"><span class="sync-dot live"></span> Consensus Locked • Zero Leakage</span>
         </div>
       </div>
 
@@ -189,7 +183,7 @@
                 </div>
                 <div class="topology-actions-group">
                   <button class="top-action-btn" id="btn-toggle-animation" onclick="toggleFlowAnimation()">
-                    <span class="btn-icon">⚡</span> Traffic Flow: <span id="anim-status-label" style="color:var(--accent-primary); font-weight:700;">ACTIVE</span>
+                    <span class="btn-icon">⚡</span> Traffic Flow: <span id="anim-status-label">ACTIVE</span>
                   </button>
                   <button class="top-action-btn" id="btn-export-svg" onclick="exportDynamicSVG()">
                     <span class="btn-icon">📥</span> Export Vector SVG
@@ -200,20 +194,6 @@
               <!-- Real-time Generated SVG Topology Viewport -->
               <div class="dynamic-svg-viewport" id="dynamic-svg-viewport">
                 <!-- Dynamically generated in SVG by app.js on proposal select / deliberation -->
-              </div>
-
-              <!-- Interactive Node Inspector Drawer -->
-              <div class="node-inspector-drawer" id="node-inspector-drawer">
-                <div class="inspector-header">
-                  <div class="inspector-title-group">
-                    <span class="inspector-badge" id="inspector-badge">Selected Component</span>
-                    <h4 class="inspector-node-title" id="inspector-node-title">Click any node above to inspect architectural invariants & contracts</h4>
-                  </div>
-                  <button class="inspector-close-btn" onclick="closeInspector()">✕</button>
-                </div>
-                <div class="inspector-body" id="inspector-body">
-                  <p class="inspector-placeholder">Click any component node in the dynamic topology above to view its mandating specialist, formal invariant mathematical contract, latency budget, and Section 6 implementation scaffolding contract.</p>
-                </div>
               </div>
             </div>
           </div>

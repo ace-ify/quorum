@@ -964,7 +964,7 @@ function togglePlayDeliberation() {
 
 // 7. View Switcher in Stage
 function setCenterView(viewId) {
-  document.querySelectorAll(".stage-toggle-btn").forEach(btn => {
+  document.querySelectorAll(".view-nav-btn").forEach(btn => {
     btn.classList.remove("active");
     if (btn.getAttribute("data-view") === viewId) btn.classList.add("active");
   });
@@ -972,6 +972,19 @@ function setCenterView(viewId) {
   document.querySelectorAll(".canvas-view").forEach(v => v.classList.remove("active"));
   const target = document.getElementById(`view-${viewId}`);
   if (target) target.classList.add("active");
+
+  const titleMap = {
+    topology: "Synthesized Architecture Topology (Vector Verification)",
+    floor: "Council Deliberation Floor (#review-desk Debate)",
+    chambers: "Soundproof Chambers Monitor (Physical Packet Isolation)",
+    tools: "Specialist Tool Execution Traces",
+    matrix: "Pairwise Tension & Trade-Off Matrix",
+    adr: "Deliverables: Michael Nygard ADR & Terminal Handoff"
+  };
+  const titleElem = document.getElementById("stage-phase-title");
+  if (titleElem && titleMap[viewId]) {
+    titleElem.textContent = titleMap[viewId];
+  }
 }
 
 // 8. Interactive Floor Prompting
@@ -1374,17 +1387,14 @@ function renderDynamicTopologySVG(rfcKey) {
     <svg viewBox="${model.viewBox}" class="topology-svg-root" id="synthesized-topology-svg" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <linearGradient id="grad-node-bg" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stop-color="#111827" stop-opacity="0.95" />
-          <stop offset="100%" stop-color="#0b0f19" stop-opacity="0.95" />
+          <stop offset="0%" stop-color="#141c2e" stop-opacity="0.95" />
+          <stop offset="100%" stop-color="#0b101c" stop-opacity="0.98" />
         </linearGradient>
         <filter id="glow-cyan" x="-20%" y="-20%" width="140%" height="140%">
-          <feDropShadow dx="0" dy="0" stdDeviation="5" flood-color="#06b6d4" flood-opacity="0.4" />
+          <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#06b6d4" flood-opacity="0.5" />
         </filter>
-        <filter id="glow-emerald" x="-20%" y="-20%" width="140%" height="140%">
-          <feDropShadow dx="0" dy="0" stdDeviation="5" flood-color="#10b981" flood-opacity="0.4" />
-        </filter>
-        <filter id="glow-rose" x="-20%" y="-20%" width="140%" height="140%">
-          <feDropShadow dx="0" dy="0" stdDeviation="5" flood-color="#f43f5e" flood-opacity="0.4" />
+        <filter id="glow-selected" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="0" stdDeviation="8" flood-color="#06b6d4" flood-opacity="0.7" />
         </filter>
       </defs>
 
@@ -1397,7 +1407,7 @@ function renderDynamicTopologySVG(rfcKey) {
     svgHtml += `
       <path id="flow-path-${idx}" class="flow-wire active-stream ${isPaused ? 'paused' : ''}" d="${conn.d}" />
       ${!isPaused ? `
-        <circle r="3.5" class="flow-particle">
+        <circle r="4" class="flow-particle" fill="#22d3ee">
           <animateMotion path="${conn.d}" dur="${1.8 + (idx * 0.3)}s" repeatCount="indefinite" />
         </circle>
       ` : ''}
@@ -1410,31 +1420,39 @@ function renderDynamicTopologySVG(rfcKey) {
       <g class="topology-nodes-layer">
   `;
 
-  // Draw Nodes
+  // Draw Nodes with generous spacing and distinct vertical zones to guarantee zero overlap
   model.nodes.forEach(n => {
     const isSelected = selectedTopologyNode === n.key;
+    const nodeW = 180;
+    const nodeH = 108;
     svgHtml += `
       <g class="svg-node-group ${isSelected ? 'selected' : ''}" id="svg-node-${n.key}" onclick="selectDynamicNode('${n.key}')">
-        <!-- Node Box -->
-        <rect class="node-body-rect" x="${n.x}" y="${n.y}" width="${n.w}" height="${n.h}" rx="12"
-          fill="url(#grad-node-bg)" stroke="${isSelected ? '#06b6d4' : 'rgba(255,255,255,0.1)'}" stroke-width="${isSelected ? '2.5' : '1.2'}" />
+        <!-- Node Background -->
+        <rect class="node-body-rect" x="${n.x}" y="${n.y}" width="${nodeW}" height="${nodeH}" rx="12"
+          fill="url(#grad-node-bg)" stroke="${isSelected ? '#06b6d4' : 'rgba(255,255,255,0.12)'}" stroke-width="${isSelected ? '2.5' : '1.2'}"
+          filter="${isSelected ? 'url(#glow-selected)' : 'none'}" />
 
-        <!-- Accent Top Bar -->
-        <rect x="${n.x + 12}" y="${n.y}" width="${n.w - 24}" height="2" rx="1" fill="${n.color}" opacity="0.8" />
+        <!-- Accent Top Line -->
+        <rect x="${n.x + 14}" y="${n.y}" width="${nodeW - 28}" height="2.5" rx="1" fill="${n.color}" opacity="0.9" />
 
-        <!-- Pin / Tag Badge -->
+        <!-- Row 1: Category Tag (Left) & Pin Badge (Right) -->
+        <rect x="${n.x + 12}" y="${n.y + 10}" width="54" height="16" rx="4" fill="rgba(255,255,255,0.05)" />
+        <text x="${n.x + 39}" y="${n.y + 21}" text-anchor="middle" font-family="var(--font-sans)" font-size="8.5" font-weight="700" fill="#94a3b8" letter-spacing="0.5">TIER</text>
+
         ${n.pin ? `
-          <rect x="${n.x + n.w - 82}" y="${n.y + 10}" width="72" height="18" rx="4" fill="rgba(255,255,255,0.06)" stroke="${n.color}" stroke-width="0.8" />
-          <text x="${n.x + n.w - 46}" y="${n.y + 22}" text-anchor="middle" font-family="var(--font-mono)" font-size="9.5" font-weight="700" fill="${n.color}">${n.pin}</text>
+          <rect x="${n.x + nodeW - 90}" y="${n.y + 9}" width="78" height="18" rx="4" fill="rgba(0,0,0,0.5)" stroke="${n.color}" stroke-width="1" />
+          <text x="${n.x + nodeW - 51}" y="${n.y + 21.5}" text-anchor="middle" font-family="var(--font-mono)" font-size="9" font-weight="700" fill="${n.color}">${n.pin}</text>
         ` : ''}
 
-        <!-- Titles & Subtitles -->
-        <text x="${n.x + 14}" y="${n.y + 32}" font-family="var(--font-sans)" font-size="13.5" font-weight="700" fill="#f8fafc">${n.title}</text>
-        <text x="${n.x + 14}" y="${n.y + 50}" font-family="var(--font-sans)" font-size="11" fill="#94a3b8">${n.sub}</text>
+        <!-- Row 2: Title (Dedicated baseline, zero collision) -->
+        <text x="${n.x + 14}" y="${n.y + 48}" font-family="var(--font-sans)" font-size="13.5" font-weight="700" fill="#f8fafc">${n.title}</text>
 
-        <!-- Metric Footer Box -->
-        <rect x="${n.x + 12}" y="${n.y + 64}" width="${n.w - 24}" height="20" rx="4" fill="rgba(0,0,0,0.4)" stroke="rgba(255,255,255,0.05)" />
-        <text x="${n.x + 20}" y="${n.y + 78}" font-family="var(--font-mono)" font-size="10.5" font-weight="600" fill="${n.color}">⚡ ${n.metric}</text>
+        <!-- Row 3: Subtitle -->
+        <text x="${n.x + 14}" y="${n.y + 68}" font-family="var(--font-sans)" font-size="11" fill="#94a3b8">${n.sub}</text>
+
+        <!-- Row 4: Metric Pill -->
+        <rect x="${n.x + 10}" y="${n.y + 80}" width="${nodeW - 20}" height="20" rx="5" fill="rgba(0,0,0,0.5)" stroke="rgba(255,255,255,0.06)" />
+        <text x="${n.x + 18}" y="${n.y + 94}" font-family="var(--font-mono)" font-size="10.5" font-weight="600" fill="${n.color}">⚡ ${n.metric}</text>
       </g>
     `;
   });
@@ -1446,63 +1464,20 @@ function renderDynamicTopologySVG(rfcKey) {
 
   container.innerHTML = svgHtml;
 
-  // Auto-select gateway or default node if none selected
+  // Auto-select node to sync Right Rail Inspector
   const defaultKey = model.nodes[2] ? model.nodes[2].key : model.nodes[0].key;
   selectDynamicNode(defaultKey);
 }
-
 function selectDynamicNode(nodeKey) {
   selectedTopologyNode = nodeKey;
-  const p = PROPOSALS[currentProposalKey];
-  const comp = p.components ? p.components[nodeKey] : null;
-
   // Highlight SVG Node
   document.querySelectorAll(".svg-node-group").forEach(el => el.classList.remove("selected"));
   const svgNode = document.getElementById(`svg-node-${nodeKey}`);
   if (svgNode) svgNode.classList.add("selected");
 
-  // Also call existing selectNode to sync right-rail inspector
+  // Sync right-rail inspector panel
   if (typeof selectNode === "function") {
     selectNode(nodeKey);
-  }
-
-  // Populate Bottom Drawer Inspector
-  const drawer = document.getElementById("node-inspector-drawer");
-  const titleElem = document.getElementById("inspector-node-title");
-  const badgeElem = document.getElementById("inspector-badge");
-  const bodyElem = document.getElementById("inspector-body");
-
-  if (!drawer || !titleElem || !bodyElem) return;
-
-  drawer.style.display = "block";
-
-  if (comp) {
-    badgeElem.textContent = `${comp.auditor || 'Specialist'} Mandatory Contract`;
-    titleElem.innerHTML = `<strong>${comp.title}</strong> — <span style="color:var(--accent-primary); font-family:var(--font-mono); font-size:12px;">Score: ${comp.score}</span>`;
-    bodyElem.innerHTML = `
-      <div class="inspector-grid">
-        <div class="inspector-stat-box">
-          <span class="stat-box-label">Mandating Auditor</span>
-          <span class="stat-box-val highlight-${comp.tag || 'sec'}">${comp.auditor}</span>
-        </div>
-        <div class="inspector-stat-box">
-          <span class="stat-box-label">Enforced Invariant</span>
-          <span class="stat-box-val highlight-scale">${comp.resolution || 'Zero-compromise SLA'}</span>
-        </div>
-        <div class="inspector-stat-box">
-          <span class="stat-box-label">Measured Telemetry</span>
-          <span class="stat-box-val highlight-fin">${comp.toolName || 'Active Inspection'}: ${comp.toolDuration || '<1ms'}</span>
-        </div>
-      </div>
-      <div style="margin-top:10px; display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.5); padding:8px 12px; border-radius:6px; border:1px solid rgba(255,255,255,0.05);">
-        <span style="font-family:var(--font-mono); font-size:11px; color:#cbd5e1;"><strong>Scaffold Contract:</strong> <code>${comp.code ? comp.code.split('\n')[0] : 'Scaffold verified'}</code></span>
-        <button class="top-action-btn" onclick="copyInspectorCode()" style="padding:3px 8px; font-size:10.5px;">Copy Contract</button>
-      </div>
-    `;
-  } else {
-    badgeElem.textContent = "Component Spec";
-    titleElem.textContent = `${nodeKey.toUpperCase()} Tier Specification`;
-    bodyElem.innerHTML = `<p class="inspector-placeholder">Component active in system topology.</p>`;
   }
 }
 

@@ -5,68 +5,68 @@
    ========================================================================== */
 
 :root {
-  /* Surface & Canvas Tokens */
-  --bg-app: #f8fafc;
-  --bg-card: #ffffff;
-  --bg-card-subtle: #f1f5f9;
-  --bg-card-hover: #f8fafc;
-  --bg-canvas: #fafbfc;
+  /* Surface & Canvas Tokens (Unified Linear / Vercel Dark System) */
+  --bg-app: #070a10;
+  --bg-card: #0c101a;
+  --bg-card-subtle: #111724;
+  --bg-card-hover: #161e2e;
+  --bg-canvas: #07090e;
 
   /* Borders & Dividers */
-  --border-subtle: #e2e8f0;
-  --border-strong: #cbd5e1;
-  --border-focus: #4f46e5;
+  --border-subtle: rgba(255, 255, 255, 0.07);
+  --border-strong: rgba(255, 255, 255, 0.14);
+  --border-focus: #06b6d4;
 
   /* Typography */
-  --text-primary: #0f172a;
-  --text-secondary: #475569;
-  --text-muted: #94a3b8;
-  --text-inverse: #ffffff;
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --text-inverse: #070a10;
 
   /* Accents & Specialist Tokens */
-  --brand-primary: #4f46e5;
-  --brand-primary-hover: #4338ca;
-  --brand-primary-subtle: #eef2ff;
+  --brand-primary: #06b6d4;
+  --brand-primary-hover: #22d3ee;
+  --brand-primary-subtle: rgba(6, 182, 212, 0.12);
 
-  --sec-color: #dc2626;
-  --sec-subtle: #fef2f2;
-  --sec-border: #fecaca;
+  --sec-color: #f43f5e;
+  --sec-subtle: rgba(244, 63, 94, 0.12);
+  --sec-border: rgba(244, 63, 94, 0.3);
 
-  --scale-color: #2563eb;
-  --scale-subtle: #eff6ff;
-  --scale-border: #bfdbfe;
+  --scale-color: #06b6d4;
+  --scale-subtle: rgba(6, 182, 212, 0.12);
+  --scale-border: rgba(6, 182, 212, 0.3);
 
-  --fin-color: #d97706;
-  --fin-subtle: #fffbeb;
-  --fin-border: #fde68a;
+  --fin-color: #10b981;
+  --fin-subtle: rgba(16, 185, 129, 0.12);
+  --fin-border: rgba(16, 185, 129, 0.3);
 
-  --data-color: #059669;
-  --data-subtle: #ecfdf5;
-  --data-border: #a7f3d0;
+  --data-color: #a78bfa;
+  --data-subtle: rgba(167, 139, 250, 0.12);
+  --data-border: rgba(167, 139, 250, 0.3);
 
-  --chair-color: #7c3aed;
-  --chair-subtle: #f5f3ff;
-  --chair-border: #ddd6fe;
+  --chair-color: #818cf8;
+  --chair-subtle: rgba(129, 140, 248, 0.12);
+  --chair-border: rgba(129, 140, 248, 0.3);
 
   /* Terminal Tokens */
-  --term-bg: #0b0f19;
-  --term-surface: #111827;
-  --term-border: #1f2937;
-  --term-text: #f9fafb;
-  --term-muted: #6b7280;
+  --term-bg: #05070c;
+  --term-surface: #0a0e17;
+  --term-border: rgba(255, 255, 255, 0.08);
+  --term-text: #f8fafc;
+  --term-muted: #64748b;
   --term-cyan: #38bdf8;
   --term-green: #34d399;
   --term-yellow: #fbbf24;
 
   /* Fonts */
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-sans: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
 
   /* Shadows */
-  --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.04);
-  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
-  --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.07), 0 2px 4px -2px rgba(15, 23, 42, 0.04);
-  --shadow-card-active: 0 0 0 2px var(--brand-primary), 0 4px 14px rgba(79, 70, 229, 0.15);
+  --shadow-xs: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.6);
+  --shadow-card-active: 0 0 0 2px var(--brand-primary), 0 4px 20px rgba(6, 182, 212, 0.25);
 
   /* Radius */
   --radius-xs: 4px;
@@ -1968,4 +1968,171 @@ body.workbench-app {
   overflow-y: auto;
   white-space: pre-wrap;
   line-height: 1.4;
+}
+
+/* ==========================================================================
+   STREAMLINED LINEAR-STYLE VIEW TABS (TOP NAVBAR)
+   ========================================================================== */
+.studio-view-nav {
+  display: flex;
+  align-items: center;
+  background-color: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-full);
+  padding: 3px;
+  gap: 2px;
+}
+
+.view-nav-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: transparent;
+  border: none;
+  padding: 5px 12px;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.view-nav-btn:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.view-nav-btn.active {
+  background: #06b6d4;
+  color: #070a10;
+  font-weight: 700;
+  box-shadow: 0 0 10px rgba(6, 182, 212, 0.35);
+}
+
+.view-nav-btn .nav-icon {
+  font-size: 12px;
+}
+
+/* Stage Breadcrumb & Status Pill */
+.stage-top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  background-color: #0c101a;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  flex-shrink: 0;
+}
+
+.stage-breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.stage-tag {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: #06b6d4;
+  background: rgba(6, 182, 212, 0.1);
+  border: 1px solid rgba(6, 182, 212, 0.25);
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+
+.stage-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.status-indicator-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: #34d399;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  padding: 2.5px 9px;
+  border-radius: 9999px;
+}
+
+/* Right Rail Inspector Dark Modernization */
+.inspector-card {
+  background-color: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  margin-bottom: 8px;
+}
+
+.card-label {
+  font-size: 9.5px;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: #64748b;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.resolution-box {
+  background-color: rgba(16, 185, 129, 0.08) !important;
+  border: 1px solid rgba(16, 185, 129, 0.25) !important;
+  border-radius: var(--radius-xs);
+  padding: 8px 10px;
+  color: #34d399 !important;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.auditor-badge-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.auditor-name-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  font-size: 11px;
+  color: var(--text-primary);
+}
+
+.finding-desc {
+  font-size: 11px;
+  color: #cbd5e1;
+  line-height: 1.45;
+}
+
+/* High Contrast Buttons for Dynamic Topology */
+.top-action-btn {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  color: #f8fafc !important;
+}
+
+.top-action-btn:hover {
+  background: rgba(255, 255, 255, 0.15) !important;
+  border-color: #06b6d4 !important;
+  box-shadow: 0 0 10px rgba(6, 182, 212, 0.3) !important;
+}
+
+.legend-chip {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  color: #cbd5e1 !important;
+  padding: 3px 9px !important;
+  border-radius: 9999px !important;
+  font-size: 10.5px !important;
 }
