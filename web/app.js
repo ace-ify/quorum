@@ -1096,10 +1096,113 @@ function applyRFCPreset(presetKey) {
   }
 }
 
+
+// ==========================================================================
+// DELPHI SHIMMER SKELETON CONTROLLER
+// ==========================================================================
+
+let skeletonTimerInterval = null;
+let skeletonNarrativeInterval = null;
+let skeletonStartTime = 0;
+
+function showDelphiSkeleton(title, dilemma) {
+  const overlay = document.getElementById("delphi-skeleton-overlay");
+  if (!overlay) return;
+
+  overlay.classList.add("active");
+  skeletonStartTime = Date.now();
+
+  const titleElem = document.getElementById("skeleton-status-title");
+  if (titleElem) titleElem.textContent = `CONVENING DELPHI REVIEW: ${title.toUpperCase()}`;
+
+  const narrativeElem = document.getElementById("skeleton-narrative-text");
+  const timerElem = document.getElementById("skeleton-timer-pill");
+
+  const secChip = document.getElementById("skel-sec");
+  const scaleChip = document.getElementById("skel-scale");
+  const finChip = document.getElementById("skel-fin");
+  const dataChip = document.getElementById("skel-data");
+
+  const resetChips = () => {
+    [secChip, scaleChip, finChip, dataChip].forEach(c => {
+      if (c) {
+        const tag = c.querySelector(".chamber-status-tag");
+        if (tag) {
+          tag.textContent = "LOCKING";
+          tag.style.color = "#38bdf8";
+        }
+      }
+    });
+  };
+  resetChips();
+
+  // Timer Tick
+  if (skeletonTimerInterval) clearInterval(skeletonTimerInterval);
+  skeletonTimerInterval = setInterval(() => {
+    const elapsed = ((Date.now() - skeletonStartTime) / 1000).toFixed(1);
+    if (timerElem) timerElem.textContent = `Elapsed: ${elapsed}s`;
+  }, 100);
+
+  // Progressive Stage Narrative
+  const narratives = [
+    { at: 0, text: "Partitioning 4 Soundproof Chambers across Switch Core (0 byte leakage)...", chamber: "sec" },
+    { at: 4, text: "Chamber #audit-security: Aegis running zero-trust surface scanner & CVE probes...", chamber: "sec" },
+    { at: 8, text: "Chamber #audit-scalability: Vanguard running p99 concurrency & partition simulator...", chamber: "scale" },
+    { at: 13, text: "Chamber #audit-finops: Ledger calculating AWS/GCP cloud egress right-sizing...", chamber: "fin" },
+    { at: 18, text: "Chamber #audit-database: Titan validating ACID outbox table and write amplification...", chamber: "data" },
+    { at: 23, text: "Athena convening #review-desk floor clash to reconcile specialist trade-offs...", chamber: "all" },
+    { at: 28, text: "Synthesizing final architecture vector topology & Michael Nygard ADR...", chamber: "all" }
+  ];
+
+  let stepIdx = 0;
+  if (skeletonNarrativeInterval) clearInterval(skeletonNarrativeInterval);
+  skeletonNarrativeInterval = setInterval(() => {
+    const elapsed = (Date.now() - skeletonStartTime) / 1000;
+    while (stepIdx < narratives.length - 1 && elapsed >= narratives[stepIdx + 1].at) {
+      stepIdx++;
+    }
+    const current = narratives[stepIdx];
+    if (narrativeElem) narrativeElem.textContent = current.text;
+
+    // Update chamber tags progressively
+    if (elapsed >= 5 && secChip) {
+      const tag = secChip.querySelector(".chamber-status-tag");
+      if (tag) { tag.textContent = "VERIFIED"; tag.style.color = "#34d399"; }
+    }
+    if (elapsed >= 10 && scaleChip) {
+      const tag = scaleChip.querySelector(".chamber-status-tag");
+      if (tag) { tag.textContent = "VERIFIED"; tag.style.color = "#34d399"; }
+    }
+    if (elapsed >= 15 && finChip) {
+      const tag = finChip.querySelector(".chamber-status-tag");
+      if (tag) { tag.textContent = "VERIFIED"; tag.style.color = "#34d399"; }
+    }
+    if (elapsed >= 20 && dataChip) {
+      const tag = dataChip.querySelector(".chamber-status-tag");
+      if (tag) { tag.textContent = "VERIFIED"; tag.style.color = "#34d399"; }
+    }
+  }, 500);
+}
+
+function hideDelphiSkeleton() {
+  const overlay = document.getElementById("delphi-skeleton-overlay");
+  if (overlay) overlay.classList.remove("active");
+
+  if (skeletonTimerInterval) {
+    clearInterval(skeletonTimerInterval);
+    skeletonTimerInterval = null;
+  }
+  if (skeletonNarrativeInterval) {
+    clearInterval(skeletonNarrativeInterval);
+    skeletonNarrativeInterval = null;
+  }
+}
+
+
 async function submitCustomRFC() {
   const titleInput = document.getElementById("custom-title-input");
   const dilemmaInput = document.getElementById("custom-dilemma-input");
-  const submitBtn = document.querySelector("#custom-rfc-modal button[type='submit']") || document.querySelector("#custom-rfc-modal .btn-primary") || document.querySelector("#custom-rfc-modal button");
+  const submitBtn = document.getElementById("modal-submit-btn") || document.querySelector("#custom-rfc-modal button[type='submit']") || document.querySelector("#custom-rfc-modal .modal-btn.primary");
 
   const title = (titleInput && titleInput.value.trim()) ? titleInput.value.trim() : "Custom Distributed Architecture";
   const dilemma = (dilemmaInput && dilemmaInput.value.trim()) ? dilemmaInput.value.trim() : "High-throughput microservices architecture with strict security and availability.";
@@ -1107,17 +1210,17 @@ async function submitCustomRFC() {
   const customKey = "custom_" + Date.now().toString(36);
   const rfcId = "RFC-" + Math.floor(100 + Math.random() * 900);
 
-  const prevText = submitBtn ? submitBtn.textContent : "";
-  if (submitBtn) {
-    submitBtn.textContent = "Synthesizing with Live Delphi LLM...";
-    submitBtn.disabled = true;
-  }
-  showToast(`Initiating Multi-Agent Delphi Board for: ${title}...`);
+  // Close modal immediately and show full canvas skeleton loader
+  closeCustomRFCModal();
+  setCenterView("topology");
+  showDelphiSkeleton(title, dilemma);
+  updateHUDDeliberationState(true, "DELPHI REVIEW RUNNING", `Synthesizing architecture review for "${title}" across 4 chambers...`);
+  showToast(`Initiating Delphi Council for: ${title}`);
 
   let liveSuccess = false;
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 60000);
+    const timeoutId = setTimeout(() => controller.abort(), 65000);
     const host = window.location.origin.startsWith("http") ? window.location.origin : "http://localhost:8788";
     const res = await fetch(`${host}/api/custom_rfc`, {
       method: "POST",
@@ -1195,10 +1298,7 @@ async function submitCustomRFC() {
   } catch (err) {
     console.log("Live backend server not reachable or timed out. Falling back to local synthesizer.", err);
   } finally {
-    if (submitBtn) {
-      submitBtn.textContent = prevText || "Convene Delphi Council";
-      submitBtn.disabled = false;
-    }
+    hideDelphiSkeleton();
   }
 
   if (!liveSuccess) {
@@ -1215,7 +1315,6 @@ async function submitCustomRFC() {
     dropdown.value = customKey;
   }
 
-  closeCustomRFCModal();
   showToast(`Consensus Locked for ${rfcId}!`);
   runDeliberationPipeline(customKey, false);
 }

@@ -19,14 +19,16 @@
     <div class="header-left">
       <div class="brand-wrap">
         <div class="brand-symbol-box">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
             <path d="M2 17l10 5 10-5"></path>
             <path d="M2 12l10 5 10-5"></path>
           </svg>
         </div>
-        <span class="brand-title">Quorum</span>
-        <span class="brand-version-pill">v2.4 Delphi</span>
+        <div class="brand-text-block">
+          <span class="brand-title">Quorum</span>
+          <span class="brand-version-pill">v2.4 Delphi</span>
+        </div>
       </div>
 
       <!-- Proposal Selector & Custom Trigger -->
@@ -38,10 +40,11 @@
             <option value="rfc019">RFC-019: Distributed URL Shortener (10B Keys)</option>
             <option value="rfc088">RFC-088: Multi-Region Payment Saga (50k RPS)</option>
           </select>
+          <svg class="picker-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
         </div>
         <button class="new-rfc-btn" onclick="openCustomRFCModal()" title="Submit custom architecture proposal">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-          <span>+ Custom RFC</span>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          <span>+ New Architecture RFC</span>
         </button>
       </div>
     </div>
@@ -50,32 +53,38 @@
     <div class="header-center-nav">
       <nav class="studio-view-nav" aria-label="Workbench Views">
         <button class="view-nav-btn active" data-view="topology" onclick="setCenterView('topology')">
-          <span class="nav-icon">🌐</span> Topology
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+          <span>Topology</span>
         </button>
         <button class="view-nav-btn" data-view="floor" onclick="setCenterView('floor')">
-          <span class="nav-icon">⚔️</span> Council Floor
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+          <span>Council Floor</span>
         </button>
         <button class="view-nav-btn" data-view="chambers" onclick="setCenterView('chambers')">
-          <span class="nav-icon">🔒</span> Chambers
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+          <span>Chambers</span>
         </button>
         <button class="view-nav-btn" data-view="tools" id="tool-traces-btn" onclick="setCenterView('tools')">
-          <span class="nav-icon">🔍</span> Tool Traces
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <span>Tool Traces (4)</span>
         </button>
         <button class="view-nav-btn" data-view="matrix" onclick="setCenterView('matrix')">
-          <span class="nav-icon">📊</span> Tension Matrix
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+          <span>Tension Matrix</span>
         </button>
         <button class="view-nav-btn" data-view="adr" onclick="setCenterView('adr')">
-          <span class="nav-icon">🚀</span> ADR & Handoff
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+          <span>ADR & Handoff</span>
         </button>
       </nav>
     </div>
 
-    <!-- Right Header Actions -->
+    <!-- Right Header Actions (Clean, Production-Grade, No Duplicate Pencil Buttons) -->
     <div class="header-right-actions">
       <!-- Live Deliberation Trigger -->
-      <button class="action-btn primary-convene-btn" id="convene-btn" onclick="triggerDeliberationRun()">
+      <button class="action-btn primary-convene-btn" id="convene-btn" onclick="triggerDeliberationRun()" title="Run multi-agent Delphi deliberation">
         <span class="btn-pulse-dot"></span>
-        <span id="convene-btn-text">⚡ Convene Review</span>
+        <span id="convene-btn-text">⚡ Run Review</span>
       </button>
 
       <!-- Speed Selector Toggle -->
@@ -84,20 +93,16 @@
         <span id="mode-text">Live Run</span>
       </button>
 
-      <button class="action-btn icon-only-btn" onclick="copyPRComment()" title="Copy GitHub PR Sticky Markdown">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
-      </button>
-      <button class="action-btn icon-only-btn" onclick="exportADR()" title="Export Michael Nygard ADR Markdown">
+      <!-- Clean Export ADR Action -->
+      <button class="action-btn secondary-hdr-btn" onclick="exportADR()" title="Export Michael Nygard Architecture Decision Record">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-      </button>
-      <button class="action-btn cli-handoff-btn" onclick="copyHandoffCommand()" title="Copy Claude Code implementer launch command">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>
-        <span>Copy CLI</span>
+        <span>Export ADR</span>
       </button>
 
       <!-- Toggle Right Inspector -->
       <button class="action-btn inspector-toggle-btn" id="inspector-toggle-btn" onclick="toggleInspector()" title="Toggle component specification inspector">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="15" y1="3" x2="15" y2="21"></line></svg>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="15" y1="3" x2="15" y2="21"></line></svg>
+        <span>Inspector</span>
       </button>
     </div>
   </header>
@@ -151,7 +156,7 @@
   </div>
 
   <!-- ==========================================================================
-       3. EXPANSIVE TWO-COLUMN STUDIO WORKSPACE (No Cluttered 3rd Rail)
+       3. EXPANSIVE TWO-COLUMN STUDIO WORKSPACE
        ========================================================================== -->
   <div class="studio-body" id="studio-body">
 
@@ -187,28 +192,122 @@
                   <span class="live-pulse-dot"></span>
                   <span class="tele-text" id="live-telemetry-text">100,420 msg/s • 17.8ms p99</span>
                 </div>
-                <!-- Interactive Canvas Controls -->
-                <div class="canvas-zoom-group">
-                  <button class="zoom-btn" onclick="zoomCanvas(-0.15)" title="Zoom Out">−</button>
-                  <span class="zoom-level" id="zoom-level-text">100%</span>
-                  <button class="zoom-btn" onclick="zoomCanvas(0.15)" title="Zoom In">+</button>
-                  <button class="zoom-btn reset" onclick="resetCanvasTransform()" title="Reset Canvas View">⟲</button>
+                
+                <!-- Interactive Canvas Controls (Standard 32px Touch Targets) -->
+                <div class="canvas-controls-bar">
+                  <div class="canvas-zoom-pill">
+                    <button class="zoom-btn" onclick="zoomCanvas(-0.15)" title="Zoom Out">−</button>
+                    <span class="zoom-level" id="zoom-level-text">100%</span>
+                    <button class="zoom-btn" onclick="zoomCanvas(0.15)" title="Zoom In">+</button>
+                    <button class="zoom-btn reset" onclick="resetCanvasTransform()" title="Reset Canvas View">Reset</button>
+                  </div>
+                  <button class="canvas-ctrl-btn" id="btn-toggle-drag" onclick="toggleDragMode()" title="Toggle node dragging mode">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0"></path><path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2"></path><path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8"></path><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"></path></svg>
+                    <span id="drag-status-label">Drag: ON</span>
+                  </button>
+                  <button class="canvas-ctrl-btn" id="btn-toggle-animation" onclick="toggleFlowAnimation()" title="Toggle traffic animation">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                    <span>Traffic: <span id="anim-status-label">ACTIVE</span></span>
+                  </button>
+                  <button class="canvas-ctrl-btn primary-ghost" id="btn-export-svg" onclick="exportDynamicSVG()" title="Export Vector SVG">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    <span>Export SVG</span>
+                  </button>
                 </div>
-                <button class="top-action-btn" id="btn-toggle-drag" onclick="toggleDragMode()" title="Toggle node dragging mode">
-                  <span class="btn-icon">🖐️</span> <span id="drag-status-label">Drag: ON</span>
-                </button>
-                <button class="top-action-btn" id="btn-toggle-animation" onclick="toggleFlowAnimation()">
-                  <span class="btn-icon">⚡</span> Traffic: <span id="anim-status-label">ACTIVE</span>
-                </button>
-                <button class="top-action-btn" id="btn-export-svg" onclick="exportDynamicSVG()">
-                  <span class="btn-icon">📥</span> Export SVG
-                </button>
               </div>
             </div>
 
-            <!-- SVG Container -->
+            <!-- SVG Container with Integrated Shimmer Skeleton -->
             <div class="dynamic-svg-viewport" id="dynamic-svg-viewport">
-              <!-- Rendered via app.js -->
+              <!-- Delphi Deliberation Shimmer Skeleton Overlay -->
+              <div class="delphi-skeleton-overlay" id="delphi-skeleton-overlay">
+                <div class="skeleton-scan-beam"></div>
+                <div class="skeleton-cockpit-card">
+                  <div class="skeleton-header-row">
+                    <div class="skeleton-status-badge">
+                      <span class="skeleton-spinner-ring"></span>
+                      <span class="skeleton-status-title" id="skeleton-status-title">CONVENING DELPHI ARCHITECTURE REVIEW</span>
+                    </div>
+                    <span class="skeleton-timer-pill" id="skeleton-timer-pill">Elapsed: 0.0s</span>
+                  </div>
+                  
+                  <div class="skeleton-narrative-bar">
+                    <span class="skeleton-pulse-dot"></span>
+                    <span id="skeleton-narrative-text">Partitioning 4 Soundproof Chambers across Switch Core...</span>
+                  </div>
+
+                  <!-- Shimmering Chamber Progress Grid -->
+                  <div class="skeleton-chambers-grid">
+                    <div class="skeleton-chamber-chip" id="skel-sec">
+                      <div class="chamber-dot sec"></div>
+                      <div class="chamber-text-wrap">
+                        <span class="chamber-agent-name">Aegis • Security</span>
+                        <span class="chamber-sub-status">Zero-Trust Boundaries</span>
+                      </div>
+                      <span class="chamber-status-tag">LOCKING</span>
+                    </div>
+                    <div class="skeleton-chamber-chip" id="skel-scale">
+                      <div class="chamber-dot scale"></div>
+                      <div class="chamber-text-wrap">
+                        <span class="chamber-agent-name">Vanguard • Scale</span>
+                        <span class="chamber-sub-status">p99 Concurrency Sim</span>
+                      </div>
+                      <span class="chamber-status-tag">LOCKING</span>
+                    </div>
+                    <div class="skeleton-chamber-chip" id="skel-fin">
+                      <div class="chamber-dot fin"></div>
+                      <div class="chamber-text-wrap">
+                        <span class="chamber-agent-name">Ledger • FinOps</span>
+                        <span class="chamber-sub-status">Cloud TCO Rightsizing</span>
+                      </div>
+                      <span class="chamber-status-tag">LOCKING</span>
+                    </div>
+                    <div class="skeleton-chamber-chip" id="skel-data">
+                      <div class="chamber-dot data"></div>
+                      <div class="chamber-text-wrap">
+                        <span class="chamber-agent-name">Titan • Storage</span>
+                        <span class="chamber-sub-status">ACID & Outbox Ledger</span>
+                      </div>
+                      <span class="chamber-status-tag">LOCKING</span>
+                    </div>
+                  </div>
+
+                  <!-- Shimmering Topology Wireframe Grid -->
+                  <div class="skeleton-nodes-row">
+                    <div class="skeleton-node-box shimmer-block">
+                      <div class="skel-line w-40"></div>
+                      <div class="skel-line w-80"></div>
+                      <div class="skel-pill"></div>
+                    </div>
+                    <div class="skeleton-node-box shimmer-block">
+                      <div class="skel-line w-50"></div>
+                      <div class="skel-line w-70"></div>
+                      <div class="skel-pill"></div>
+                    </div>
+                    <div class="skeleton-node-box shimmer-block">
+                      <div class="skel-line w-60"></div>
+                      <div class="skel-line w-85"></div>
+                      <div class="skel-pill"></div>
+                    </div>
+                    <div class="skeleton-node-box shimmer-block">
+                      <div class="skel-line w-45"></div>
+                      <div class="skel-line w-75"></div>
+                      <div class="skel-pill"></div>
+                    </div>
+                    <div class="skeleton-node-box shimmer-block">
+                      <div class="skel-line w-55"></div>
+                      <div class="skel-line w-80"></div>
+                      <div class="skel-pill"></div>
+                    </div>
+                    <div class="skeleton-node-box shimmer-block">
+                      <div class="skel-line w-40"></div>
+                      <div class="skel-line w-65"></div>
+                      <div class="skel-pill"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- Rendered SVG Injected via app.js -->
             </div>
 
             <!-- Invariant Summary Strip (Subtle Footer) -->
@@ -248,11 +347,12 @@
           </div>
 
           <div class="floor-input-bar">
-            <div class="quick-pills-row">
-              <button class="quick-pill" onclick="insertFloorPrompt('!summary')">!summary</button>
-              <button class="quick-pill" onclick="insertFloorPrompt('!diagram')">!diagram</button>
-              <button class="quick-pill" onclick="insertFloorPrompt('approve')">approve</button>
-              <button class="quick-pill" onclick="insertFloorPrompt('veto')">veto</button>
+            <div class="quick-prompts-row">
+              <span class="quick-prompt-label">STEERING DIRECTIVES:</span>
+              <button class="quick-chip" onclick="insertFloorPrompt('!summary')">!summary</button>
+              <button class="quick-chip" onclick="insertFloorPrompt('!diagram')">!diagram</button>
+              <button class="quick-chip" onclick="insertFloorPrompt('approve')">approve</button>
+              <button class="quick-chip" onclick="insertFloorPrompt('veto')">veto</button>
             </div>
             <form class="floor-form" onsubmit="handleFloorSubmit(event)">
               <input type="text" id="floor-user-input" class="floor-input" placeholder="Directive to Council (e.g. 'approve', '!summary', 'Mandate Redis Bloom filter')..." autocomplete="off">
@@ -262,40 +362,33 @@
         </div>
       </div>
 
-      <!-- View 3: Soundproof Chambers (Zero Leakage Monitor) -->
+      <!-- View 3: Soundproof Chambers (Blind Audits) -->
       <div class="canvas-view" id="view-chambers">
-        <div class="chambers-wrapper">
-          <!-- Telemetry Bar -->
-          <div class="telemetry-bar">
-            <div class="tele-stat">
-              <span class="tele-val text-success" id="tele-leakage">0 Bytes</span>
-              <span class="tele-label">Cross-Chamber Leakage</span>
-            </div>
-            <div class="tele-divider"></div>
-            <div class="tele-stat">
-              <span class="tele-val" id="tele-chambers">4 Active</span>
-              <span class="tele-label">Soundproof Chambers</span>
-            </div>
-            <div class="tele-divider"></div>
-            <div class="tele-stat">
-              <span class="tele-val text-brand">0.0% Anchor Bias</span>
-              <span class="tele-label">Sycophancy Echo Rate</span>
-            </div>
-            <div class="tele-divider"></div>
-            <div class="tele-stat">
-              <span class="tele-val text-purple">Switch Core 0.31.0</span>
-              <span class="tele-label">Server-Enforced ACLs</span>
-            </div>
+        <div class="chambers-overview-bar">
+          <div class="chambers-metric-card">
+            <span class="metric-val">0 Bytes</span>
+            <span class="metric-desc">Cross-Chamber Leakage</span>
           </div>
+          <div class="chambers-metric-card">
+            <span class="metric-val">4 Active</span>
+            <span class="metric-desc">Soundproof Chambers</span>
+          </div>
+          <div class="chambers-metric-card">
+            <span class="metric-val">0.0% Anchor Bias</span>
+            <span class="metric-desc">Sycophancy Echo Rate</span>
+          </div>
+          <div class="chambers-metric-card">
+            <span class="metric-val">Switch Core 0.31.0</span>
+            <span class="metric-desc">Server-Enforced ACLs</span>
+          </div>
+        </div>
 
-          <!-- Chamber Cards Grid -->
-          <div class="chambers-grid" id="chambers-grid-container">
-            <!-- Dynamically populated via app.js -->
-          </div>
+        <div class="chambers-grid" id="chambers-grid-container">
+          <!-- Dynamically populated via app.js -->
         </div>
       </div>
 
-      <!-- View 4: Specialist Tool Execution Traces -->
+      <!-- View 4: Specialist Tool Traces -->
       <div class="canvas-view" id="view-tools">
         <div class="tools-stream-wrap" id="tools-stream-container">
           <!-- Dynamically populated via app.js -->
@@ -320,14 +413,20 @@
         </div>
       </div>
 
-      <!-- View 6: ADR & Implementer Handoff -->
+      <!-- View 6: ADR & Implementer Handoff (Clean, Non-Redundant Action Layout) -->
       <div class="canvas-view" id="view-adr">
         <div class="handoff-layout">
           <!-- Left Panel: Michael Nygard ADR -->
           <div class="adr-sheet-card">
             <div class="card-header-line">
-              <span class="card-kicker">MICHAEL NYGARD STANDARD</span>
-              <span class="badge-mini approved">Consensus Locked</span>
+              <div class="hdr-kicker-group">
+                <span class="card-kicker">MICHAEL NYGARD STANDARD</span>
+                <span class="badge-mini approved">Consensus Locked</span>
+              </div>
+              <button class="badge-action-btn" onclick="exportADR()" title="Download markdown file">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                <span>Download ADR (.md)</span>
+              </button>
             </div>
             <div class="adr-sheet" id="adr-sheet-content">
               <!-- Dynamically populated via app.js -->
@@ -338,7 +437,7 @@
           <div class="handoff-manifest-card">
             <div class="card-header-line">
               <span class="card-kicker">AUTONOMOUS IMPLEMENTER BRIDGE</span>
-              <button class="badge-action-btn" onclick="copyHandoffCommand()">Copy CLI</button>
+              <span class="badge-mini approved">Claude Code / Codex Target</span>
             </div>
 
             <div class="manifest-meta-box">
@@ -357,19 +456,26 @@
               <!-- Dynamically populated via app.js -->
             </div>
 
+            <!-- Terminal Launch Command (Single High-Contrast Action) -->
             <div class="terminal-command-box">
               <div class="term-bar">
                 <span class="term-title">Terminal Launch Command (Claude Code / Codex)</span>
-                <button class="term-copy-btn" onclick="copyHandoffCommand()">Copy</button>
+                <button class="term-copy-btn" onclick="copyHandoffCommand()">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                  <span>Copy Command</span>
+                </button>
               </div>
               <pre class="term-code" id="term-launch-display"></pre>
             </div>
 
-            <!-- GitHub PR Sticky Preview -->
+            <!-- GitHub PR Sticky Preview (Single High-Contrast Action) -->
             <div class="pr-sticky-preview-box">
               <div class="term-bar">
                 <span class="term-title">GitHub PR Sticky Review Comment</span>
-                <button class="term-copy-btn" onclick="copyPRComment()">Copy PR Markdown</button>
+                <button class="term-copy-btn" onclick="copyPRComment()">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                  <span>Copy PR Markdown</span>
+                </button>
               </div>
               <div class="pr-preview-scroll" id="pr-preview-content">
                 <!-- Dynamically populated via app.js -->
@@ -381,7 +487,7 @@
 
     </main>
 
-    <!-- RIGHT INSPECTOR: Contextual Detail Panel (Clean Linear Style) -->
+    <!-- RIGHT COMPONENT SPECIFICATION INSPECTOR (Slide-Out Precision Rail) -->
     <aside class="inspector-rail" id="inspector-rail">
       <div class="inspector-header">
         <div class="inspector-title-row">
@@ -449,7 +555,7 @@ result: "CVE-2023-4580 (CVSS 8.1 High)"</pre>
   </div>
 
   <!-- ==========================================================================
-       4. CUSTOM ARCHITECTURE RFC MODAL (Zero-Mock Assurance)
+       4. CUSTOM ARCHITECTURE RFC MODAL
        ========================================================================== -->
   <div class="custom-modal-backdrop" id="custom-rfc-modal" style="display:none;" onclick="handleModalBackdropClick(event)">
     <div class="custom-modal-card">
@@ -488,7 +594,7 @@ result: "CVE-2023-4580 (CVSS 8.1 High)"</pre>
 
       <div class="modal-footer">
         <button class="modal-btn secondary" onclick="closeCustomRFCModal()">Cancel</button>
-        <button class="modal-btn primary" onclick="submitCustomRFC()">
+        <button class="modal-btn primary" id="modal-submit-btn" onclick="submitCustomRFC()">
           <span>🚀 Launch Delphi Deliberation</span>
         </button>
       </div>
