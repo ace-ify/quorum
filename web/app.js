@@ -1202,12 +1202,9 @@ function synthesizeCustomProposal(key, rfcId, title, dilemma) {
       { from: "outbox", to: "kafka" }
     ];
     toolsLog = [
-      { agent: "Aegis", role: "Staff Security Auditor", tool: "id_entropy_auditor", duration: "110ms", tag: "sec", query: 'entropy_check: "auto_increment"
-vector: "scraping"', result: '{\n  "flaw": "Sequential IDs allow automated link enumeration",\n  "resolution": "64-bit Feistel block cipher permutation"\n}' },
-      { agent: "Vanguard", role: "Principal Systems Architect", tool: "redirect_latency_sim", duration: "185ms", tag: "scale", query: 'concurrency: 50000
-read_write_ratio: "100:1"', result: '{\n  "measured_p99": "8.4ms",\n  "cache_hit_rate": "91.4%",\n  "status": "PASS: Low Latency SLA Enforced"\n}' },
-      { agent: "Ledger", role: "Lead Cloud Economics", tool: "kv_storage_tco", duration: "92ms", tag: "fin", query: 'records: 10000000000
-storage_model: "RAM_vs_NVMe"', result: '{\n  "ram_only_cost": "$28,500/mo",\n  "tiered_cassandra_cost": "$16,500/mo",\n  "annual_savings": "$14,400/yr"\n}' }
+      { agent: "Aegis", role: "Staff Security Auditor", tool: "id_entropy_auditor", duration: "110ms", tag: "sec", query: "entropy_check: auto_increment\nvector: scraping", result: JSON.stringify({ flaw: "Sequential IDs allow automated link enumeration", resolution: "64-bit Feistel block cipher permutation" }, null, 2) },
+      { agent: "Vanguard", role: "Principal Systems Architect", tool: "redirect_latency_sim", duration: "185ms", tag: "scale", query: "concurrency: 50000\nread_write_ratio: 100:1", result: JSON.stringify({ measured_p99: "8.4ms", cache_hit_rate: "91.4%", status: "PASS: Low Latency SLA Enforced" }, null, 2) },
+      { agent: "Ledger", role: "Lead Cloud Economics", tool: "kv_storage_tco", duration: "92ms", tag: "fin", query: "records: 10000000000\nstorage_model: RAM_vs_NVMe", result: JSON.stringify({ ram_only_cost: "$28,500/mo", tiered_cassandra_cost: "$16,500/mo", annual_savings: "$14,400/yr" }, null, 2) }
     ];
     components = {
       clients: { title: "50,000 QPS Redirect Ingress", auditor: "Vanguard • Principal Systems", score: "Score: 8.5/10", avatar: "V", tag: "scale", toolName: "http_redirect_probe", toolDuration: "35ms", toolSnippet: 'target: "50,000 QPS"', finding: "High-volume redirects directly hitting DB cause connection spikes.", resolution: "Anycast edge routing with HTTP 302/301 cached responses.", code: "HTTP/1.1 302 Found\nLocation: https://example.com/target" },

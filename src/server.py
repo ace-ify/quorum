@@ -9,7 +9,7 @@ import os
 import json
 import mimetypes
 from pathlib import Path
-from http.server import HTTPServer, SimpleHTTPRequestHandler
+from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
 import urllib.parse
 
 import asyncio
@@ -141,7 +141,7 @@ class QuorumStudioHandler(SimpleHTTPRequestHandler):
 
 def run_server(port: int = 8788):
     server_address = ("", port)
-    httpd = HTTPServer(server_address, QuorumStudioHandler)
+    httpd = ThreadingHTTPServer(server_address, QuorumStudioHandler)
     print(f"Quorum Studio Server running at http://localhost:{port}/")
     print(f"Connected to Switch Core 0.31.0 Delphi Isolation Engine")
     try:
